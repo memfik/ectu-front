@@ -6,6 +6,7 @@ import { Check as CheckIcon, ChevronDown, ListFilter, X } from "lucide-react"
 import { applyQuery, fmt, plural, type Query } from "@/lib/list/query"
 import type { Filter, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
+import { field, TagInput } from "./form-controls"
 import { btn, checkBox, circ } from "./ui"
 
 const count = <T,>(f: Filter<T>, rows: T[], v: string) =>
@@ -74,7 +75,7 @@ export function FilterDrawer<T extends Row>({
                 <div key={f.k} className="mb-[18px]">
                   <div className="mb-2 text-[13.5px] font-medium">{f.t}</div>
                   {f.ui === "tags" ? (
-                    <TagsField filter={f} value={draft[f.k] ?? []} onChange={(v) => set(f.k, v)} />
+                    <TagInput opts={f.opts} short={f.short} value={draft[f.k] ?? []} onChange={(v) => set(f.k, v)} />
                   ) : (
                     <MultiField filter={f} rows={rows} value={draft[f.k] ?? []} onChange={(v) => set(f.k, v)} />
                   )}
@@ -131,15 +132,12 @@ export function FilterDrawer<T extends Row>({
   )
 }
 
-const field =
-  "flex min-h-[46px] w-full items-center gap-2 rounded-[14px] border border-[var(--dd-line)] bg-[var(--chip-bg)] px-3.5 text-left text-sm outline-none"
-
 /** Выпадающий список с флажками и числом записей (Тип сети, Статус…). */
 function MultiField<T>({ filter: f, rows, value, onChange }: { filter: Filter<T>; rows: T[]; value: string[]; onChange: (v: string[]) => void }) {
   const label = value.map((v) => f.opts.find((o) => o.v === v)?.label ?? v).join(", ")
   return (
     <Popover.Root>
-      <Popover.Trigger className={cn(field, "data-[state=open]:border-[#085eff] data-[state=open]:shadow-[0_0_0_3px_rgba(8,94,255,0.2)]")}>
+      <Popover.Trigger className={field}>
         <span className={cn("flex-1 truncate", !value.length && "text-muted-foreground")}>{label || (f.any ?? "Любое")}</span>
         <ChevronDown className="size-4 opacity-60" />
       </Popover.Trigger>
@@ -165,62 +163,6 @@ function MultiField<T>({ filter: f, rows, value, onChange }: { filter: Filter<T>
             </button>
           )
         })}
-      </Popover.Content>
-    </Popover.Root>
-  )
-}
-
-/** Плашки выбранных значений + «Добавить…» с подсказками (Филиал). */
-function TagsField<T>({ filter: f, value, onChange }: { filter: Filter<T>; value: string[]; onChange: (v: string[]) => void }) {
-  const [text, setText] = useState("")
-  const [open, setOpen] = useState(false)
-  const rest = f.opts.filter((o) => !value.includes(o.v) && o.label.toLowerCase().includes(text.trim().toLowerCase()))
-  const add = (v: string) => {
-    onChange([...value, v])
-    setText("")
-  }
-  return (
-    <Popover.Root open={open && rest.length > 0} onOpenChange={setOpen}>
-      <Popover.Anchor asChild>
-        <div className={cn(field, "flex-wrap py-[7px]")} onClick={() => setOpen(true)}>
-          {value.map((v) => (
-            <span
-              key={v}
-              className="flex h-[30px] items-center gap-1.5 rounded-full border border-[rgba(8,94,255,0.4)] bg-[rgba(8,94,255,0.16)] pr-1.5 pl-3 text-[13px]"
-            >
-              {f.short?.(v) ?? v}
-              <button type="button" aria-label={`Убрать ${v}`} onClick={() => onChange(value.filter((x) => x !== v))}>
-                <X className="size-3.5" />
-              </button>
-            </span>
-          ))}
-          <input
-            value={text}
-            onChange={(e) => {
-              setText(e.target.value)
-              setOpen(true)
-            }}
-            onFocus={() => setOpen(true)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && rest[0]) add(rest[0].v)
-              if (e.key === "Backspace" && !text && value.length) onChange(value.slice(0, -1))
-            }}
-            placeholder="Добавить…"
-            className="h-[30px] min-w-[100px] flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
-          />
-        </div>
-      </Popover.Anchor>
-      <Popover.Content
-        sideOffset={8}
-        align="start"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        className="z-[110] max-h-[280px] w-[var(--radix-popover-trigger-width)] min-w-[300px] overflow-auto rounded-[14px] border border-[var(--dd-line)] bg-[var(--dd-bg)] p-1.5 text-[var(--mg-text)] shadow-[var(--dd-shadow)] outline-none"
-      >
-        {rest.map((o) => (
-          <button key={o.v} type="button" onClick={() => add(o.v)} className="flex w-full rounded-[10px] px-2.5 py-2.5 text-left text-sm hover:bg-[var(--mg-on)]">
-            {o.label}
-          </button>
-        ))}
       </Popover.Content>
     </Popover.Root>
   )

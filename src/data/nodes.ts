@@ -23,8 +23,17 @@ export type NodeRow = {
   /** Занято / всего волокон; null — узел без ВОЛС (РРЛ) */
   fibers: [number, number] | null
   status: NodeStatus
-  /** Группа эксплуатации и расстояние до неё */
-  ops: string
+  /** Нумерация узла в филиале */
+  num: number
+  /** Группа эксплуатации (ЦТ, ГЭ…), удалённость УС от неё, км, и её адрес */
+  opsGroup: string
+  opsKm: number
+  opsPlace: string
+  /** Технологии подключения УС / ТП; `tech` — подключения клиентов в ТП */
+  techNode: string[]
+  comment: string
+  /** Последнее изменение, ДД.ММ.ГГГГ */
+  updated: string
   equipment: number
   idChannels: number
   clients: number
@@ -38,10 +47,11 @@ export type NodeRow = {
   ll: [number, number]
 }
 
-export const BRANCHES: { v: string; label: string; latin: string; cities: [string, string][] }[] = [
-  { v: "АС", label: "Астана (АС)", latin: "AS", cities: [["Астана", "ast"]] },
+export const BRANCHES: { v: string; label: string; full: string; latin: string; cities: [string, string][] }[] = [
+  { v: "АС", full: "Астанинский филиал (АС)", label: "Астана (АС)", latin: "AS", cities: [["Астана", "ast"]] },
   {
     v: "АФ",
+    full: "Актюбинский филиал (АФ)",
     label: "Актобе (АФ)",
     latin: "AF",
     cities: [
@@ -52,6 +62,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
   },
   {
     v: "ВФ",
+    full: "Восточный филиал (ВФ)",
     label: "Павлодар (ВФ)",
     latin: "VF",
     cities: [
@@ -61,6 +72,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
   },
   {
     v: "ЗФ",
+    full: "Западный филиал (ЗФ)",
     label: "Атырау (ЗФ)",
     latin: "ZF",
     cities: [
@@ -70,6 +82,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
   },
   {
     v: "МФ",
+    full: "Мангистауский филиал (МФ)",
     label: "Актау (МФ)",
     latin: "MF",
     cities: [
@@ -79,6 +92,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
   },
   {
     v: "УФ",
+    full: "Уральский филиал (УФ)",
     label: "Уральск (УФ)",
     latin: "UF",
     cities: [
@@ -88,6 +102,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
   },
   {
     v: "ЮФ",
+    full: "Южный филиал (ЮФ)",
     label: "Алматы (ЮФ)",
     latin: "YF",
     cities: [
@@ -98,6 +113,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
   },
   {
     v: "ШФ",
+    full: "Шымкентский филиал (ШФ)",
     label: "Шымкент (ШФ)",
     latin: "SF",
     cities: [
@@ -107,6 +123,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
   },
   {
     v: "КФ",
+    full: "Карагандинский филиал (КФ)",
     label: "Караганда (КФ)",
     latin: "KF",
     cities: [
@@ -118,7 +135,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
 
 export const STATUS_LABEL: Record<NodeStatus, string> = { work: "В работе", rebuild: "Реконструкция", off: "Выведен" }
 
-const SEED: Omit<NodeRow, "id" | "ops" | "equipment" | "idChannels" | "clients" | "onMap" | "hasDocs" | "ll" | "region" | "objectType">[] = [
+const SEED: Omit<NodeRow, "id" | "num" | "opsGroup" | "opsKm" | "opsPlace" | "techNode" | "comment" | "updated" | "equipment" | "idChannels" | "clients" | "onMap" | "hasDocs" | "ll" | "region" | "objectType">[] = [
   {
     code: "url002.01.UF",
     object: "УС «Уральск Центральный»",
@@ -319,7 +336,13 @@ export function nodeRows(): NodeRow[] {
   const rows: NodeRow[] = SEED.map((x, i) => ({
     id: i + 1,
     ...x,
-    ops: `ЦТ г. ${x.city} · ${i ? (r() * 9).toFixed(1).replace(".", ",") : "0"} км`,
+    num: i + 1,
+    opsGroup: "ЦТ",
+    opsKm: i ? Math.round(r() * 90) / 10 : 0,
+    opsPlace: x.address.replace(/^[^,]+, /, ""),
+    techNode: x.tech.slice(0, 1),
+    comment: "",
+    updated: "06.10.2026",
     equipment: i ? 1 + Math.floor(r() * 6) : 1,
     idChannels: i ? Math.floor(r() * 4) : 0,
     clients: i ? Math.floor(r() * 40) : 24,
@@ -366,7 +389,13 @@ export function nodeRows(): NodeRow[] {
       tech,
       fibers: tech[0] === "РРЛ" ? null : [Math.floor(r() * total * 0.9) + 1, total],
       status,
-      ops: `ЦТ г. ${city} · ${(r() * 25).toFixed(1).replace(".", ",")} км`,
+      num: seq[code],
+      opsGroup: pick(["ЦТ", "ЦТ", "ГЭ", "РУЭС"]),
+      opsKm: Math.round(r() * 250) / 10,
+      opsPlace: `г. ${city}, ${pick(STREETS)}, ${1 + Math.floor(r() * 90)}`,
+      techNode: tech.slice(0, 1),
+      comment: "",
+      updated: `${String(1 + Math.floor(r() * 28)).padStart(2, "0")}.${pick(["08", "09", "10"])}.2026`,
       equipment: 1 + Math.floor(r() * 6),
       idChannels: Math.floor(r() * 4),
       clients: Math.floor(r() * 40),
@@ -380,3 +409,6 @@ export function nodeRows(): NodeRow[] {
   cache = rows
   return rows
 }
+
+/** «ЦТ г. Уральск · 0 км» — для превью и паспорта. */
+export const opsLabel = (x: NodeRow) => `${x.opsGroup} г. ${x.city} · ${String(x.opsKm).replace(".", ",")} км`

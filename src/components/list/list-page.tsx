@@ -5,10 +5,12 @@ import Link from "next/link"
 import { ArrowRight, ChevronDown, Filter, Layers, LayoutGrid, List, Map as MapIcon, Pencil, QrCode, Search, Trash2, X } from "lucide-react"
 import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/config/lists"
+import { useRows } from "@/lib/list/store"
 import { applyQuery, emptyQuery, exportCsv, fmt, type Query } from "@/lib/list/query"
 import type { HeroButton, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { FilterDrawer } from "./filter-drawer"
+import { FormDrawer } from "./form-drawer"
 import { ActiveChips, FilterChip } from "./filters"
 import { MapView } from "./map-view"
 import { Bar, btn, Check, circ, Pill, Tag } from "./ui"
@@ -23,11 +25,13 @@ export function ListPage({ list: key }: { list: string }) {
 }
 
 function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
-  const rows = useMemo(() => cfg.rows(), [cfg])
+  const rows = useRows(cfg)
   const [q, setQState] = useState<Query>(() => emptyQuery(cfg))
   const [page, setPage] = useState(0)
   const [mode, setModeState] = useState<Mode>("table")
   const [more, setMore] = useState(false)
+  // Шторка формы: { id: null } — новая запись
+  const [form, setForm] = useState<{ id: number | null } | null>(null)
   const [size, setSize] = useState(SIZE.table)
   const [checked, setChecked] = useState<Set<number>>(new Set())
   const [active, setActive] = useState<number | null>(rows[0]?.id ?? null)
@@ -58,6 +62,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
       exportCsv(cfg, checked.size ? rows.filter((x) => checked.has(x.id)) : list)
       return toast(`Выгружено ${fmt(checked.size || list.length)} записей (CSV)`)
     }
+    if (b.onClick === "create") return setForm({ id: null })
     toast(`«${b.label}» — следующим экраном`)
   }
 
@@ -139,6 +144,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   return (
     <div className="relative isolate">
       <FilterDrawer cfg={cfg} rows={rows} q={q} open={more} onOpenChange={setMore} onApply={setQ} />
+      {form && <FormDrawer key={form.id ?? "new"} cfg={cfg} id={form.id} onClose={() => setForm(null)} />}
       <Hero cfg={cfg} total={rows.length} onAction={action} />
 
       <div className="relative z-[1] -mt-[148px] grid grid-cols-6 gap-3.5 px-(--page-gutter) max-[1500px]:grid-cols-3 max-sm:grid-cols-2 max-sm:gap-2.5 max-[1279px]:mt-4">
@@ -174,7 +180,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
             {toolbar}
             <ActiveChips cfg={cfg} q={q} setQ={setQ} />
           </section>
-          <Cards cfg={cfg} rows={view} checked={checked} toggle={toggle} />
+          <Cards cfg={cfg} rows={view} checked={checked} toggle={toggle} onEdit={(id) => setForm({ id })} />
           {pager}
         </div>
       ) : (
@@ -241,7 +247,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
                           </td>
                         ))}
                         <td className={td(on, "last")} onClick={(e) => e.stopPropagation()}>
-                          <RowActions />
+                          <RowActions onEdit={() => setForm({ id: x.id })} />
                         </td>
                       </tr>
                     )
@@ -259,7 +265,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
             {pager}
           </section>
 
-          {current && <PreviewPanel cfg={cfg} row={current} onClose={() => setActive(null)} />}
+          {current && <PreviewPanel cfg={cfg} row={current} onClose={() => setActive(null)} onEdit={() => setForm({ id: current.id })} />}
         </div>
       )}
     </div>
@@ -397,14 +403,14 @@ function SortSelect<T extends Row>({ cfg, q, setQ }: { cfg: ListConfig<T>; q: Qu
   )
 }
 
-/** QR · изменить · удалить. TODO: QR (n-10), правка (n-05), удаление с причиной (n-09). */
-function RowActions() {
+/** QR · изменить · удалить. TODO: QR (n-10), удаление с причиной (n-09). */
+function RowActions({ onEdit }: { onEdit: () => void }) {
   return (
     <div className="flex justify-end gap-1.5">
       <button type="button" className={cn(circ, "size-8")} title="QR-код" onClick={() => toast("QR-код узла — следующим экраном")}>
         <QrCode />
       </button>
-      <button type="button" className={cn(circ, "size-8")} title="Изменить" onClick={() => toast("Редактирование — следующим экраном")}>
+      <button type="button" className={cn(circ, "size-8")} title="Изменить" onClick={onEdit}>
         <Pencil />
       </button>
       <button
@@ -425,11 +431,13 @@ function Cards<T extends Row>({
   rows,
   checked,
   toggle,
+  onEdit,
 }: {
   cfg: ListConfig<T>
   rows: T[]
   checked: Set<number>
   toggle: (id: number) => void
+  onEdit: (id: number) => void
 }) {
   if (!rows.length) return <div className="py-16 text-center text-muted-foreground">Ничего не найдено — измените поиск или фильтры</div>
   return (
@@ -475,7 +483,7 @@ function Cards<T extends Row>({
                 </>
               )}
               <div className="mt-4 flex items-center gap-1.5">
-                <RowActions />
+                <RowActions onEdit={() => onEdit(x.id)} />
                 <button type="button" className={cn(btn({ sm: true }), "ml-auto")} onClick={() => toast("Паспорт — следующим этапом")}>
                   <ArrowRight />
                   {c.open}
@@ -553,7 +561,7 @@ function Pager({
   )
 }
 
-function PreviewPanel<T extends Row>({ cfg, row, onClose }: { cfg: ListConfig<T>; row: T; onClose: () => void }) {
+function PreviewPanel<T extends Row>({ cfg, row, onClose, onEdit }: { cfg: ListConfig<T>; row: T; onClose: () => void; onEdit: () => void }) {
   const p = cfg.preview(row)
   return (
     <aside className="sticky top-4 w-[420px] flex-none self-start overflow-hidden rounded-3xl border border-border bg-[var(--glass-card)] backdrop-blur-[18px] max-[1500px]:w-[360px] max-[1279px]:hidden">
@@ -596,7 +604,7 @@ function PreviewPanel<T extends Row>({ cfg, row, onClose }: { cfg: ListConfig<T>
           </div>
         )}
         <div className="mt-4 flex gap-2">
-          {/* TODO: «На карте» и «Изменить» — экраны карты и правки */}
+          {/* TODO: «На карте» — паспорт, вкладка «Карта» (p02) */}
           <button type="button" title="На карте" className={cn(circ, "size-11")} onClick={() => toast("Узел на карте — экран «Карта»")}>
             <MapIcon />
           </button>
@@ -604,7 +612,7 @@ function PreviewPanel<T extends Row>({ cfg, row, onClose }: { cfg: ListConfig<T>
             type="button"
             title="Изменить"
             className={cn(circ, "size-11")}
-            onClick={() => toast("Редактирование — следующим экраном")}
+            onClick={onEdit}
           >
             <Pencil />
           </button>

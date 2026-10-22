@@ -85,6 +85,42 @@ export type Card = {
   open: string
 }
 
+/** Значение поля формы: строка или список (теги). */
+export type FieldValue = string | string[]
+
+/** Поле шторки создания / редактирования (FormDrawer, экраны n-04, n-05). */
+export type Field<T> = {
+  k: string
+  t: string
+  /** Блок формы: «Основное», «Эксплуатация»… — подзаголовок перед первым полем блока. */
+  section: string
+  type: "text" | "number" | "select" | "tags" | "textarea"
+  /** Половина ширины — два поля в строке. */
+  half?: boolean
+  required?: boolean
+  placeholder?: string
+  /** Подсказка справа от подписи («формат: город+№.№.филиал»). */
+  hint?: string
+  opts?: Option[]
+  /** Плашка статуса вместо текста в выбранном значении. */
+  tone?: (v: string) => Tone | undefined
+  /** Ошибка значения (кроме «обязательно»). */
+  check?: (v: FieldValue) => string | undefined
+  get: (x: T) => FieldValue
+  set: (x: T, v: FieldValue) => T
+}
+
+export type FormConfig<T> = {
+  fields: Field<T>[]
+  /** Пустая запись для «Создать». */
+  blank: (id: number) => T
+  create: { title: string; sub: string; submit: string }
+  /** «Последнее изменение ДД.ММ.ГГГГ» в шапке редактирования. */
+  updated?: (x: T) => string
+  /** Метка изменения записи при сохранении (дата). */
+  touch?: (x: T) => T
+}
+
 export type ListConfig<T extends Row> = {
   key: string
   title: string
@@ -109,6 +145,7 @@ export type ListConfig<T extends Row> = {
   card: (x: T) => Card
   /** «Показать 1 110 узлов» — родительный падеж мн. ч. и склонения: [1, 2–4, 5+]. */
   unit: [string, string, string]
+  form: FormConfig<T>
   /** Точка для вида «Карта»; без него вида «Карта» нет. */
   map?: (x: T) => { ll: [number, number]; title: string; sub: string; tone: Tone; note: string } | null
 }
