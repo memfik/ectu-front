@@ -57,8 +57,31 @@ export type Equipment = {
   status: "ok" | "warn"
 }
 export type Doc = { id: number; name: string; kind: string; size: string; date: string; ext: "pdf" | "xlsx" | "docx" | "dwg" }
-export type Comment = { id: number; author: Person; when: string; text: string; pinned?: boolean }
-export type HistoryItem = { id: number; what: string; who: string; when: string; kind: "edit" | "file" | "link" | "create" }
+export type Comment = {
+  id: number
+  author: Person
+  /** Коротко для «Обзора» («06.10») и полностью для вкладки */
+  when: string
+  at: string
+  text: string
+  pinned?: boolean
+  /** Ответ на комментарий id */
+  reply?: number
+  reactions?: number
+}
+export type HistoryItem = {
+  id: number
+  what: string
+  who: string
+  /** ДД.ММ.ГГГГ и ЧЧ:ММ */
+  when: string
+  time: string
+  kind: "edit" | "file" | "link" | "people" | "delete" | "create"
+  /** Было → стало */
+  from?: string
+  to?: string
+  note?: string
+}
 export type Media = { src: string; video?: string; title: string; date: string }
 
 export type NodeDetail = {
@@ -87,7 +110,7 @@ export type NodeDetail = {
 const P = {
   bd: { initials: "БД", name: "Борис Б. Дегтярь", role: "Инженер ЦТ", color: "linear-gradient(135deg,#0ea5e9,#0369a1)", synced: true, phone: "+7 701 *** 12 45", email: "b.degtyar@qmobile.kz", dept: "ЦТ, г. Астана", inv: "INV-004471" },
   no: { initials: "НО", name: "Нурдаулет С. Осербай", role: "Ведущий инженер ГЭ", color: "linear-gradient(135deg,#a855f7,#6d28d9)", synced: true, phone: "+7 702 *** 88 10", email: "n.oserbay@qmobile.kz", dept: "ГЭ ЦТ", inv: "INV-005120" },
-  ag: { initials: "АГ", name: "Артем Г.", role: "ApiServDE", color: "linear-gradient(135deg,#085eff,#001a9f)" },
+  ag: { initials: "АГ", name: "Артем С. Галустьян", role: "ApiServDE", color: "linear-gradient(135deg,#085eff,#001a9f)" },
 } satisfies Record<string, Person>
 
 const MEDIA: Media[] = [
@@ -233,17 +256,31 @@ export function nodeDetail(x: NodeRow): NodeDetail {
       { id: 6, name: "Филиал г. Астана (18).xlsx", kind: "Приёмо-сдаточная", size: "86 КБ", date: "20.12.2025", ext: "xlsx" },
     ],
     comments: [
-      { id: 1, author: P.ag, when: "06.10", text: "Арендодатель меняется с 01.11 — нужен новый договор.", pinned: true },
-      { id: 2, author: P.bd, when: "вчера", text: "Ок, скан приложу в документацию." },
-      { id: 3, author: P.no, when: "сегодня", text: "Проверил ИБП, батареи в норме." },
+      {
+        id: 1,
+        author: P.ag,
+        when: "06.10",
+        at: "06.10.2026, 14:30",
+        text: "С 01.11 меняется арендодатель площадки. @Борис Дегтярь, подготовь, пожалуйста, скан нового договора и приложи в «Приёмо-сдаточную».",
+        pinned: true,
+        reactions: 2,
+      },
+      { id: 2, author: P.bd, when: "вчера", at: "07.10.2026, 09:12", text: "Принял. Договор будет на этой неделе, загружу сразу после подписания.", reply: 1 },
+      { id: 3, author: P.no, when: "02.10", at: "02.10.2026, 17:48", text: "На ВОЛС №49 освободили волокно 4 — его можно отдавать под новый ID-канал.", reactions: 1 },
     ],
     history: [
-      { id: 1, what: "Тип сети: ГРС → ГМС", who: "Артем С. Галустьян", when: "06.10.2026", kind: "edit" },
-      { id: 2, what: "Загружен «ТД Ренко.pdf»", who: "Борис Б. Дегтярь", when: "14.01.2026", kind: "file" },
-      { id: 3, what: "Привязана ВОЛС №49", who: "Нурдаулет С. Осербай", when: "03.12.2025", kind: "link" },
-      { id: 4, what: "Ответственный: Борис Б. Дегтярь", who: "HR-синхронизация", when: "20.11.2025", kind: "edit" },
-      { id: 5, what: "Статус: Реконструкция → В работе", who: "Артем С. Галустьян", when: "02.09.2025", kind: "edit" },
-      { id: 6, what: "Узел создан", who: "Импорт Excel", when: "18.06.2025", kind: "create" },
+      { id: 1, what: "Изменено поле «Удалённость от ГЭ»", from: "5,1 км", to: "4,8 км", who: "Артем С. Галустьян", note: "ручное изменение", when: "07.10.2026", time: "11:04", kind: "edit" },
+      { id: 2, what: "Изменён тип сети", from: "ГРС", to: "ГМС", who: "Артем С. Галустьян", note: "ручное изменение", when: "06.10.2026", time: "14:22", kind: "edit" },
+      { id: 3, what: "Синхронизированы ответственные", who: "Система", note: "HR-синхронизация · автоматически", when: "06.10.2026", time: "06:30", kind: "people" },
+      { id: 4, what: "Загружен «ТД Ренко.pdf»", who: "Борис Б. Дегтярь", note: "Техническая документация", when: "14.01.2026", time: "10:05", kind: "file" },
+      { id: 5, what: "Привязана ВОЛС трасса №49 → УС «РТПЦ»", who: "Нурдаулет С. Осербай", when: "03.12.2025", time: "17:40", kind: "link" },
+      { id: 6, what: "Удалён документ «Акт осмотра 2024.pdf»", who: "Нурдаулет С. Осербай", note: "перемещён в Корзину", when: "03.12.2025", time: "17:32", kind: "delete" },
+      { id: 7, what: "Изменён статус", from: "Реконструкция", to: "В работе", who: "Артем С. Галустьян", note: "ручное изменение", when: "02.09.2025", time: "12:10", kind: "edit" },
+      { id: 8, what: "Загружен «Акт ввода в эксплуатацию.pdf»", who: "Борис Б. Дегтярь", note: "Приёмо-сдаточная документация", when: "18.06.2025", time: "16:44", kind: "file" },
+      { id: 9, what: "Изменено поле «Адрес»", from: "промзона, 7", to: "промзона Желаево, 7", who: "Борис Б. Дегтярь", note: "ручное изменение", when: "18.06.2025", time: "16:20", kind: "edit" },
+      { id: 10, what: "Загружен «Схема размещения оборудования.dwg»", who: "Нурдаулет С. Осербай", note: "Техническая документация", when: "18.06.2025", time: "15:02", kind: "file" },
+      { id: 11, what: "Изменено поле «Группа эксплуатации»", from: "—", to: "ЦТ", who: "Артем С. Галустьян", note: "ручное изменение", when: "18.06.2025", time: "11:30", kind: "edit" },
+      { id: 12, what: "Узел создан", who: "Артем С. Галустьян", note: "Импорт Excel", when: "18.06.2025", time: "11:12", kind: "create" },
     ],
     media,
   }

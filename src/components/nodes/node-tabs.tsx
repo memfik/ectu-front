@@ -7,8 +7,19 @@ import {
   ArrowRight,
   ArrowUpRight,
   Cable,
+  AtSign,
+  Bell,
+  Bold,
+  Calendar,
   ChartColumn,
   ChevronDown,
+  Italic,
+  ListFilter,
+  MessageSquare,
+  Paperclip,
+  Send,
+  Smile,
+  Trash2,
   Download,
   Eye,
   FileText,
@@ -42,6 +53,7 @@ import { btn, checkBox, circ, Pill } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import type { Equipment, NodeDetail, PortState } from "@/data/node-detail"
 import type { NodeRow } from "@/data/nodes"
+import { CURRENT_USER } from "@/lib/current-user"
 import { cn } from "@/lib/utils"
 import { Avatar, Card, glass, Kv } from "@/components/passport/ui"
 
@@ -1032,5 +1044,352 @@ export function DocsTab({ d }: { d: NodeDetail }) {
         })}
       </div>
     </div>
+  )
+}
+
+/* ---------- t07 · Комментарии ---------- */
+
+/** Вкладка «Комментарии» (экран t07): обсуждение с ответами и упоминаниями, участники, настройки уведомлений. */
+export function CommentsTab({ d }: { d: NodeDetail }) {
+  const [list, setList] = useState(d.comments)
+  const [pinnedOnly, setPinnedOnly] = useState(false)
+  const [text, setText] = useState("")
+  const [notify, setNotify] = useState({ comments: true, mentions: true, passport: false })
+  const roots = list.filter((c) => !c.reply && (!pinnedOnly || c.pinned))
+  const authors = [...new Map(list.map((c) => [c.author.initials, c.author])).values()]
+  const send = () => {
+    if (!text.trim()) return
+    const me = {
+      initials: CURRENT_USER.initial,
+      name: CURRENT_USER.name,
+      role: CURRENT_USER.login,
+      color: "linear-gradient(135deg,#085eff,#001a9f)",
+    }
+    const at = new Date().toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+    // TODO: сохранение комментария и рассылка упоминаний — API
+    setList([{ id: Date.now(), author: me, when: "сейчас", at, text: text.trim() }, ...list])
+    setText("")
+  }
+
+  return (
+    <div className="grid grid-cols-[1.6fr_1fr] items-start gap-[18px] max-[1279px]:grid-cols-1">
+      <Card
+        icon={MessageSquare}
+        title="Обсуждение узла"
+        count={list.length}
+        action={
+          <button
+            type="button"
+            aria-pressed={pinnedOnly}
+            onClick={() => setPinnedOnly(!pinnedOnly)}
+            className={cn(btn({ sm: true }), pinnedOnly && "border-[#085eff] bg-[rgba(8,94,255,0.16)]")}
+          >
+            Только закреплённые
+          </button>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          {roots.map((c) => (
+            <div key={c.id}>
+              <CommentItem c={c} replies={list.filter((r) => r.reply === c.id).length} />
+              {list
+                .filter((r) => r.reply === c.id)
+                .map((r) => (
+                  <div key={r.id} className="mt-3 ml-14">
+                    <CommentItem c={r} />
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 rounded-2xl border border-border bg-[var(--chip-bg)]">
+          <div className="flex gap-1 border-b border-border px-3 py-2">
+            {[Bold, Italic, List, AtSign, Paperclip, Smile].map((I, i) => (
+              <button
+                key={i}
+                type="button"
+                className="grid size-8 place-items-center rounded-lg text-[var(--nav-text)] hover:bg-[var(--nav-hover)]"
+                onClick={() => (I === AtSign ? setText((t) => `${t}@`) : toast("Форматирование — в следующей версии редактора"))}
+              >
+                <I className="size-4" />
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && (e.metaKey || e.ctrlKey) && send()}
+            rows={3}
+            aria-label="Комментарий"
+            placeholder="Напишите комментарий… Используйте @, чтобы упомянуть коллегу"
+            className="block w-full resize-none bg-transparent px-4 py-3 text-sm outline-none placeholder:text-muted-foreground"
+          />
+          <div className="flex items-center justify-between border-t border-border px-3 py-2.5">
+            <span className="pl-1 text-[13px] text-muted-foreground">Видно всем, у кого есть доступ к узлу</span>
+            <button type="button" className={btn({ primary: true, sm: true })} disabled={!text.trim()} onClick={send}>
+              <Send />
+              Отправить
+            </button>
+          </div>
+        </div>
+      </Card>
+      <div className="flex flex-col gap-[18px]">
+        <Card icon={Users} title="Участники" count={authors.length}>
+          {authors.map((p) => (
+            <div key={p.initials} className="flex items-center gap-3 border-b border-border py-2.5 last:border-0">
+              <Avatar initials={p.initials} color={p.color} />
+              <span>
+                <b className="block text-sm font-semibold">{p.name}</b>
+                <span className="text-xs text-muted-foreground">{p.initials === "АГ" ? "Администратор" : "Ответственный"}</span>
+              </span>
+            </div>
+          ))}
+        </Card>
+        <Card icon={Bell} title="Уведомления">
+          {(
+            [
+              ["comments", "Новые комментарии"],
+              ["mentions", "Упоминания меня"],
+              ["passport", "Изменения паспорта"],
+            ] as const
+          ).map(([k, t]) => (
+            <button
+              key={k}
+              type="button"
+              role="checkbox"
+              aria-checked={notify[k]}
+              onClick={() => setNotify({ ...notify, [k]: !notify[k] })}
+              className="flex w-full items-center gap-2.5 py-1.5 text-left text-sm"
+            >
+              <span className={checkBox(notify[k])} />
+              {t}
+            </button>
+          ))}
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+function CommentItem({ c, replies = 0 }: { c: NodeDetail["comments"][number]; replies?: number }) {
+  // @Имя Фамилия — подсветка упоминаний
+  const parts = c.text.split(/(@[А-ЯЁA-Z][а-яёa-z]+ [А-ЯЁA-Z][а-яёa-z]+)/)
+  return (
+    <div className="flex gap-3">
+      <Avatar initials={c.author.initials} color={c.author.color} />
+      <div
+        className={cn(
+          "min-w-0 flex-1 rounded-2xl border border-border bg-[var(--chip-bg)] px-4 py-3 text-[13.5px]",
+          c.pinned && "border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.08)]",
+        )}
+      >
+        <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <b className="text-[13px] text-foreground">{c.author.name}</b>
+          {c.at}
+          {c.pinned && (
+            <span className="rounded-full bg-[rgba(8,94,255,0.18)] px-2 py-0.5 font-semibold text-[var(--link)]">Закреплено</span>
+          )}
+        </span>
+        <p className="mt-1.5">
+          {parts.map((p, i) =>
+            p.startsWith("@") ? (
+              <b key={i} className="font-semibold text-[var(--link)]">
+                {p}
+              </b>
+            ) : (
+              p
+            ),
+          )}
+        </p>
+        {(!!c.reactions || replies > 0) && (
+          <span className="mt-2.5 flex gap-1.5">
+            {!!c.reactions && <span className="rounded-full border border-border px-2 py-0.5 text-xs">+{c.reactions}</span>}
+            {replies > 0 && (
+              <span className="flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs">
+                <MessageSquare className="size-3" />
+                {replies} {replies === 1 ? "ответ" : "ответа"}
+              </span>
+            )}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ---------- t08 · История ---------- */
+
+const KIND: Record<NodeDetail["history"][number]["kind"], { t: string; icon: typeof Pencil; c: string }> = {
+  edit: { t: "Изменения полей", icon: Pencil, c: "#4f8dff" },
+  file: { t: "Документы", icon: Upload, c: "#2bd463" },
+  delete: { t: "Документы", icon: Trash2, c: "#ff5257" },
+  link: { t: "Связи (ВОЛС, каналы)", icon: Cable, c: "#2bd463" },
+  people: { t: "Ответственные", icon: UserCog, c: "#ffc24a" },
+  create: { t: "Изменения полей", icon: Plus, c: "#4f8dff" },
+}
+
+/** Вкладка «История» (экран t08): лента изменений по дням (было → стало), фильтры по типу, пользователю и периоду. */
+export function HistoryTab({ d }: { d: NodeDetail }) {
+  const [q, setQ] = useState("")
+  const types = [...new Set(Object.values(KIND).map((k) => k.t))]
+  const users = [...new Set(d.history.map((h) => h.who))]
+  const [offTypes, setOffTypes] = useState<string[]>([])
+  const [offUsers, setOffUsers] = useState<string[]>([])
+  const [period, setPeriod] = useState("all")
+  const toggle = (list: string[], set: (v: string[]) => void, v: string) =>
+    set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v])
+  // «сейчас» — один раз при открытии вкладки (расчёт периода и «Сегодня»)
+  const [now] = useState(() => Date.now())
+  const today = new Date(now).toLocaleDateString("ru-RU")
+
+  const list = d.history.filter((h) => {
+    const [dd, mm, yy] = h.when.split(".").map(Number)
+    const age = (now - new Date(yy, mm - 1, dd).getTime()) / 864e5
+    return (
+      !offTypes.includes(KIND[h.kind].t) &&
+      !offUsers.includes(h.who) &&
+      (period === "all" || age <= Number(period)) &&
+      `${h.what} ${h.who} ${h.note ?? ""}`.toLowerCase().includes(q.trim().toLowerCase())
+    )
+  })
+  const days = [...new Set(list.map((h) => h.when))]
+
+  const exportCsv = () => {
+    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`
+    const text = [
+      "Дата;Время;Событие;Было;Стало;Кто;Примечание",
+      ...list.map((h) => [h.when, h.time, h.what, h.from ?? "", h.to ?? "", h.who, h.note ?? ""].map(esc).join(";")),
+    ].join("\n")
+    const a = document.createElement("a")
+    a.href = URL.createObjectURL(new Blob(["﻿" + text], { type: "text/csv;charset=utf-8" }))
+    a.download = "История_узла.csv"
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
+  return (
+    <div className="grid grid-cols-[1fr_440px] items-start gap-[18px] max-[1279px]:grid-cols-1">
+      <Card
+        icon={History}
+        title="История изменений"
+        count={d.history.length}
+        action={
+          <span className="flex gap-2">
+            <SearchBox value={q} onChange={setQ} placeholder="Поиск по истории…" />
+            <button type="button" className={btn({ sm: true })} onClick={exportCsv}>
+              <Download />
+              Экспорт
+            </button>
+          </span>
+        }
+      >
+        {days.map((day) => (
+          <div key={day}>
+            <h5 className="mt-1 mb-2.5 text-xs font-semibold tracking-[1px] text-[var(--mg-dim)] uppercase">
+              {day === today ? `Сегодня · ${day}` : day}
+            </h5>
+            {list
+              .filter((h) => h.when === day)
+              .map((h) => {
+                const k = KIND[h.kind]
+                return (
+                  <div key={h.id} className="mb-2.5 flex gap-3.5 rounded-2xl border border-border bg-[var(--chip-bg)] px-4 py-3.5">
+                    <span
+                      className="grid size-9 flex-none place-items-center rounded-[10px]"
+                      style={{ color: k.c, background: `color-mix(in srgb, ${k.c} 14%, transparent)` }}
+                    >
+                      <k.icon className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <b className="block text-sm font-semibold">{h.what}</b>
+                      {h.from !== undefined && (
+                        <span className="my-1.5 flex items-center gap-2 text-xs">
+                          <s className="rounded-md bg-[rgba(255,59,59,0.14)] px-2 py-0.5 text-[#ff5257]">{h.from}</s>
+                          <ArrowRight className="size-3.5" />
+                          <span className="rounded-md bg-[rgba(43,212,99,0.14)] px-2 py-0.5 text-[var(--status-ok)]">{h.to}</span>
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {h.who}
+                        {h.note && ` · ${h.note}`}
+                      </span>
+                    </span>
+                    <span className="text-xs text-muted-foreground tabular-nums">{h.time}</span>
+                  </div>
+                )
+              })}
+          </div>
+        ))}
+        {!list.length && <p className="py-10 text-center text-muted-foreground">Ничего не найдено</p>}
+      </Card>
+
+      <Card icon={ListFilter} title="Фильтры">
+        <FilterGroup title="Тип события">
+          {types.map((t) => (
+            <FilterCheck
+              key={t}
+              t={t}
+              on={!offTypes.includes(t)}
+              n={d.history.filter((h) => KIND[h.kind].t === t).length}
+              onClick={() => toggle(offTypes, setOffTypes, t)}
+            />
+          ))}
+        </FilterGroup>
+        <FilterGroup title="Пользователь">
+          {users.map((u) => (
+            <FilterCheck
+              key={u}
+              t={u}
+              on={!offUsers.includes(u)}
+              n={d.history.filter((h) => h.who === u).length}
+              onClick={() => toggle(offUsers, setOffUsers, u)}
+            />
+          ))}
+        </FilterGroup>
+        <FilterGroup title="Период">
+          <label className="relative flex h-11 items-center gap-2 rounded-full border border-border bg-[var(--chip-bg)] px-4 text-sm">
+            <Calendar className="size-4 text-muted-foreground" />
+            {{ all: "Всё время", "30": "30 дней", "90": "3 месяца", "365": "Год" }[period]}
+            <ChevronDown className="ml-auto size-4 opacity-60" />
+            <select
+              aria-label="Период"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="absolute inset-0 cursor-pointer opacity-0"
+            >
+              <option value="all">Всё время</option>
+              <option value="30">30 дней</option>
+              <option value="90">3 месяца</option>
+              <option value="365">Год</option>
+            </select>
+          </label>
+        </FilterGroup>
+      </Card>
+    </div>
+  )
+}
+
+function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-4">
+      <h5 className="mb-2 text-xs font-semibold tracking-[1px] text-[var(--mg-dim)] uppercase">{title}</h5>
+      {children}
+    </div>
+  )
+}
+
+function FilterCheck({ t, on, n, onClick }: { t: string; on: boolean; n: number; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={on}
+      onClick={onClick}
+      className="flex w-full items-center gap-2.5 py-1.5 text-left text-sm"
+    >
+      <span className={checkBox(on)} />
+      <span className="flex-1">{t}</span>
+      <span className="text-xs text-muted-foreground tabular-nums">{n}</span>
+    </button>
   )
 }

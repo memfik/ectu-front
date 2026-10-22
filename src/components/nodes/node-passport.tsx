@@ -39,7 +39,7 @@ import type { Tone } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { Avatar, glass, Kv } from "@/components/passport/ui"
 import { NodeOverview } from "./node-overview"
-import { ClientsTab, DocsTab, EquipmentTab, FibersTab, IdTab, PeopleTab } from "./node-tabs"
+import { ClientsTab, CommentsTab, DocsTab, EquipmentTab, FibersTab, HistoryTab, IdTab, PeopleTab } from "./node-tabs"
 
 const PointsMap = dynamic(() => import("@/components/map/points-map").then((m) => m.PointsMap), {
   ssr: false,
@@ -463,6 +463,10 @@ export function NodePassport({ id }: { id: number }) {
           <PeopleTab d={d} />
         ) : tab === "docs" ? (
           <DocsTab d={d} />
+        ) : tab === "comments" ? (
+          <CommentsTab d={d} />
+        ) : tab === "history" ? (
+          <HistoryTab d={d} />
         ) : (
           <p className="py-16 text-center text-muted-foreground">Вкладка «{tabs.find((t) => t.k === tab)?.t}» — следующим экраном</p>
         )}
