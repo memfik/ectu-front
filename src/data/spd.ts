@@ -33,6 +33,8 @@ export type SpdRow = {
   backup: boolean
   /** Дата ввода в эксплуатацию */
   since: string
+  /** BGP-сессии: поднято / всего (маршрутизаторы) */
+  bgp: [number, number]
   /** Координаты узла связи */
   ll: [number, number]
 }
@@ -51,10 +53,12 @@ const MODELS: Record<SpdRow["kind"], [vendor: string, model: string, ports: numb
     ["D-Link", "DGS-1100-10/ME", 52, "DGS 1.10.010"],
   ],
   router: [
-    ["Cisco", "CISCO3845", 8, "IOS 15.1(4)M"],
-    ["Cisco", "ASR1001-X", 12, "IOS XE 17.3"],
-    ["Juniper", "MX204", 8, "Junos 21.4R3"],
-    ["MikroTik", "CCR1036-8G-2S+", 10, "RouterOS 7.12"],
+    ["Cisco", "ASR 1006", 9, "IOS-XE 16.9"],
+    ["Cisco", "ASR 9001", 12, "IOS-XE 16.12"],
+    ["Cisco", "Cisco 881-K9", 4, "IOS-XE 17.3"],
+    ["Cisco", "Cisco 7206VXR", 9, "IOS-XE 16.9"],
+    ["Cisco", "Cisco 1941", 4, "IOS-XE 17.3"],
+    ["Cisco", "ISR4431", 8, "IOS-XE 17.6"],
   ],
 }
 
@@ -206,13 +210,13 @@ export function spdRows(kind: SpdRow["kind"]): SpdRow[] {
       ? (MODELS.switch.find((m) => m[1] === seed.model && m[2] === seed.portsTotal) ?? MODELS.switch[0])
       : pick(MODELS[kind])
     // загрузка 50–92% (в среднем ~71%, > 90% — примерно у 5%), как в KPI макета
-    const used = Math.max(1, Math.round(ports * (0.5 + r() * 0.42)))
+    const used = Math.max(1, Math.min(ports, Math.round(ports * (0.5 + r() * 0.42))))
     const city = n.city
     rows.push({
       id: i + 1,
       num: i + 1,
       kind,
-      host: `${kind === "switch" ? "sw" : "bb"}${Math.floor(r() * 9) + (kind === "switch" ? 0 : 1)}.${n.code.slice(0, 3)}${1 + Math.floor(r() * 60)}`,
+      host: `${kind === "switch" ? "sw" : pick(["rt", "gw", "bb"])}${Math.floor(r() * 9) + (kind === "switch" ? 0 : 1)}.${n.code.slice(0, 3)}${1 + Math.floor(r() * 60)}`,
       vendor,
       model,
       serial: `${pick(["FOC", "1329N-", "SG", "QB"])}${Math.floor(1e4 + r() * 9e4)}${pick(["Y20E", "", "K", "ME"])}`,
@@ -232,6 +236,7 @@ export function spdRows(kind: SpdRow["kind"]): SpdRow[] {
       contract: `№ ${204500000 + Math.floor(r() * 99999)}`,
       mol: r() > 0.69 ? pick(["Борис Б. Дегтярь", "Айгерим Т. Кенжебаева", "Ербол М. Садыков"]) : null,
       backup: r() > 0.02,
+      bgp: ((t: number) => [r() > 0.96 ? t - 1 : t, t] as [number, number])(1 + Math.floor(r() * 4)),
       since: `${String(1 + Math.floor(r() * 28)).padStart(2, "0")}.${String(1 + Math.floor(r() * 12)).padStart(2, "0")}.${2016 + Math.floor(r() * 9)}`,
       ...seed,
     } as SpdRow)
