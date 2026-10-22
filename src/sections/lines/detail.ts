@@ -77,6 +77,10 @@ export type LineKind = {
   sceneNode?: (c: LineCtx) => React.ReactNode
   /** Своя схема вместо трассы А — Б (схема портов ODF) */
   schemaNode?: (c: LineCtx) => React.ReactNode
+  /** Без 3D-сцены (клиенты): кнопки «Схема», «Карта», «Фото» */
+  noScene?: boolean
+  /** Без вкладки документов (клиенты) */
+  noDocs?: boolean
   /** Подписи и значки первых двух кнопок сцены (по умолчанию «3D», «Схема») */
   stageLabels?: [[string, LucideIcon], [string, LucideIcon]]
   /** Длины на схеме: км (линии) или м (канализация) */
@@ -105,7 +109,7 @@ export type LineKind = {
   rows: (x: GenRow, d: LineDetail) => { t: string; v: React.ReactNode }[]
   related: (x: GenRow, d: LineDetail) => Related[]
   strandRows: (x: GenRow, d: LineDetail) => { t: string; v: React.ReactNode }[]
-  inputDocs: { t: string; n: string }[]
+  inputDocs: { t: string; n: string }[] | ((x: GenRow) => { t: string; n: string }[])
   docs: Omit<LineDoc, "id">[]
   /** Первое событие истории: что изменено и было → стало */
   lastEdit: (d: { total: number; a: number; b: number }, x: GenRow) => [string, string, string]
@@ -186,7 +190,7 @@ export function lineDetail(x: GenRow, k: LineKind): LineDetail {
     strands,
     note: c.a ? "sw1.ast009 uplink, ID-канал" : "",
     rent: { len: "0", pay: "", basis: "", tu: "№ 1203 от 10.10.2025", confirmed: true },
-    inputDocs: k.inputDocs,
+    inputDocs: typeof k.inputDocs === "function" ? k.inputDocs(x) : k.inputDocs,
     docs: k.docs.map((doc, i) => ({ ...doc, id: i + 1 })),
     media: [
       "/nodes/photo-1.jpg",

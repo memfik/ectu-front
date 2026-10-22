@@ -57,7 +57,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
   const base = useMemo(() => (x ? lineDetail(x, k) : null), [x, k])
   // Участки правятся на месте (TODO(API): сохранение участков)
   const [segments, setSegments] = useState<Segment[] | null>(null)
-  const [stage, setStage] = useState<Stage>("scene")
+  const [stage, setStage] = useState<Stage>(k.noScene ? "schema" : "scene")
   const [tab, setTab] = useState("overview")
   const [edit, setEdit] = useState(false)
   const [del, setDel] = useState(false)
@@ -110,7 +110,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
   const tabs: { k: string; t: string; icon: typeof LayoutGrid; n?: number }[] = [
     { k: "overview", t: "Обзор", icon: LayoutGrid },
     ...own,
-    { k: "docs", t: k.docsTab ?? "Документация", icon: FileText, n: d.docs.length },
+    ...(k.noDocs ? [] : [{ k: "docs", t: k.docsTab ?? "Документация", icon: FileText, n: d.docs.length }]),
     { k: "history", t: "История", icon: History, n: d.history.length },
   ]
 
@@ -146,7 +146,9 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
               / Паспорт
             </p>
             <h1 className="mt-1 flex flex-wrap items-center gap-3 text-4xl font-semibold tracking-[-0.6px] max-sm:text-[26px]">
-              {spec.name(x)}
+              <span className="max-w-[520px] truncate" title={spec.name(x)}>
+                {spec.name(x)}
+              </span>
               <button
                 type="button"
                 aria-label="Скопировать"
@@ -230,7 +232,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
                   </div>
                 </div>
               )}
-              <StageSwitch value={stage} onChange={setStage} labels={k.stageLabels} />
+              <StageSwitch value={stage} onChange={setStage} labels={k.stageLabels} noScene={k.noScene} />
             </div>
 
             <div className="flex flex-col gap-[18px]">
@@ -397,13 +399,15 @@ function StageSwitch({
     ["3D", Box],
     ["Схема", Layers],
   ],
+  noScene,
 }: {
   value: Stage
   onChange: (s: Stage) => void
   labels?: LineKind["stageLabels"]
+  noScene?: boolean
 }) {
   const items = [
-    ["scene", ...labels[0]],
+    ...(noScene ? [] : [["scene", ...labels[0]] as const]),
     ["schema", ...labels[1]],
     ["map", "Карта", MapIcon],
     ["photo", "Фото", ImageIcon],

@@ -384,6 +384,7 @@ export function EditableTable({
   noun,
   cols,
   rows: initial,
+  add = "Добавить",
 }: {
   icon: typeof Rows3
   title: string
@@ -391,6 +392,8 @@ export function EditableTable({
   noun: string
   cols: Col[]
   rows: Row[]
+  /** Подпись кнопки добавления */
+  add?: string
 }) {
   const [rows, setRows] = useState(initial)
   const [edit, setEdit] = useState<Row | "new" | null>(null)
@@ -402,7 +405,7 @@ export function EditableTable({
       action={
         <button type="button" className={btn({ primary: true, sm: true })} onClick={() => setEdit("new")}>
           <Plus />
-          Добавить
+          {add}
         </button>
       }
     >
