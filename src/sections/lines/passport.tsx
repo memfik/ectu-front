@@ -95,8 +95,10 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
     gallery: setGallery,
   }
   const own = k.tabs(c)
+  const tail = k.tail?.(c)
   const full = tab === "overview"
   const related = k.related(x, d)
+  const title = k.title ? k.title(x) : spec.name(x)
   const media: Media[] = d.media.map((src, i) => ({
     src,
     title: `${spec.name(x)} · фото ${i + 1}`,
@@ -111,7 +113,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
     { k: "overview", t: "Обзор", icon: LayoutGrid },
     ...own,
     ...(k.noDocs ? [] : [{ k: "docs", t: k.docsTab ?? "Документация", icon: FileText, n: d.docs.length }]),
-    { k: "history", t: "История", icon: History, n: d.history.length },
+    ...(tail ?? [{ k: "history", t: "История", icon: History, n: d.history.length }]),
   ]
 
   return (
@@ -146,14 +148,14 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
               / Паспорт
             </p>
             <h1 className="mt-1 flex flex-wrap items-center gap-3 text-4xl font-semibold tracking-[-0.6px] max-sm:text-[26px]">
-              <span className="max-w-[520px] truncate" title={spec.name(x)}>
-                {spec.name(x)}
+              <span className="max-w-[520px] truncate" title={title}>
+                {title}
               </span>
               <button
                 type="button"
                 aria-label="Скопировать"
                 className="text-muted-foreground hover:text-foreground"
-                onClick={() => navigator.clipboard?.writeText(spec.name(x)).then(() => toast("Скопировано"))}
+                onClick={() => navigator.clipboard?.writeText(title).then(() => toast("Скопировано"))}
               >
                 <Copy className="size-5" />
               </button>
@@ -163,7 +165,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
               </span>
             </h1>
           </div>
-          <div className="ml-12 flex flex-wrap gap-x-[34px] gap-y-3 max-[1500px]:ml-0">
+          <div className="ml-6 flex flex-wrap gap-x-[26px] gap-y-3 max-[1700px]:ml-0">
             {k.stats(c).map((st) => (
               <Stat key={st.t} {...st} />
             ))}
@@ -328,7 +330,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
             ))}
           </div>
         )}
-        {own.find((t) => t.k === tab)?.node}
+        {[...own, ...(tail ?? [])].find((t) => t.k === tab)?.node}
         {tab === "docs" && <LineDocsTab d={d} onGallery={setGallery} />}
         {tab === "history" && <LineHistoryTab d={d} />}
       </div>

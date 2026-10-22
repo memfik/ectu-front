@@ -100,12 +100,16 @@ export type LineKind = {
   laying?: boolean
   /** Подпись вкладки документов (у АМС — «Разрешительные документы») */
   docsTab?: string
+  /** Заголовок паспорта (по умолчанию — имя записи из описания раздела) */
+  title?: (x: GenRow) => string
   /** Плашка рядом со статусом в шапке */
   pill: (x: GenRow) => string
   stats: (c: LineCtx) => LineStat[]
   summary: (c: LineCtx) => LineSum[]
   /** Вкладки между «Обзором» и «Документацией» */
   tabs: (c: LineCtx) => LineTab[]
+  /** Вкладки после «Документации» вместо «Истории» (история перемещений оборудования) */
+  tail?: (c: LineCtx) => LineTab[]
   rows: (x: GenRow, d: LineDetail) => { t: string; v: React.ReactNode }[]
   related: (x: GenRow, d: LineDetail) => Related[]
   strandRows: (x: GenRow, d: LineDetail) => { t: string; v: React.ReactNode }[]

@@ -638,7 +638,10 @@ function ChildDialog({
 
 /* ---------- МОЛ и ответственные (sw-08, swp-11) ---------- */
 
-export function MolTab({ d, onChange }: { d: SpdDetail; onChange: (m: SpdDetail["mol"]) => void }) {
+/** Что нужно вкладкам МОЛ и перемещений — общие для СПД, АТС, PDH, SDH, DWDM. */
+export type Staff = Pick<SpdDetail, "mol" | "people" | "moves"> & { log?: SpdDetail["log"] }
+
+export function MolTab({ d, onChange }: { d: Pick<Staff, "mol" | "people">; onChange: (m: SpdDetail["mol"]) => void }) {
   const [assign, setAssign] = useState(false)
   const person = (p: SpdDetail["people"][number] | SpdDetail["mol"], title: string, action?: React.ReactNode) => (
     <section className={cn(glass, "p-[22px]")}>
@@ -935,7 +938,7 @@ const MOVE: Record<Move["status"], [string, "ok" | "muted" | "info"]> = {
   plan: ["Запланировано", "info"],
 }
 
-export function MovesTab({ d, x, onChange }: { d: SpdDetail; x: SpdRow; onChange: (m: Move[]) => void }) {
+export function MovesTab({ d, x, onChange }: { d: Staff; x: Pick<SpdRow, "nodeCode" | "branch">; onChange: (m: Move[]) => void }) {
   const [st, setSt] = useState<"all" | Move["status"]>("all")
   const [add, setAdd] = useState(false)
   const list = d.moves.filter((m) => st === "all" || m.status === st)
@@ -1003,30 +1006,42 @@ export function MovesTab({ d, x, onChange }: { d: SpdDetail; x: SpdRow; onChange
           </table>
         </div>
       </Card>
-      <Card icon={FileText} title="Журнал изменений паспорта" count={d.log.length}>
-        {d.log.map((h, i) => (
-          <div key={i} className="mb-2 flex items-center gap-3 rounded-2xl border border-border bg-[var(--chip-bg)] px-4 py-3">
-            <Pencil className="size-4 text-[var(--link)]" />
-            <span className="flex-1">
-              <b className="block text-sm font-semibold">{h.what}</b>
-              {h.from && (
-                <span className="my-1 flex items-center gap-2 text-xs">
-                  <s className="rounded-md bg-[rgba(255,59,59,0.14)] px-2 py-0.5 text-[#ff5257]">{h.from}</s>→
-                  <span className="rounded-md bg-[rgba(43,212,99,0.14)] px-2 py-0.5 text-[var(--status-ok)]">{h.to}</span>
-                </span>
-              )}
-              <span className="text-xs text-muted-foreground">{h.who}</span>
-            </span>
-            <span className="text-xs text-muted-foreground">{h.date}</span>
-          </div>
-        ))}
-      </Card>
+      {!!d.log?.length && (
+        <Card icon={FileText} title="Журнал изменений паспорта" count={d.log.length}>
+          {d.log.map((h, i) => (
+            <div key={i} className="mb-2 flex items-center gap-3 rounded-2xl border border-border bg-[var(--chip-bg)] px-4 py-3">
+              <Pencil className="size-4 text-[var(--link)]" />
+              <span className="flex-1">
+                <b className="block text-sm font-semibold">{h.what}</b>
+                {h.from && (
+                  <span className="my-1 flex items-center gap-2 text-xs">
+                    <s className="rounded-md bg-[rgba(255,59,59,0.14)] px-2 py-0.5 text-[#ff5257]">{h.from}</s>→
+                    <span className="rounded-md bg-[rgba(43,212,99,0.14)] px-2 py-0.5 text-[var(--status-ok)]">{h.to}</span>
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">{h.who}</span>
+              </span>
+              <span className="text-xs text-muted-foreground">{h.date}</span>
+            </div>
+          ))}
+        </Card>
+      )}
       {add && <MoveDialog d={d} x={x} onClose={() => setAdd(false)} onSave={(m) => onChange([m, ...d.moves])} />}
     </div>
   )
 }
 
-function MoveDialog({ d, x, onClose, onSave }: { d: SpdDetail; x: SpdRow; onClose: () => void; onSave: (m: Move) => void }) {
+function MoveDialog({
+  d,
+  x,
+  onClose,
+  onSave,
+}: {
+  d: Staff
+  x: Pick<SpdRow, "nodeCode" | "branch">
+  onClose: () => void
+  onSave: (m: Move) => void
+}) {
   const nodes = nodeRows()
   const people = [...new Set([...d.people.map((p) => p.name), ...STAFF.map((p) => p.name), d.mol.name])].map((v) => ({ v, label: v }))
   const [v, setV] = useState<Move>({
