@@ -33,6 +33,7 @@ import { ALL_SECTIONS } from "@/config/nav"
 import { useThemeTransition } from "@/hooks/use-theme-transition"
 import { CURRENT_USER } from "@/lib/current-user"
 import { cn } from "@/lib/utils"
+import { Select } from "@/components/list/form-controls"
 import { GroupTitle } from "./mega-menu"
 
 const panel =
@@ -447,18 +448,11 @@ export function SettingsPopover({ trigger }: { trigger: React.ReactNode }) {
           />
         </SettingsRow>
         <SettingsRow icon={House} title="Стартовая страница" aside="после входа">
-          <select
+          <Select
             value={prefs.start ?? "nodes"}
-            onChange={(e) => set("start", e.target.value)}
-            className="h-11 w-full rounded-[14px] border border-[var(--dd-line)] bg-[var(--chip-bg)] px-4 text-sm outline-none focus:border-[#085eff]"
-          >
-            <option value="">Главная</option>
-            {ALL_SECTIONS.map((x) => (
-              <option key={x.slug} value={x.slug}>
-                {x.title}
-              </option>
-            ))}
-          </select>
+            opts={[{ v: "", label: "Главная" }, ...ALL_SECTIONS.map((x) => ({ v: x.slug, label: x.title }))]}
+            onChange={(v) => set("start", v)}
+          />
         </SettingsRow>
         <SettingsRow icon={Bell} title="Уведомления">
           {NOTIFY.map((n) => (

@@ -96,7 +96,7 @@ export type Field<T> = {
   t: string
   /** Блок формы: «Основное», «Эксплуатация»… — подзаголовок перед первым полем блока. */
   section: string
-  type: "text" | "number" | "select" | "tags" | "textarea"
+  type: "text" | "number" | "select" | "tags" | "textarea" | "date"
   /** Половина ширины — два поля в строке. */
   half?: boolean
   /** Треть ширины — три поля в строке (комплектация). */

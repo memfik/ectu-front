@@ -10,14 +10,24 @@ import { rowsStore } from "@/lib/list/store"
 import { trash } from "@/lib/list/trash"
 import type { ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
-import { field } from "./form-controls"
+import { Textarea } from "./form-controls"
 import { btn } from "./ui"
 
 /**
  * Удаление с обязательной причиной (экран n-09): записи уходят в Корзину, восстановить можно 30 дней.
  * Тост «Отменить» возвращает записи сразу.
  */
-export function DeleteDialog<T extends Row>({ cfg, rows, onClose, onDone }: { cfg: ListConfig<T>; rows: T[]; onClose: () => void; onDone?: () => void }) {
+export function DeleteDialog<T extends Row>({
+  cfg,
+  rows,
+  onClose,
+  onDone,
+}: {
+  cfg: ListConfig<T>
+  rows: T[]
+  onClose: () => void
+  onDone?: () => void
+}) {
   const [chip, setChip] = useState("")
   const [text, setText] = useState("")
   const reason = [chip, text.trim()].filter(Boolean).join(": ")
@@ -36,7 +46,7 @@ export function DeleteDialog<T extends Row>({ cfg, rows, onClose, onDone }: { cf
         reason,
         at: new Date().toLocaleString("ru-RU"),
         by: CURRENT_USER.name,
-      }))
+      })),
     )
     toast(`Удалено ${fmt(n)} ${plural(n, cfg.noun)} · в Корзине`, () => {
       undo()
@@ -58,7 +68,8 @@ export function DeleteDialog<T extends Row>({ cfg, rows, onClose, onDone }: { cf
             Удалить {n > 1 ? `${fmt(n)} ${plural(n, cfg.noun)}` : cfg.noun[0]}?
           </Dialog.Title>
           <Dialog.Description className="mt-2 text-center text-[13.5px] text-muted-foreground">
-            {n > 1 ? "Записи будут помечены как удалённые" : "Запись будет помечена как удалённая"} и перемещены в Корзину. Восстановить можно в течение 30 дней.
+            {n > 1 ? "Записи будут помечены как удалённые" : "Запись будет помечена как удалённая"} и перемещены в Корзину. Восстановить
+            можно в течение 30 дней.
           </Dialog.Description>
 
           <ul className="mt-4 max-h-[132px] overflow-auto rounded-2xl border border-[var(--dd-line)] bg-[var(--chip-bg)] px-4 py-3 text-[13.5px]">
@@ -92,20 +103,18 @@ export function DeleteDialog<T extends Row>({ cfg, rows, onClose, onDone }: { cf
                 onClick={() => setChip(chip === r ? "" : r)}
                 className={cn(
                   "h-8 rounded-full border border-[var(--dd-line)] bg-[var(--chip-bg)] px-3 text-[13px]",
-                  chip === r && "border-[rgba(255,82,87,0.6)] bg-[rgba(255,59,59,0.14)] text-[#ff8a8e]"
+                  chip === r && "border-[rgba(255,82,87,0.6)] bg-[rgba(255,59,59,0.14)] text-[#ff8a8e]",
                 )}
               >
                 {r}
               </button>
             ))}
           </div>
-          <textarea
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={3}
             aria-label="Причина удаления"
             placeholder="Подробности: номер акта, дата, кто согласовал…"
-            className={cn(field, "mt-2.5 min-h-[84px] resize-y py-3")}
           />
           <p className="mt-2 text-[12.5px] text-muted-foreground">Кнопка «Удалить» станет активной после заполнения причины</p>
 
@@ -115,7 +124,10 @@ export function DeleteDialog<T extends Row>({ cfg, rows, onClose, onDone }: { cf
               type="button"
               disabled={!reason}
               onClick={remove}
-              className={cn(btn(), "border-[#ff3b3b] bg-[#ff3b3b] text-white shadow-[0_8px_24px_rgba(255,59,59,0.3)] hover:bg-[#ff3b3b] hover:brightness-110")}
+              className={cn(
+                btn(),
+                "border-[#ff3b3b] bg-[#ff3b3b] text-white shadow-[0_8px_24px_rgba(255,59,59,0.3)] hover:bg-[#ff3b3b] hover:brightness-110",
+              )}
             >
               <Trash2 />
               Удалить{n > 1 ? ` ${fmt(n)}` : ""}

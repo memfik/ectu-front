@@ -8,7 +8,7 @@ import { plural } from "@/lib/list/query"
 import { rowsStore } from "@/lib/list/store"
 import type { Field, FieldValue, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
-import { field as fieldCls, Select, TagInput } from "./form-controls"
+import { DateInput, Input, Select, TagInput, Textarea } from "./form-controls"
 import { btn, circ } from "./ui"
 
 type Values = Record<string, FieldValue>
@@ -97,7 +97,7 @@ export function FormDrawer<T extends Row>({
         <Dialog.Overlay className="fixed inset-0 z-[100] bg-[rgba(5,6,9,0.55)] backdrop-blur-[3px] data-[state=open]:animate-in data-[state=open]:fade-in" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 right-0 z-[101] flex w-[600px] max-w-full flex-col border-l border-[var(--dd-line)] bg-[var(--dd-bg)] text-[var(--mg-text)] shadow-[var(--dd-shadow)] data-[state=open]:animate-in data-[state=open]:slide-in-from-right"
+          className="fixed top-2.5 right-2.5 bottom-2.5 z-[101] flex w-[min(600px,calc(100vw-20px))] flex-col overflow-hidden rounded-[28px] border border-border bg-background text-[var(--mg-text)] shadow-[var(--dd-shadow)] data-[state=open]:animate-in data-[state=open]:slide-in-from-right-8 max-sm:inset-0 max-sm:w-screen max-sm:rounded-none"
         >
           <header className="flex items-start gap-3 border-b border-[var(--dd-line)] px-7 py-5">
             <span className="mt-0.5 grid size-10 flex-none place-items-center rounded-xl bg-[rgba(8,94,255,0.16)] text-[var(--link)]">
@@ -134,7 +134,10 @@ export function FormDrawer<T extends Row>({
                   {s.fields.map((x) => {
                     const err = tried ? errors[x.k] : undefined
                     return (
-                      <div key={x.k} className={cn("min-w-0 max-sm:col-span-full", x.third ? "col-span-2" : x.half ? "col-span-3" : "col-span-full")}>
+                      <div
+                        key={x.k}
+                        className={cn("min-w-0 max-sm:col-span-full", x.third ? "col-span-2" : x.half ? "col-span-3" : "col-span-full")}
+                      >
                         <span className="mb-2 flex items-baseline gap-1 text-[13.5px] font-medium">
                           {x.t}
                           {x.required && <span className="text-[#ff5257]">*</span>}
@@ -177,31 +180,48 @@ export function FormDrawer<T extends Row>({
   )
 }
 
-function Control<T>({ field: x, value, invalid, onChange }: { field: Field<T>; value: FieldValue | undefined; invalid: boolean; onChange: (v: FieldValue) => void }) {
+function Control<T>({
+  field: x,
+  value,
+  invalid,
+  onChange,
+}: {
+  field: Field<T>
+  value: FieldValue | undefined
+  invalid: boolean
+  onChange: (v: FieldValue) => void
+}) {
   if (x.type === "select")
-    return <Select value={String(value ?? "")} opts={x.opts ?? []} placeholder={x.placeholder} tone={x.tone} invalid={invalid} onChange={onChange} />
+    return (
+      <Select
+        value={String(value ?? "")}
+        opts={x.opts ?? []}
+        placeholder={x.placeholder}
+        tone={x.tone}
+        invalid={invalid}
+        onChange={onChange}
+      />
+    )
+  if (x.type === "date") return <DateInput value={String(value ?? "")} onChange={onChange} placeholder={x.placeholder} />
   if (x.type === "tags") return <TagInput value={(value as string[]) ?? []} opts={x.opts ?? []} free onChange={onChange} />
   if (x.type === "textarea")
     return (
-      <textarea
+      <Textarea
         value={String(value ?? "")}
         onChange={(e) => onChange(e.target.value)}
         placeholder={x.placeholder}
         aria-label={x.t}
-        rows={3}
         aria-invalid={invalid || undefined}
-        className={cn(fieldCls, "min-h-[96px] resize-y py-3")}
       />
     )
   return (
-    <input
+    <Input
       value={String(value ?? "")}
       onChange={(e) => onChange(e.target.value)}
       placeholder={x.placeholder}
       aria-label={x.t}
       inputMode={x.type === "number" ? "decimal" : undefined}
       aria-invalid={invalid || undefined}
-      className={fieldCls}
     />
   )
 }

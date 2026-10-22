@@ -71,7 +71,9 @@ export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<
             <span className="grid size-9 place-items-center rounded-xl bg-[rgba(8,94,255,0.16)] text-[var(--link)]">
               {check ? <ListChecks className="size-[18px]" /> : <FileUp className="size-[18px]" />}
             </span>
-            <Dialog.Title className="flex-1 text-xl font-semibold">{check ? "Импорт Excel · проверка" : `Импорт Excel · ${cfg.title}`}</Dialog.Title>
+            <Dialog.Title className="flex-1 text-xl font-semibold">
+              {check ? "Импорт Excel · проверка" : `Импорт Excel · ${cfg.title}`}
+            </Dialog.Title>
             <Dialog.Close className={circ} aria-label="Закрыть">
               <X />
             </Dialog.Close>
@@ -86,7 +88,11 @@ export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<
                   <span
                     className={cn(
                       "grid size-[26px] place-items-center rounded-full text-xs font-semibold",
-                      done ? "bg-[rgba(43,212,99,0.16)] text-[var(--status-ok)]" : n === step ? "bg-[#085eff] text-white" : "bg-[var(--chip-bg)]"
+                      done
+                        ? "bg-[rgba(43,212,99,0.16)] text-[var(--status-ok)]"
+                        : n === step
+                          ? "bg-[#085eff] text-white"
+                          : "bg-[var(--chip-bg)]",
                     )}
                   >
                     {done ? <Check className="size-3.5" /> : n}
@@ -125,7 +131,9 @@ export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<
                 <Xls />
                 <div className="min-w-0 flex-1">
                   <b className="block text-[13.5px] font-semibold">Шаблон для скачивания</b>
-                  <span className="block truncate text-xs text-muted-foreground">Шаблон_{cfg.title}_v6 · заполните и загрузите обратно</span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    Шаблон_{cfg.title}_v6 · заполните и загрузите обратно
+                  </span>
                 </div>
                 <button type="button" className={btn({ sm: true })} onClick={() => downloadTemplate(cfg, branchField ? ["branch"] : [])}>
                   <Download />
@@ -148,7 +156,7 @@ export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<
                 }}
                 className={cn(
                   "mt-3.5 flex w-full flex-col items-center rounded-[20px] border-2 border-dashed border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.05)] px-6 py-8 text-center transition-colors",
-                  drag && "border-[#085eff] bg-[rgba(8,94,255,0.12)]"
+                  drag && "border-[#085eff] bg-[rgba(8,94,255,0.12)]",
                 )}
               >
                 <span className="grid size-[68px] place-items-center rounded-full border border-[rgba(8,94,255,0.35)] bg-[rgba(8,94,255,0.12)] text-[var(--link)]">
@@ -167,10 +175,16 @@ export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<
                   <div className="min-w-0 flex-1">
                     <b className="block truncate text-[13.5px] font-semibold">Выбранный файл: {file.name}</b>
                     <span className="block text-xs text-muted-foreground">
-                      {rows === null ? "Читаем…" : `${fmt(rows)} ${plural(rows, ["строка", "строки", "строк"])}`} · {Math.max(1, Math.round(file.size / 1024))} КБ
+                      {rows === null ? "Читаем…" : `${fmt(rows)} ${plural(rows, ["строка", "строки", "строк"])}`} ·{" "}
+                      {Math.max(1, Math.round(file.size / 1024))} КБ
                     </span>
                     <span className="mt-2 block h-1 overflow-hidden rounded-full bg-[var(--chip-bg)]">
-                      <i className={cn("block h-full rounded-full bg-[#085eff] transition-[width] duration-500", busy ? "w-3/5 animate-pulse" : "w-full")} />
+                      <i
+                        className={cn(
+                          "block h-full rounded-full bg-[#085eff] transition-[width] duration-500",
+                          busy ? "w-3/5 animate-pulse" : "w-full",
+                        )}
+                      />
                     </span>
                   </div>
                   <button type="button" className={circ} aria-label="Убрать файл" onClick={() => (setFile(null), setRows(null))}>
@@ -207,12 +221,17 @@ export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<
                 ))}
               </div>
               {check.update.length > 0 && (
-                <Note ok title={`${fmt(check.update.length)} ${plural(check.update.length, ["строка обновит", "строки обновят", "строк обновят"])} существующие записи`}>
+                <Note
+                  ok
+                  title={`${fmt(check.update.length)} ${plural(check.update.length, ["строка обновит", "строки обновят", "строк обновят"])} существующие записи`}
+                >
                   Совпадение по идентификатору
                 </Note>
               )}
               {check.errors.length > 0 && (
-                <Note title={`${fmt(check.errors.length)} ${plural(check.errors.length, ["строка не будет загружена", "строки не будут загружены", "строк не будут загружены"])}`}>
+                <Note
+                  title={`${fmt(check.errors.length)} ${plural(check.errors.length, ["строка не будет загружена", "строки не будут загружены", "строк не будут загружены"])}`}
+                >
                   {check.errors
                     .slice(0, 6)
                     .map((e) => `Стр. ${e.line} — ${e.text}`)
@@ -227,7 +246,12 @@ export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<
                     Скачать отчёт об ошибках
                   </button>
                 )}
-                <button type="button" disabled={!check.create.length && !check.update.length} className={btn({ primary: true })} onClick={load}>
+                <button
+                  type="button"
+                  disabled={!check.create.length && !check.update.length}
+                  className={btn({ primary: true })}
+                  onClick={load}
+                >
                   <Upload />
                   Загрузить {fmt(check.create.length + check.update.length)}{" "}
                   {plural(check.create.length + check.update.length, ["строку", "строки", "строк"])}
@@ -255,7 +279,7 @@ function Note({ ok, title, children }: { ok?: boolean; title: string; children: 
     <div
       className={cn(
         "mt-3.5 flex gap-3 rounded-2xl border px-4 py-3.5 text-[13px]",
-        ok ? "border-[rgba(43,212,99,0.3)] bg-[rgba(43,212,99,0.08)]" : "border-[rgba(255,59,59,0.35)] bg-[rgba(255,59,59,0.07)]"
+        ok ? "border-[rgba(43,212,99,0.3)] bg-[rgba(43,212,99,0.08)]" : "border-[rgba(255,59,59,0.35)] bg-[rgba(255,59,59,0.07)]",
       )}
     >
       <Icon className="mt-px size-[18px] flex-none" />

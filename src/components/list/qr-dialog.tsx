@@ -18,7 +18,7 @@ function qrPath(url: string) {
   data.forEach((row, y) =>
     row.forEach((on, x) => {
       if (on && !(Math.abs(x - c) <= 2 && Math.abs(y - c) <= 2)) d += `M${x} ${y}h1v1h-1z`
-    })
+    }),
   )
   return { d, size, c }
 }
@@ -66,7 +66,9 @@ export function QrDialog({ title, sub, url, onClose }: { title: string; sub: str
 .g{display:grid;grid-template-columns:repeat(${layout === "a4" ? 3 : 1},50mm);gap:${layout === "a4" ? "3mm 12mm" : "0"}}
 .l{width:50mm;height:30mm;box-sizing:border-box;padding:2mm;display:flex;gap:2mm;align-items:center;${layout === "a4" ? "border:0.2mm dashed #bbb" : ""}}
 .l svg{width:26mm;height:26mm;flex:none}.l b{display:block;font-size:8pt}.l span{display:block;color:#444;margin-top:1mm}</style>
-<div class="g">${Array(layout === "a4" ? 24 : 1).fill(label).join("")}</div>`)
+<div class="g">${Array(layout === "a4" ? 24 : 1)
+      .fill(label)
+      .join("")}</div>`)
     w.document.close()
     w.focus()
     w.print()
@@ -122,7 +124,7 @@ export function QrDialog({ title, sub, url, onClose }: { title: string; sub: str
                 onClick={() => setLayout(k)}
                 className={cn(
                   "flex h-12 items-center gap-2.5 rounded-[14px] border border-[var(--dd-line)] bg-[var(--chip-bg)] px-4 text-sm",
-                  layout === k && "border-[#085eff] bg-[rgba(8,94,255,0.12)] shadow-[0_0_0_1px_#085eff]"
+                  layout === k && "border-[#085eff] bg-[rgba(8,94,255,0.12)] shadow-[0_0_0_1px_#085eff]",
                 )}
               >
                 <I className="size-[18px]" />

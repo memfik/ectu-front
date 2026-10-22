@@ -50,9 +50,7 @@ export function ReportDialog<T extends Row>({ cfg, rows, q, onClose }: { cfg: Li
   const active = describe(cfg, q)
   const list = useMemo(() => {
     const base = useFilters ? applyQuery(cfg, rows, q) : rows
-    return base.filter(
-      (x) => (branch === "all" || branchFilter?.get(x) === branch) && inPeriod(cfg.report.date?.(x), period)
-    )
+    return base.filter((x) => (branch === "all" || branchFilter?.get(x) === branch) && inPeriod(cfg.report.date?.(x), period))
   }, [cfg, rows, q, useFilters, branch, branchFilter, period])
   const chosen = cfg.report.cols.filter((c) => cols.has(c.k))
 
@@ -146,7 +144,7 @@ export function ReportDialog<T extends Row>({ cfg, rows, q, onClose }: { cfg: Li
                 onClick={() => setFormat(k)}
                 className={cn(
                   "flex h-12 items-center gap-2.5 rounded-[14px] border border-[var(--dd-line)] bg-[var(--chip-bg)] px-4 text-sm",
-                  format === k && "border-[#085eff] bg-[rgba(8,94,255,0.12)] shadow-[0_0_0_1px_#085eff]"
+                  format === k && "border-[#085eff] bg-[rgba(8,94,255,0.12)] shadow-[0_0_0_1px_#085eff]",
                 )}
               >
                 <I className="size-[18px]" />
@@ -169,7 +167,9 @@ export function ReportDialog<T extends Row>({ cfg, rows, q, onClose }: { cfg: Li
           )}
 
           <footer className="mt-6 flex items-center justify-end gap-2.5">
-            <span className="mr-auto text-[13px] text-muted-foreground">{fmt(list.length)} {plural(list.length, ["запись", "записи", "записей"])}</span>
+            <span className="mr-auto text-[13px] text-muted-foreground">
+              {fmt(list.length)} {plural(list.length, ["запись", "записи", "записей"])}
+            </span>
             <Dialog.Close className={btn()}>Отмена</Dialog.Close>
             <button type="button" className={btn({ primary: true })} onClick={download}>
               <Download />
@@ -193,10 +193,13 @@ function describe<T extends Row>(cfg: ListConfig<T>, q: Query) {
 
 async function toXlsx<T>(name: string, cols: ReportCol<T>[], rows: T[]) {
   const { default: write } = await import("write-excel-file/browser")
-  await write([cols.map((c) => ({ value: c.t, fontWeight: "bold" as const })), ...rows.map((x) => cols.map((c) => ({ value: c.value(x) })))], {
-    sheet: "Отчёт",
-    columns: cols.map((c) => ({ width: Math.min(40, Math.max(12, c.t.length + 4)) })),
-  }).toFile(`${name}.xlsx`)
+  await write(
+    [cols.map((c) => ({ value: c.t, fontWeight: "bold" as const })), ...rows.map((x) => cols.map((c) => ({ value: c.value(x) })))],
+    {
+      sheet: "Отчёт",
+      columns: cols.map((c) => ({ width: Math.min(40, Math.max(12, c.t.length + 4)) })),
+    },
+  ).toFile(`${name}.xlsx`)
 }
 
 function toCsv<T>(name: string, cols: ReportCol<T>[], rows: T[]) {

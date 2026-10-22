@@ -10,9 +10,7 @@ import {
   AtSign,
   Bell,
   Bold,
-  Calendar,
   ChartColumn,
-  ChevronDown,
   Italic,
   ListFilter,
   MessageSquare,
@@ -49,6 +47,7 @@ import {
   Wifi,
   Zap,
 } from "lucide-react"
+import { Input, Select } from "@/components/list/form-controls"
 import { btn, checkBox, circ, Pill } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import type { Equipment, NodeDetail, PortState } from "@/data/node-detail"
@@ -446,15 +445,13 @@ export function Dot({ c, t }: { c: string; t: string }) {
 
 export function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
-    <label className="flex h-10 w-60 items-center gap-2 rounded-full border border-border bg-[var(--chip-bg)] px-4 text-sm max-sm:w-full">
-      <Search className="size-4 text-muted-foreground" />
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
-      />
-    </label>
+    <Input
+      icon={<Search />}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="h-10 w-60 rounded-full max-sm:w-full"
+    />
   )
 }
 
@@ -690,22 +687,12 @@ export function ClientsTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
             <em className="rounded-full bg-[var(--chip-bg)] px-[7px] text-[11.5px] not-italic">{n}</em>
           </button>
         ))}
-        <label className="relative flex h-10 items-center rounded-full border border-border bg-[var(--chip-bg)] pr-9 pl-4 text-[13.5px] text-[var(--nav-text)]">
-          Радиус: {radius} м
-          <select
-            aria-label="Радиус"
-            value={radius}
-            onChange={(e) => setRadius(Number(e.target.value))}
-            className="absolute inset-0 cursor-pointer opacity-0"
-          >
-            {[100, 150, 250].map((r) => (
-              <option key={r} value={r}>
-                {r} м
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 size-4 opacity-60" />
-        </label>
+        <Select
+          value={String(radius)}
+          opts={[100, 150, 250].map((r) => ({ v: String(r), label: `Радиус: ${r} м` }))}
+          onChange={(v) => setRadius(Number(v))}
+          className="h-10 w-[180px] rounded-full"
+        />
         <span className="flex-1" />
         <Link href="/summary-files?section=prospects" className={btn()}>
           <ChartColumn />
@@ -916,7 +903,7 @@ export function PeopleTab({ d, onManage }: { d: NodeDetail; onManage: () => void
 const EXT_LABEL = { pdf: ["PDF", "#ff5257"], xlsx: ["XLS", "#2bd463"], docx: ["DOC", "#4f8dff"], dwg: ["DWG", "#ffc24a"] } as const
 
 /** Вкладка «Документация» (экран t06): поиск и тип файла, колонки по разделам с превью, загрузка перетаскиванием. */
-export function DocsTab({ d, onUpload }: { d: NodeDetail; onUpload: (kind?: string, files?: File[]) => void }) {
+export function DocsTab({ d, onUpload }: { d: Pick<NodeDetail, "docs" | "docGroups">; onUpload: (kind?: string, files?: File[]) => void }) {
   const [q, setQ] = useState("")
   const [ext, setExt] = useState<"all" | "pdf" | "xlsx">("all")
   const [paper, setPaper] = useState(() => Object.fromEntries(d.docGroups.map((g) => [g.kind, g.paper])))
@@ -1361,22 +1348,16 @@ export function HistoryTab({ d }: { d: NodeDetail }) {
           ))}
         </FilterGroup>
         <FilterGroup title="Период">
-          <label className="relative flex h-11 items-center gap-2 rounded-full border border-border bg-[var(--chip-bg)] px-4 text-sm">
-            <Calendar className="size-4 text-muted-foreground" />
-            {{ all: "Всё время", "30": "30 дней", "90": "3 месяца", "365": "Год" }[period]}
-            <ChevronDown className="ml-auto size-4 opacity-60" />
-            <select
-              aria-label="Период"
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="absolute inset-0 cursor-pointer opacity-0"
-            >
-              <option value="all">Всё время</option>
-              <option value="30">30 дней</option>
-              <option value="90">3 месяца</option>
-              <option value="365">Год</option>
-            </select>
-          </label>
+          <Select
+            value={period}
+            opts={[
+              { v: "all", label: "Всё время" },
+              { v: "30", label: "30 дней" },
+              { v: "90", label: "3 месяца" },
+              { v: "365", label: "Год" },
+            ]}
+            onChange={setPeriod}
+          />
         </FilterGroup>
       </Card>
     </div>

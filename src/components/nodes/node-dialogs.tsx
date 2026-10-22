@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { Dialog } from "radix-ui"
 import { Cable, Check, Link as LinkIcon, MapPin, Plus, RefreshCw, Search, Trash2, Upload, UserRound, Users, X } from "lucide-react"
-import { field, Select } from "@/components/list/form-controls"
+import { Input, Select } from "@/components/list/form-controls"
 import { btn, checkBox, circ } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import { nodesList } from "@/config/lists/nodes"
@@ -57,7 +57,7 @@ function Modal({
           className={cn(
             "fixed z-[101] max-w-[calc(100vw-24px)] border border-[var(--dd-line)] bg-[var(--dd-bg)] text-[var(--mg-text)] shadow-[var(--dd-shadow)] data-[state=open]:animate-in data-[state=open]:fade-in",
             side
-              ? "inset-y-0 right-0 flex max-w-full flex-col border-y-0 border-r-0 data-[state=open]:slide-in-from-right"
+              ? "top-2.5 right-2.5 bottom-2.5 flex flex-col overflow-hidden rounded-[28px] bg-background data-[state=open]:slide-in-from-right-8"
               : "top-1/2 left-1/2 max-h-[calc(100vh-24px)] -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-[28px] data-[state=open]:zoom-in-95",
           )}
         >
@@ -132,7 +132,7 @@ export function LocationDialog({ node: x, d, onClose }: { node: NodeRow; d: Node
     onClose()
   }
   const input = (v: string, set: (v: string) => void, label: string) => (
-    <input value={v} onChange={(e) => set(e.target.value)} aria-label={label} inputMode="decimal" className={fieldCls} />
+    <Input value={v} onChange={(e) => set(e.target.value)} aria-label={label} inputMode="decimal" />
   )
 
   return (
@@ -218,8 +218,6 @@ export function LocationDialog({ node: x, d, onClose }: { node: NodeRow; d: Node
   )
 }
 
-const fieldCls = field
-
 /* ---------- np-02 · Привязать ВОЛС ---------- */
 
 /** Привязка ВОЛС трассы (экран np-02): поиск трасс рядом, сторона узла и ODF. */
@@ -277,16 +275,7 @@ export function LinkFiberDialog({ node: x, d, onClose }: { node: NodeRow; d: Nod
     <Modal title="Привязать ВОЛС трассу" icon={Cable} width={680} onClose={onClose}>
       <div className="p-6">
         <Label t="Поиск трассы" />
-        <label className={cn(field, "focus-within:border-[#085eff]")}>
-          <Search className="size-4 text-muted-foreground" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Номер трассы или узел…"
-            className="flex-1 bg-transparent outline-none"
-            autoFocus
-          />
-        </label>
+        <Input icon={<Search />} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Номер трассы или узел…" autoFocus />
         <div className="mt-3 rounded-2xl border border-[var(--dd-line)] bg-[var(--chip-bg)] p-2">
           {list.map((c) => {
             const done = linked.has(c.id)
@@ -621,15 +610,7 @@ export function PeopleDrawer({ node: x, d, onClose }: { node: NodeRow; d: NodeDe
         </div>
         <div className="mt-5">
           <Label t="Добавить сотрудника" />
-          <label className={cn(field, "focus-within:border-[#085eff]")}>
-            <Search className="size-4 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Поиск по ФИО или табельному…"
-              className="flex-1 bg-transparent outline-none"
-            />
-          </label>
+          <Input icon={<Search />} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Поиск по ФИО или табельному…" />
           {found.length > 0 && (
             <div className="mt-2 rounded-[14px] border border-[var(--dd-line)] bg-[var(--chip-bg)] p-1.5">
               {found.map((p) => (

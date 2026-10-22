@@ -3,7 +3,7 @@
 import { useDeferredValue, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, ChevronDown, Filter, Layers, LayoutGrid, List, Map as MapIcon, Pencil, QrCode, Search, Trash2, X } from "lucide-react"
+import { ArrowRight, Filter, Layers, LayoutGrid, List, Map as MapIcon, Pencil, QrCode, Search, Trash2, X } from "lucide-react"
 import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/config/lists"
 import { useRows } from "@/lib/list/store"
@@ -11,6 +11,7 @@ import { applyQuery, emptyQuery, fmt, type Query } from "@/lib/list/query"
 import type { HeroButton, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { FilterDrawer } from "./filter-drawer"
+import { Input, Select } from "./form-controls"
 import { FormDrawer } from "./form-drawer"
 import { ImportDialog } from "./import-dialog"
 import { ReportDialog } from "./report-dialog"
@@ -85,20 +86,13 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
 
   const toolbar = (
     <div className="mx-1.5 mb-2 flex flex-wrap items-center gap-2.5 max-sm:gap-2">
-      <label className="flex h-11 min-w-[200px] flex-[1_1_220px] items-center gap-2.5 rounded-full border border-border bg-[var(--chip-bg)] px-4 max-sm:h-10 max-sm:flex-[1_1_100%]">
-        <Search className="size-[18px] text-muted-foreground" />
-        <input
-          value={q.q}
-          onChange={(e) => setQ({ ...q, q: e.target.value })}
-          placeholder={cfg.search}
-          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        />
-        {q.q && (
-          <button type="button" aria-label="Очистить поиск" onClick={() => setQ({ ...q, q: "" })}>
-            <X className="size-4 text-muted-foreground" />
-          </button>
-        )}
-      </label>
+      <Input
+        icon={<Search />}
+        value={q.q}
+        onChange={(e) => setQ({ ...q, q: e.target.value })}
+        placeholder={cfg.search}
+        className="h-11 min-w-[200px] flex-[1_1_220px] rounded-full max-sm:h-10 max-sm:flex-[1_1_100%]"
+      />
       {cfg.filters
         .filter((f) => !f.more)
         .map((f) => (
@@ -107,7 +101,11 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
       <button type="button" className={cn(btn(), "font-normal text-[var(--nav-text)] max-sm:h-10")} onClick={() => setMore(true)}>
         <Filter />
         Ещё фильтры
-        {hidden > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#085eff] px-1.5 text-[11px] font-bold text-white">{hidden}</span>}
+        {hidden > 0 && (
+          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#085eff] px-1.5 text-[11px] font-bold text-white">
+            {hidden}
+          </span>
+        )}
       </button>
       <button
         type="button"
@@ -267,7 +265,12 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
                   {view.map((x, i) => {
                     const on = x.id === active
                     return (
-                      <tr key={x.id} onClick={() => setActive(x.id)} onDoubleClick={() => router.push(`/${cfg.key}/${x.id}`)} className={cn("group/r cursor-pointer", on && "on")}>
+                      <tr
+                        key={x.id}
+                        onClick={() => setActive(x.id)}
+                        onDoubleClick={() => router.push(`/${cfg.key}/${x.id}`)}
+                        className={cn("group/r cursor-pointer", on && "on")}
+                      >
                         <td className={td(on, "first")} onClick={(e) => e.stopPropagation()}>
                           <Check on={checked.has(x.id)} label="Выбрать" onClick={() => toggle(x.id)} />
                         </td>
@@ -405,32 +408,22 @@ function ViewSwitch({ mode, onChange, hasMap }: { mode: Mode; onChange: (m: Mode
 /** «Сортировка: ID» в виде карточек — те же колонки, что и в таблице. */
 function SortSelect<T extends Row>({ cfg, q, setQ }: { cfg: ListConfig<T>; q: Query; setQ: (q: Query) => void }) {
   const cols = cfg.cols.filter((c) => !c.noSort)
-  const cur = cols.find((c) => c.k === q.sort[0])
   return (
-    <label className="relative flex h-11 flex-none items-center gap-1 rounded-full border border-border bg-[var(--chip-bg)] pr-10 pl-4 text-sm whitespace-nowrap text-[var(--nav-text)] max-sm:h-10">
-      Сортировка: {cur ? (cur.k === cols[0]?.k ? "ID" : cur.t) : "ID"}
-      {cur && q.sort[1] < 0 && " ↓"}
-      <select
-        aria-label="Сортировка"
-        value={q.sort[0] ? `${q.sort[0]}:${q.sort[1]}` : ""}
-        onChange={(e) => {
-          const [k, d] = e.target.value.split(":")
-          setQ({ ...q, sort: [k ?? "", d === "-1" ? -1 : 1] })
-        }}
-        className="absolute inset-0 cursor-pointer opacity-0"
-      >
-        <option value="">ID — как в базе</option>
-        {cols.flatMap((c) => [
-          <option key={`${c.k}:1`} value={`${c.k}:1`}>
-            {c.t} ↑
-          </option>,
-          <option key={`${c.k}:-1`} value={`${c.k}:-1`}>
-            {c.t} ↓
-          </option>,
-        ])}
-      </select>
-      <ChevronDown className="absolute right-3.5 size-4 opacity-60" />
-    </label>
+    <Select
+      value={q.sort[0] ? `${q.sort[0]}:${q.sort[1]}` : ""}
+      opts={[
+        { v: "", label: "Сортировка: ID" },
+        ...cols.flatMap((c) => [
+          { v: `${c.k}:1`, label: `${c.t} ↑` },
+          { v: `${c.k}:-1`, label: `${c.t} ↓` },
+        ]),
+      ]}
+      onChange={(v) => {
+        const [k, d] = v.split(":")
+        setQ({ ...q, sort: [k ?? "", d === "-1" ? -1 : 1] })
+      }}
+      className="h-11 w-[230px] flex-none rounded-full max-sm:h-10"
+    />
   )
 }
 
@@ -553,23 +546,12 @@ function Pager({
   const from = total ? page * size + 1 : 0
   return (
     <div className="mt-2 flex flex-wrap items-center justify-between gap-3 px-1.5 text-[13px] text-muted-foreground">
-      <label className="relative flex h-[38px] items-center rounded-full border border-border bg-[var(--chip-bg)] pr-9 pl-4 text-[var(--nav-text)]">
-        Показать
-        <select
-          value={size}
-          onChange={(e) => onSize(Number(e.target.value))}
-          className="absolute inset-0 cursor-pointer opacity-0"
-          aria-label="Строк на странице"
-        >
-          {sizes.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <span className="ml-1.5">{size}</span>
-        <ChevronDown className="absolute right-3 size-4 opacity-60" />
-      </label>
+      <Select
+        value={String(size)}
+        opts={sizes.map((n) => ({ v: String(n), label: `Показать ${n}` }))}
+        onChange={(v) => onSize(Number(v))}
+        className="h-[38px] w-[160px] rounded-full"
+      />
       <span className="tabular-nums">
         {fmt(from)}–{fmt(Math.min(total, (page + 1) * size))} из {fmt(total)}
       </span>
@@ -593,7 +575,17 @@ function Pager({
   )
 }
 
-function PreviewPanel<T extends Row>({ cfg, row, onClose, onEdit }: { cfg: ListConfig<T>; row: T; onClose: () => void; onEdit: () => void }) {
+function PreviewPanel<T extends Row>({
+  cfg,
+  row,
+  onClose,
+  onEdit,
+}: {
+  cfg: ListConfig<T>
+  row: T
+  onClose: () => void
+  onEdit: () => void
+}) {
   const p = cfg.preview(row)
   return (
     <aside className="sticky top-4 w-[420px] flex-none self-start overflow-hidden rounded-3xl border border-border bg-[var(--glass-card)] backdrop-blur-[18px] max-[1500px]:w-[360px] max-[1279px]:hidden">
@@ -635,7 +627,7 @@ function PreviewPanel<T extends Row>({ cfg, row, onClose, onEdit }: { cfg: ListC
                     x.state === "up" && "border-[rgba(43,212,99,0.5)] bg-[rgba(43,212,99,0.18)]",
                     x.state === "down" && "border-[rgba(255,59,59,0.55)] bg-[rgba(255,59,59,0.18)]",
                     x.state === "sfp" && "border-[rgba(8,94,255,0.6)] bg-[rgba(8,94,255,0.25)]",
-                    x.state === "free" && "border-border bg-[var(--chip-bg)]"
+                    x.state === "free" && "border-border bg-[var(--chip-bg)]",
                   )}
                 />
               ))}
@@ -663,12 +655,7 @@ function PreviewPanel<T extends Row>({ cfg, row, onClose, onEdit }: { cfg: ListC
           <button type="button" title="На карте" className={cn(circ, "size-11")} onClick={() => toast("Узел на карте — экран «Карта»")}>
             <MapIcon />
           </button>
-          <button
-            type="button"
-            title="Изменить"
-            className={cn(circ, "size-11")}
-            onClick={onEdit}
-          >
+          <button type="button" title="Изменить" className={cn(circ, "size-11")} onClick={onEdit}>
             <Pencil />
           </button>
           <Link href={`/${cfg.key}/${row.id}`} className={cn(btn({ primary: true }), "flex-1 justify-center")}>

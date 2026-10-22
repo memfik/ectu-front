@@ -124,7 +124,8 @@ function fields(kind: SpdRow["kind"]): Field<SpdRow>[] {
     text("act" as keyof SpdRow, "Номер и дата Акта о вводе в эксплуатацию", "Ввод и сервис", { half: false, placeholder: "Например: № 154 от 12.03.2019" }),
     text("contract", "Contract Number (SmartNET)", "Ввод и сервис", { placeholder: "Номер контракта" }),
     text("contractEnd" as keyof SpdRow, "Дата завершения", "Ввод и сервис", {
-      placeholder: "дд.мм.гггг",
+      type: "date",
+      placeholder: "Выберите дату",
       check: (v) => (/^\d{2}\.\d{2}\.\d{4}$/.test(String(v)) ? undefined : "Формат дд.мм.гггг"),
     }),
     {

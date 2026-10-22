@@ -62,9 +62,9 @@ export function Tag({ children }: { children: React.ReactNode }) {
 /** Вид флажка — для своей кнопки-строки (флажок внутри другой кнопки нельзя). */
 export const checkBox = (on: boolean) =>
   cn(
-    "grid size-[18px] flex-none cursor-pointer place-items-center rounded-[5px] border-[1.5px] border-[color-mix(in_srgb,var(--foreground)_25%,transparent)]",
+    "grid size-5 flex-none cursor-pointer place-items-center rounded-[7px] border-[1.5px] border-[color-mix(in_srgb,var(--foreground)_28%,transparent)] transition-all",
     on &&
-      "border-[#085eff] bg-[#085eff] after:h-1 after:w-2 after:translate-x-px after:-translate-y-px after:-rotate-45 after:border-b-2 after:border-l-2 after:border-white",
+      "border-[#085eff] bg-[#085eff] shadow-[0_4px_12px_-3px_rgba(8,94,255,0.6)] after:h-1 after:w-2 after:translate-x-px after:-translate-y-px after:-rotate-45 after:border-b-2 after:border-l-2 after:border-white",
   )
 
 export function Check({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {

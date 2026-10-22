@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react"
 import { Dialog, Popover } from "radix-ui"
-import { Check as CheckIcon, ChevronDown, ListFilter, X } from "lucide-react"
+import { Check as CheckIcon, ChevronsUpDown, ListFilter, X } from "lucide-react"
 import { applyQuery, fmt, plural, type Query } from "@/lib/list/query"
 import type { Filter, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
-import { field, TagInput } from "./form-controls"
+import { DROPDOWN_GLASS, TagInput } from "./form-controls"
+import { LiquidGlass } from "@/components/ui/opaline/liquid-glass"
 import { btn, checkBox, circ } from "./ui"
 
 const count = <T,>(f: Filter<T>, rows: T[], v: string) =>
@@ -51,7 +52,7 @@ export function FilterDrawer<T extends Row>({
         <Dialog.Overlay className="fixed inset-0 z-[100] bg-[rgba(5,6,9,0.55)] backdrop-blur-[3px] data-[state=open]:animate-in data-[state=open]:fade-in" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed inset-y-0 right-0 z-[101] flex w-[520px] max-w-full flex-col border-l border-[var(--dd-line)] bg-[var(--dd-bg)] text-[var(--mg-text)] shadow-[var(--dd-shadow)] data-[state=open]:animate-in data-[state=open]:slide-in-from-right"
+          className="fixed top-2.5 right-2.5 bottom-2.5 z-[101] flex w-[min(520px,calc(100vw-20px))] flex-col overflow-hidden rounded-[28px] border border-border bg-background text-[var(--mg-text)] shadow-[var(--dd-shadow)] data-[state=open]:animate-in data-[state=open]:slide-in-from-right-8 max-sm:inset-0 max-sm:w-screen max-sm:rounded-none"
         >
           <header className="flex items-center gap-3 border-b border-[var(--dd-line)] px-7 py-5">
             <span className="grid size-10 place-items-center rounded-xl bg-[rgba(8,94,255,0.16)] text-[var(--link)]">
@@ -133,36 +134,49 @@ export function FilterDrawer<T extends Row>({
 }
 
 /** Выпадающий список с флажками и числом записей (Тип сети, Статус…). */
-function MultiField<T>({ filter: f, rows, value, onChange }: { filter: Filter<T>; rows: T[]; value: string[]; onChange: (v: string[]) => void }) {
+function MultiField<T>({
+  filter: f,
+  rows,
+  value,
+  onChange,
+}: {
+  filter: Filter<T>
+  rows: T[]
+  value: string[]
+  onChange: (v: string[]) => void
+}) {
   const label = value.map((v) => f.opts.find((o) => o.v === v)?.label ?? v).join(", ")
   return (
     <Popover.Root>
-      <Popover.Trigger className={field}>
-        <span className={cn("flex-1 truncate", !value.length && "text-muted-foreground")}>{label || (f.any ?? "Любое")}</span>
-        <ChevronDown className="size-4 opacity-60" />
-      </Popover.Trigger>
-      <Popover.Content
-        sideOffset={8}
-        align="start"
-        className="z-[110] max-h-[320px] w-[var(--radix-popover-trigger-width)] overflow-auto rounded-[14px] border border-[var(--dd-line)] bg-[var(--dd-bg)] p-1.5 text-[var(--mg-text)] shadow-[var(--dd-shadow)] outline-none"
-      >
-        {f.opts.map((o) => {
-          const on = value.includes(o.v)
-          return (
-            <button
-              key={o.v}
-              type="button"
-              role="checkbox"
-              aria-checked={on}
-              onClick={() => onChange(on ? value.filter((v) => v !== o.v) : [...value, o.v])}
-              className={cn("flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-left text-sm hover:bg-[var(--mg-on)]", on && "bg-[rgba(8,94,255,0.14)]")}
-            >
-              <span className={checkBox(on)} />
-              <span className="flex-1">{o.label}</span>
-              <span className="text-xs text-muted-foreground tabular-nums">{fmt(count(f, rows, o.v))}</span>
-            </button>
-          )
-        })}
+      <LiquidGlass asChild className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-xl pr-3 pl-4 text-sm text-foreground">
+        <Popover.Trigger>
+          <span className={cn("flex-1 truncate text-left", !value.length && "opacity-55")}>{label || (f.any ?? "Любое")}</span>
+          <ChevronsUpDown className="size-4 opacity-50" />
+        </Popover.Trigger>
+      </LiquidGlass>
+      <Popover.Content sideOffset={8} align="start" className={cn(DROPDOWN_GLASS, "w-[var(--radix-popover-trigger-width)] outline-none")}>
+        <LiquidGlass variant="frosted" className="max-h-[320px] overflow-auto rounded-2xl p-1.5">
+          {f.opts.map((o) => {
+            const on = value.includes(o.v)
+            return (
+              <button
+                key={o.v}
+                type="button"
+                role="checkbox"
+                aria-checked={on}
+                onClick={() => onChange(on ? value.filter((v) => v !== o.v) : [...value, o.v])}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-left text-sm hover:bg-[var(--glass-highlight)]",
+                  on && "bg-[rgba(8,94,255,0.14)]",
+                )}
+              >
+                <span className={checkBox(on)} />
+                <span className="flex-1">{o.label}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">{fmt(count(f, rows, o.v))}</span>
+              </button>
+            )
+          })}
+        </LiquidGlass>
       </Popover.Content>
     </Popover.Root>
   )
