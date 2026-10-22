@@ -36,6 +36,9 @@ export function useRows<T extends Row>(cfg: ListConfig<T>): T[] {
 }
 
 export const rowsStore = {
+  all<T extends Row>(cfg: ListConfig<T>) {
+    return slot(cfg).rows as T[]
+  },
   find<T extends Row>(cfg: ListConfig<T>, id: number) {
     return (slot(cfg).rows as T[]).find((x) => x.id === id)
   },

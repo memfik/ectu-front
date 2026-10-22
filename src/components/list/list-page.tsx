@@ -11,6 +11,7 @@ import type { HeroButton, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { FilterDrawer } from "./filter-drawer"
 import { FormDrawer } from "./form-drawer"
+import { ImportDialog } from "./import-dialog"
 import { ActiveChips, FilterChip } from "./filters"
 import { MapView } from "./map-view"
 import { Bar, btn, Check, circ, Pill, Tag } from "./ui"
@@ -32,6 +33,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   const [more, setMore] = useState(false)
   // Шторка формы: { id: null } — новая запись
   const [form, setForm] = useState<{ id: number | null } | null>(null)
+  const [importing, setImporting] = useState(false)
   const [size, setSize] = useState(SIZE.table)
   const [checked, setChecked] = useState<Set<number>>(new Set())
   const [active, setActive] = useState<number | null>(rows[0]?.id ?? null)
@@ -63,6 +65,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
       return toast(`Выгружено ${fmt(checked.size || list.length)} записей (CSV)`)
     }
     if (b.onClick === "create") return setForm({ id: null })
+    if (b.onClick === "import") return setImporting(true)
     toast(`«${b.label}» — следующим экраном`)
   }
 
@@ -144,6 +147,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   return (
     <div className="relative isolate">
       <FilterDrawer cfg={cfg} rows={rows} q={q} open={more} onOpenChange={setMore} onApply={setQ} />
+      {importing && <ImportDialog cfg={cfg} onClose={() => setImporting(false)} />}
       {form && <FormDrawer key={form.id ?? "new"} cfg={cfg} id={form.id} onClose={() => setForm(null)} />}
       <Hero cfg={cfg} total={rows.length} onAction={action} />
 
