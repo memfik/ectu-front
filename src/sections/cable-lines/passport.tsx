@@ -2,6 +2,7 @@
 
 import { Phone, RadioTower, Waypoints } from "lucide-react"
 import { LinePassport } from "@/sections/lines/passport"
+import { lineStats, lineSummary, lineTabs, low } from "@/sections/lines/defaults"
 import type { LineKind } from "@/sections/lines/detail"
 import { BRANCHES } from "@/sections/nodes/data"
 import { list, spec } from "./config"
@@ -11,17 +12,23 @@ const KLS: LineKind = {
   section: "cable-lines",
   spec,
   list,
-  point: "Бокс",
+  point: (i) => `Бокс М-${i + 1}`,
   color: "#ffc53d",
   scene: "/nodes/kls-3d.png",
-  strand: { tab: "Медные пары", stat: "Медных пар", a: ["JM", "#ffc53d"], b: ["Аренда", "#a78bfa"], dots: true },
+  strand: { tab: "Медные пары", stat: "Медных пар", a: ["JM", "#ffc53d"], b: ["Аренда", "#a78bfa"] },
+  strip: "dots",
+  stripTitle: (c) =>
+    `Медные пары ТПП ${c.d.strands.length}×2 · ${low(c.k.strand.a[0])} ${c.a} · ${low(c.k.strand.b[0])} ${c.b} · свободно ${c.d.strands.length - c.a - c.b}`,
+  pill: (x) => String(x.f.network ?? "ГРС"),
+  stats: (c) => lineStats(c, "segments"),
+  summary: (c) => lineSummary(c, "segments"),
+  tabs: (c) => lineTabs(c),
   count: (x) => {
     const total = Number(x.f.pairs) || 10
     const a = Math.round(total * 0.68)
     return { total, a, b: Math.round(total * 0.12) }
   },
   busyB: true,
-  third: "segments",
   ends: (x, a) => {
     const [from = x.nodeCode, to = "РШ-14"] = String(x.f.route ?? "").split(" → ")
     return [

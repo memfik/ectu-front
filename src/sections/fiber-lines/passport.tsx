@@ -2,7 +2,8 @@
 
 import { RadioTower, Server } from "lucide-react"
 import { LinePassport } from "@/sections/lines/passport"
-import type { LineKind } from "@/sections/lines/detail"
+import { lineStats, lineSummary, lineTabs, low } from "@/sections/lines/defaults"
+import { usTitle, type LineKind } from "@/sections/lines/detail"
 import { BRANCHES } from "@/sections/nodes/data"
 import { list, spec } from "./config"
 
@@ -11,22 +12,27 @@ const VOLS: LineKind = {
   section: "fiber-lines",
   spec,
   list,
-  point: "Муфта",
+  point: (i) => `Муфта М-${i + 1}`,
   color: "#4f8dff",
   scene: "/nodes/vols-3d.png",
   strand: { tab: "Волокна", stat: "Волокон", a: ["Занято", "#4f8dff"], b: ["Резерв", "#ffc53d"] },
+  strip: "bars",
+  stripTitle: (c) =>
+    `Волокна кабеля ${c.x.f.cable ?? ""} · ${low(c.k.strand.a[0])} ${c.a} · ${low(c.k.strand.b[0])} ${c.b} · свободно ${c.d.strands.length - c.a - c.b}`,
+  pill: (x) => String(x.f.network ?? "ГРС"),
+  stats: (c) => lineStats(c, "points"),
+  summary: (c) => lineSummary(c, "points"),
+  tabs: (c) => lineTabs(c, true),
   count: (x) => {
     const m = String(x.f.fibers).match(/(\d+|—) \/ (\d+)/)
     const total = m ? +m[2] : 8
     const a = m && m[1] !== "—" ? Math.min(+m[1], total) : 0
     return { total, a, b: a < total ? 1 : 0 }
   },
-  third: "points",
   laying: true,
-  rent: true,
   ends: (x, a, b) => [
-    { code: a?.code ?? x.nodeCode, title: a ? `УС «${a.object}»` : "муфта", nodeId: a?.id },
-    { code: b?.code ?? "—", title: b ? `УС «${b.object}»` : "УС «РТПЦ»", nodeId: b?.id },
+    { code: a?.code ?? x.nodeCode, title: a ? usTitle(a) : "муфта", nodeId: a?.id },
+    { code: b?.code ?? "—", title: b ? usTitle(b) : "УС «РТПЦ»", nodeId: b?.id },
   ],
   rows: (x, d) => [
     { t: "Нумерация", v: x.num },

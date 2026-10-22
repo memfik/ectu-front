@@ -11,19 +11,16 @@ import {
   Copy,
   Download,
   FileText,
-  GitBranch,
   History,
   Image as ImageIcon,
   Layers,
   LayoutGrid,
   Link as LinkIcon,
   Map as MapIcon,
-  MapPin,
   Maximize2,
   Pencil,
   QrCode,
   Ruler,
-  Rows3,
   Trash2,
   Waypoints,
 } from "lucide-react"
@@ -32,14 +29,14 @@ import { FormDrawer } from "@/components/list/form-drawer"
 import { QrDialog } from "@/components/list/qr-dialog"
 import { btn, circ, Pill } from "@/components/list/ui"
 import { Gallery } from "@/components/passport/gallery"
-import { Avatar, Card, glass, Kv, SegBar } from "@/components/passport/ui"
+import { Avatar, Card, glass, Kv } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
 import type { Media } from "@/sections/nodes/detail"
 import { useRemoteRecord } from "@/lib/list/remote"
 import { useRows } from "@/lib/list/store"
 import { cn } from "@/lib/utils"
-import { kmStr, lineDetail, type LineDetail, type LineKind, type Segment } from "./detail"
-import { LineDocsTab, LineHistoryTab, RentTab, SegmentsTab, StrandsTab, strandColor } from "./tabs"
+import { kmStr, lineDetail, type LineCtx, type LineDetail, type LineKind, type LineStat, type Segment } from "./detail"
+import { LineDocsTab, LineHistoryTab, strandColor } from "./tabs"
 
 const NetworkMap = dynamic(() => import("@/components/map/network-map").then((m) => m.NetworkMap), {
   ssr: false,
@@ -47,11 +44,10 @@ const NetworkMap = dynamic(() => import("@/components/map/network-map").then((m)
 })
 
 type Stage = "scene" | "schema" | "map" | "photo"
-type Tab = "overview" | "segments" | "strands" | "rent" | "docs" | "history"
 
 /**
  * Паспорт линии связи: ВОЛС (макет 07: vols-04 «3D / Схема / Карта / Фото», вкладки vols-t1…t5, окно участка vols-x0)
- * и КЛС (08: kls-04, kls-t1…t4). Отличия — в `LineKind` раздела.
+ * КЛС (08: kls-04, kls-t1…t4) и КК (09: kk-04, kk-t1…t5). Отличия — в `LineKind` раздела.
  */
 export function LinePassport({ k, id }: { k: LineKind; id: number }) {
   const router = useRouter()
@@ -62,7 +58,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
   // Участки правятся на месте (TODO(API): сохранение участков)
   const [segments, setSegments] = useState<Segment[] | null>(null)
   const [stage, setStage] = useState<Stage>("scene")
-  const [tab, setTab] = useState<Tab>("overview")
+  const [tab, setTab] = useState("overview")
   const [edit, setEdit] = useState(false)
   const [del, setDel] = useState(false)
   const [qr, setQr] = useState(false)
@@ -81,13 +77,24 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
 
   const d: LineDetail = { ...base, segments: segments ?? base.segments }
   const status = list.card(x).status
-  const len = d.segments.reduce((s, v) => s + v.len, 0)
-  const cable = d.segments.reduce((s, v) => s + v.cable, 0)
   const a = d.strands.filter((f) => f === "a").length
   const b = d.strands.filter((f) => f === "b").length
-  const busy = k.busyB ? a + b : a
-  const points = Math.max(0, d.segments.length - 1)
-  const docsUp = d.docs.filter((x) => x.uploaded).length
+  const c: LineCtx = {
+    x,
+    d,
+    k,
+    a,
+    b,
+    busy: k.busyB ? a + b : a,
+    len: d.segments.reduce((s, v) => s + v.len, 0),
+    cable: d.segments.reduce((s, v) => s + v.cable, 0),
+    points: Math.max(0, d.segments.length - 1),
+    docsUp: d.docs.filter((x) => x.uploaded).length,
+    setSegments,
+    open: setTab,
+    gallery: setGallery,
+  }
+  const own = k.tabs(c)
   const full = tab === "overview"
   const related = k.related(x, d)
   const media: Media[] = d.media.map((src, i) => ({
@@ -100,11 +107,9 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
     tags: [spec.title],
     text: "Фото с обхода трассы.",
   }))
-  const tabs: { k: Tab; t: string; icon: typeof LayoutGrid; n?: number }[] = [
+  const tabs: { k: string; t: string; icon: typeof LayoutGrid; n?: number }[] = [
     { k: "overview", t: "Обзор", icon: LayoutGrid },
-    { k: "segments", t: "Участки", icon: GitBranch, n: d.segments.length },
-    { k: "strands", t: k.strand.tab, icon: Rows3, n: d.strands.length },
-    ...(k.rent ? [{ k: "rent" as const, t: "Аренда КК", icon: Waypoints }] : []),
+    ...own,
     { k: "docs", t: "Документация", icon: FileText, n: d.docs.length },
     { k: "history", t: "История", icon: History, n: d.history.length },
   ]
@@ -152,14 +157,14 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
               </button>
               <Pill tone={status.tone}>{status.label}</Pill>
               <span className="inline-flex h-[26px] items-center rounded-full bg-[var(--chip-bg)] px-2.5 text-xs font-semibold">
-                {String(x.f.network ?? "ГРС")}
+                {k.pill(x)}
               </span>
             </h1>
           </div>
           <div className="ml-12 flex flex-wrap gap-x-[34px] gap-y-3 max-[1500px]:ml-0">
-            <Stat icon={Ruler} t="Протяжённость" v={kmStr(Math.round(len * 10) / 10)} em="км" />
-            <Stat icon={Rows3} t={k.strand.stat} v={d.strands.length} em={`${busy} занято`} />
-            {k.third === "points" ? <Stat icon={MapPin} t="Муфт" v={points} /> : <Stat icon={MapPin} t="Участков" v={d.segments.length} />}
+            {k.stats(c).map((st) => (
+              <Stat key={st.t} {...st} />
+            ))}
           </div>
           <div className="ml-auto flex gap-2.5">
             <button type="button" className={cn(circ, "size-11")} title="QR-код" onClick={() => setQr(true)}>
@@ -200,7 +205,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
             </Card>
 
             <div className="relative min-h-[640px] max-[1279px]:min-h-[420px]">
-              {stage === "schema" && <Schema d={d} k={k} cable={String(x.f.cable ?? "")} />}
+              {stage === "schema" && <Schema c={c} />}
               {stage === "photo" && (
                 <div className="absolute inset-x-0 bottom-20 flex flex-col items-center gap-4">
                   <button type="button" className={btn({ primary: true })} onClick={() => setGallery(0)}>
@@ -307,57 +312,14 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
       <div className="mt-[18px] px-(--page-gutter)">
         {tab === "overview" && (
           <div className="grid grid-cols-4 gap-[18px] max-[1279px]:grid-cols-2 max-sm:grid-cols-1">
-            <Summary icon={Ruler} title="Протяжённость" onOpen={() => setTab("segments")}>
-              {kmStr(Math.round(len * 10) / 10)} <em>км · кабель {kmStr(cable)} км</em>
-            </Summary>
-            <Summary
-              icon={Rows3}
-              title={k.strand.tab}
-              onOpen={() => setTab("strands")}
-              bar={
-                <SegBar
-                  parts={[
-                    { v: a, color: k.strand.a[1] },
-                    { v: b, color: k.strand.b[1] },
-                    {
-                      v: d.strands.length - a - b,
-                      color: "var(--chip-bg)",
-                    },
-                  ]}
-                />
-              }
-            >
-              {busy} / {d.strands.length} <em>занято</em>
-            </Summary>
-            {k.third === "points" ? (
-              <Summary icon={MapPin} title="Муфты" onOpen={() => setTab("segments")}>
-                {points} <em>на трассе</em>
+            {k.summary(c).map((sm) => (
+              <Summary key={sm.title} icon={sm.icon} title={sm.title} onOpen={() => setTab(sm.tab)} bar={sm.bar}>
+                {sm.v}
               </Summary>
-            ) : (
-              <Summary icon={GitBranch} title="Участки" onOpen={() => setTab("segments")}>
-                {d.segments.length}
-              </Summary>
-            )}
-            <Summary
-              icon={FileText}
-              title="Документы"
-              onOpen={() => setTab("docs")}
-              bar={
-                <SegBar
-                  parts={[
-                    { v: docsUp, color: "var(--status-ok)" },
-                    { v: d.docs.length - docsUp, color: "var(--chip-bg)" },
-                  ]}
-                />
-              }
-            >
-              {docsUp} / {d.docs.length} <em>загружено</em>
-            </Summary>
+            ))}
           </div>
         )}
-        {tab === "segments" && <SegmentsTab d={d} k={k} onChange={setSegments} />}
-        {tab === "strands" && <StrandsTab x={x} d={d} k={k} />}
-        {tab === "rent" && <RentTab d={d} />}
+        {own.find((t) => t.k === tab)?.node}
         {tab === "docs" && <LineDocsTab d={d} onGallery={setGallery} />}
         {tab === "history" && <LineHistoryTab d={d} />}
       </div>
@@ -378,7 +340,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
   )
 }
 
-function Stat({ icon: Icon, t, v, em }: { icon: typeof Ruler; t: string; v: number | string; em?: string }) {
+function Stat({ icon: Icon, t, v, em }: LineStat) {
   return (
     <div className="flex items-center gap-3">
       <span className={cn(circ, "size-11 cursor-default hover:border-border hover:bg-[var(--chip-bg)] hover:text-[var(--nav-text)]")}>
@@ -455,9 +417,6 @@ function StageSwitch({ value, onChange }: { value: Stage; onChange: (s: Stage) =
   )
 }
 
-/** «Занято» → «занято», аббревиатуры («JM») — как есть. */
-const low = (t: string) => (t === t.toUpperCase() ? t : t[0].toLowerCase() + t.slice(1))
-
 /** Конец трассы на схеме: УС и его ID под квадратом «А» / «Б». */
 function End({ t, code, right }: { t: string; code: string; right?: boolean }) {
   return (
@@ -468,11 +427,10 @@ function End({ t, code, right }: { t: string; code: string; right?: boolean }) {
   )
 }
 
-/** Схема трассы (vols-04-schema): А — муфты — Б, длины и тип прокладки участков, ряд волокон кабеля. */
-function Schema({ d, k, cable }: { d: LineDetail; k: LineKind; cable: string }) {
+/** Схема трассы (vols-04-schema, kls-04-schema, kk-04-schema): А — муфты / колодцы — Б, длины участков, ряд жил или сечение. */
+function Schema({ c }: { c: LineCtx }) {
+  const { d, k } = c
   const n = d.segments.length
-  const a = d.strands.filter((f) => f === "a").length
-  const b = d.strands.filter((f) => f === "b").length
   return (
     <div className="absolute inset-x-0 top-[200px] px-[4%] max-[1279px]:top-10">
       <div className="relative h-12">
@@ -490,15 +448,28 @@ function Schema({ d, k, cable }: { d: LineDetail; k: LineKind; cable: string }) 
             }}
           >
             <em className="absolute -top-9 left-1/2 -translate-x-1/2 rounded-full border border-border bg-[var(--glass-card-solid)] px-3 py-0.5 text-xs whitespace-nowrap not-italic tabular-nums">
-              {kmStr(s.len)} км
+              {k.meters ? `${Math.round(s.len * 1000)} м` : `${kmStr(s.len)} км`}
             </em>
-            <span className="absolute top-[40px] left-1/2 -translate-x-1/2 text-[11px] whitespace-nowrap text-muted-foreground lowercase">
-              {s.laying}
+            <span className="absolute top-[40px] left-1/2 -translate-x-1/2 text-[11px] whitespace-nowrap text-muted-foreground">
+              {k.segLabel ? k.segLabel(s) : s.laying.toLowerCase()}
             </span>
             {i > 0 && (
               <>
-                <i className="absolute top-1/2 left-0 size-[26px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#ffc53d] bg-background" />
-                <span className="absolute -top-[58px] left-0 -translate-x-1/2 text-[11px] whitespace-nowrap text-[#ffc53d]">{s.from}</span>
+                <i
+                  className={cn(
+                    "absolute top-1/2 left-0 size-[26px] -translate-x-1/2 -translate-y-1/2 border-[3px] bg-background",
+                    k.square ? "rounded-[5px]" : "rounded-full border-[#ffc53d]",
+                  )}
+                  style={k.square ? { borderColor: k.color } : undefined}
+                />
+                <span
+                  className={cn(
+                    "absolute -top-[58px] left-0 -translate-x-1/2 text-[11px] whitespace-nowrap",
+                    k.square ? "text-muted-foreground" : "text-[#ffc53d]",
+                  )}
+                >
+                  {s.from}
+                </span>
               </>
             )}
           </span>
@@ -518,11 +489,19 @@ function Schema({ d, k, cable }: { d: LineDetail; k: LineKind; cable: string }) 
         <End t={d.end.title} code={d.end.code} right />
       </div>
       <div className="mx-auto mt-[150px] w-fit max-w-full">
-        <p className="mb-2 text-xs text-muted-foreground">
-          {k.strand.dots ? `Медные пары ${cable}` : `Волокна кабеля ${cable}`} · {low(k.strand.a[0])} {a} · {low(k.strand.b[0])} {b} ·
-          свободно {d.strands.length - a - b}
-        </p>
-        {k.strand.dots ? (
+        <p className="mb-2 text-center text-xs text-muted-foreground">{k.stripTitle(c)}</p>
+        {k.strip === "duct" ? (
+          <div className="mx-auto grid w-fit grid-cols-2 gap-3">
+            {d.strands.map((f, i) => (
+              <i
+                key={i}
+                title={`Канал ${i + 1}`}
+                className="block size-[44px] rounded-full border-[3px]"
+                style={{ borderColor: f === "free" ? "var(--chip-bg)" : k.color }}
+              />
+            ))}
+          </div>
+        ) : k.strip === "dots" ? (
           <div className="grid grid-cols-[repeat(25,18px)] justify-center gap-[7px]">
             {d.strands.map((f, i) => (
               <i key={i} title={`Пара ${i + 1}`} className="block size-[18px] rounded-full" style={{ background: strandColor(k, f) }} />
@@ -579,10 +558,10 @@ function Backdrop({ stage, d, k }: { stage: Stage; d: LineDetail; k: LineKind })
         ll,
         layer: "mufta",
         color: "#ffc53d",
-        title: `${k.point} М-${i + 1}`,
+        title: k.point(i),
       })),
     ],
-    [d, k.point],
+    [d, k],
   )
   const focus = useMemo(() => ({ ll: mid, zoom: 15, n: 1 }), [mid])
   if (stage === "map")

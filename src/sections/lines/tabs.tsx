@@ -368,3 +368,141 @@ export function LineHistoryTab({ d }: { d: LineDetail }) {
     </Card>
   )
 }
+
+/* ---------- kk-t1 / kk-t2 · Колодцы, каналы ---------- */
+
+export type Col = { k: string; t: string; req?: boolean; opts?: string[] }
+type Row = Record<string, string> & { id: string }
+
+/**
+ * Таблица записей паспорта с добавлением, правкой и удалением (колодцы и каналы КК).
+ * Изменения живут, пока открыта вкладка. TODO(API): сохранение.
+ */
+export function EditableTable({
+  icon,
+  title,
+  noun,
+  cols,
+  rows: initial,
+}: {
+  icon: typeof Rows3
+  title: string
+  /** «колодец», «канал» — в заголовке окна и уведомлениях */
+  noun: string
+  cols: Col[]
+  rows: Row[]
+}) {
+  const [rows, setRows] = useState(initial)
+  const [edit, setEdit] = useState<Row | "new" | null>(null)
+  return (
+    <Card
+      icon={icon}
+      title={title}
+      count={rows.length}
+      action={
+        <button type="button" className={btn({ primary: true, sm: true })} onClick={() => setEdit("new")}>
+          <Plus />
+          Добавить
+        </button>
+      }
+    >
+      <Table
+        head={[...cols.map((c) => c.t), ""]}
+        rows={rows.map((r) => ({
+          key: r.id,
+          cells: [
+            ...cols.map((c) => r[c.k] || "—"),
+            <span key="a" className="flex justify-end gap-1.5">
+              <button type="button" className={circ} aria-label="Изменить" onClick={() => setEdit(r)}>
+                <Pencil />
+              </button>
+              <button
+                type="button"
+                className={cn(circ, "hover:text-[#ff5257]")}
+                aria-label="Удалить"
+                onClick={() => {
+                  setRows(rows.filter((x) => x.id !== r.id))
+                  toast(`${noun[0].toUpperCase()}${noun.slice(1)} ${r[cols[0].k]} удалён`)
+                }}
+              >
+                <Trash2 />
+              </button>
+            </span>,
+          ],
+        }))}
+      />
+      {edit && (
+        <RowDialog
+          icon={icon}
+          title={edit === "new" ? `Новый ${noun}` : `${noun[0].toUpperCase()}${noun.slice(1)} ${edit[cols[0].k]}`}
+          cols={cols}
+          row={edit === "new" ? null : edit}
+          onClose={() => setEdit(null)}
+          onSave={(r) => {
+            setRows(edit === "new" ? [...rows, r] : rows.map((x) => (x.id === r.id ? r : x)))
+            toast(edit === "new" ? "Добавлено" : "Изменено")
+            setEdit(null)
+          }}
+        />
+      )}
+    </Card>
+  )
+}
+
+function RowDialog({
+  icon,
+  title,
+  cols,
+  row,
+  onClose,
+  onSave,
+}: {
+  icon: typeof Rows3
+  title: string
+  cols: Col[]
+  row: Row | null
+  onClose: () => void
+  onSave: (r: Row) => void
+}) {
+  const [v, set] = useState<Row>(() => row ?? { id: String(Date.now()), ...Object.fromEntries(cols.map((c) => [c.k, c.opts?.[0] ?? ""])) })
+  const [tried, setTried] = useState(false)
+  const bad = (c: Col) => !!c.req && !v[c.k]?.trim()
+  return (
+    <Modal title={title} icon={icon} width={640} onClose={onClose}>
+      <form
+        className="px-6 pt-5 pb-6"
+        onSubmit={(e) => {
+          e.preventDefault()
+          setTried(true)
+          if (cols.some(bad)) return
+          onSave(v)
+        }}
+      >
+        <div className="grid grid-cols-2 gap-x-3.5 gap-y-4 max-sm:grid-cols-1">
+          {cols.map((c) =>
+            c.opts ? (
+              <div key={c.k}>
+                <Label t={c.t} req={c.req} />
+                <Select value={v[c.k]} opts={c.opts.map((o) => ({ v: o, label: o }))} onChange={(x) => set({ ...v, [c.k]: x })} />
+              </div>
+            ) : (
+              <label key={c.k}>
+                <Label t={c.t} req={c.req} />
+                <Input value={v[c.k] ?? ""} onChange={(e) => set({ ...v, [c.k]: e.target.value })} invalid={tried && bad(c)} />
+              </label>
+            ),
+          )}
+        </div>
+        <div className="mt-7 flex justify-end gap-2.5">
+          <button type="button" className={btn()} onClick={onClose}>
+            Отмена
+          </button>
+          <button type="submit" className={btn({ primary: true })}>
+            {row ? <Pencil /> : <Plus />}
+            {row ? "Сохранить" : "Добавить"}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  )
+}

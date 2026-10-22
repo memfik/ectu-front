@@ -9,7 +9,7 @@ import type { ListConfig } from "@/lib/list/types"
  * TODO(API): участки и жилы — /api/bols/children, /api/kls/children; файлы и история — нет в старом API.
  */
 
-export type Segment = { id: number; num: number; from: string; to: string; laying: string; len: number; cable: number }
+export type Segment = { id: number; num: number; from: string; to: string; laying: string; len: number; cable: number; channels?: number }
 /** Жила: a — занята (ВОЛС) / своя JM (КЛС), b — резерв (ВОЛС) / аренда (КЛС). */
 export type Strand = "a" | "b" | "free"
 export type LineDoc = { id: number; name: string; req: string; uploaded: boolean }
@@ -39,36 +39,78 @@ export type LineDetail = {
   history: LineEvent[]
 }
 
-/** Чем ВОЛС отличается от КЛС в паспорте. */
+/** Всё о записи для настраиваемых частей паспорта (шапка, сводка, вкладки). */
+export type LineCtx = {
+  x: GenRow
+  d: LineDetail
+  k: LineKind
+  /** Жилы a, b и «занято» */
+  a: number
+  b: number
+  busy: number
+  /** Сумма длин и кабеля участков */
+  len: number
+  cable: number
+  /** Муфт / боксов / колодцев между концами */
+  points: number
+  docsUp: number
+  setSegments: (s: Segment[]) => void
+  open: (tab: string) => void
+  gallery: (i: number) => void
+}
+export type LineStat = { icon: LucideIcon; t: string; v: React.ReactNode; em?: string }
+export type LineSum = { icon: LucideIcon; title: string; tab: string; v: React.ReactNode; bar?: React.ReactNode }
+export type LineTab = { k: string; t: string; icon: LucideIcon; n?: number; node: React.ReactNode }
+
+/** Чем ВОЛС, КЛС и КК отличаются в паспорте. */
 export type LineKind = {
   section: string
   spec: Spec
   list: ListConfig<GenRow>
-  /** Точка между участками: «Муфта» / «Бокс» */
-  point: string
+  /** Точка между участками: «Муфта М-1», «Бокс М-1», «К-112» */
+  point: (i: number) => string
+  /** Колодцы — квадраты, муфты и боксы — круги */
+  square?: boolean
   color: string
   scene: string
-  /** Жилы: вкладка, «Волокон» в шапке, подпись ряда на схеме */
-  strand: { tab: string; stat: string; a: [string, string]; b: [string, string]; dots?: boolean }
+  /** Длины на схеме: км (линии) или м (канализация) */
+  meters?: boolean
+  /** Подпись под участком на схеме (по умолчанию — тип прокладки) */
+  segLabel?: (s: Segment) => string
+  /** Жилы: вкладка, подписи и цвета a / b */
+  strand: { tab: string; stat: string; a: [string, string]; b: [string, string] }
+  /** Ряд под схемой: полосы волокон, кружки медных пар, сечение каналов */
+  strip: "bars" | "dots" | "duct"
+  stripTitle: (c: LineCtx) => string
   /** Сколько жил в записи: всего, a, b */
   count: (x: GenRow) => { total: number; a: number; b: number }
-  /** «Занято» в шапке и на карточке: только a (ВОЛС) или a + b (КЛС) */
+  /** «Занято» — только a (ВОЛС) или a + b (КЛС) */
   busyB?: boolean
-  /** Третья цифра шапки: муфты (ВОЛС) или участки (КЛС) */
-  third: "points" | "segments"
-  /** Тип прокладки у участков и вкладка «Аренда КК» — только у ВОЛС */
+  /** Тип прокладки у участков — только у ВОЛС */
   laying?: boolean
-  rent?: boolean
+  /** Плашка рядом со статусом в шапке */
+  pill: (x: GenRow) => string
+  stats: (c: LineCtx) => LineStat[]
+  summary: (c: LineCtx) => LineSum[]
+  /** Вкладки между «Обзором» и «Документацией» */
+  tabs: (c: LineCtx) => LineTab[]
   rows: (x: GenRow, d: LineDetail) => { t: string; v: React.ReactNode }[]
   related: (x: GenRow, d: LineDetail) => Related[]
   strandRows: (x: GenRow, d: LineDetail) => { t: string; v: React.ReactNode }[]
   inputDocs: { t: string; n: string }[]
   docs: Omit<LineDoc, "id">[]
   /** Первое событие истории: что изменено и было → стало */
-  lastEdit: (d: { total: number; a: number; b: number }) => [string, string, string]
+  lastEdit: (d: { total: number; a: number; b: number }, x: GenRow) => [string, string, string]
+  /** Сколько точек между концами (у КК — колодцы из записи минус два крайних) */
+  pointsOf?: (x: GenRow) => number
+  /** Протяжённость трассы в км из записи (у КК длина в метрах) */
+  length?: (x: GenRow) => number
   /** Начало и конец трассы по узлу записи */
   ends: (x: GenRow, a: NodeRow | undefined, b: NodeRow | undefined) => [End, End]
 }
+
+/** Название УС для концов трассы: «УС «Центральный»», без двойного «УС». */
+export const usTitle = (n: NodeRow) => (/^(УС|ТД|БЦ|АТС)\b/.test(n.object) ? n.object : `УС «${n.object}»`)
 
 export const LAYING = ["Канализация", "Подвес", "В грунте", "По стене здания"]
 
@@ -97,11 +139,12 @@ export function lineDetail(x: GenRow, k: LineKind): LineDetail {
   const [start, end] = k.ends(x, na, nb)
 
   // Участки: от начала через муфты / боксы до конца, длины в сумме — протяжённость трассы
-  const points = 2 + Math.floor(r() * 3)
-  const total = Math.max(parseKm(x.f.len), 0.1 * (points + 1))
+  const rnd = 2 + Math.floor(r() * 3)
+  const points = k.pointsOf ? k.pointsOf(x) : rnd
+  const total = Math.max(k.length ? k.length(x) : parseKm(x.f.len), 0.1 * (points + 1))
   const w = Array.from({ length: points + 1 }, () => 0.5 + r())
   const sum = w.reduce((s, v) => s + v, 0)
-  const names = [start.title, ...Array.from({ length: points }, (_, i) => `${k.point} М-${i + 1}`), end.title]
+  const names = [start.title, ...Array.from({ length: points }, (_, i) => k.point(i)), end.title]
   const segments: Segment[] = w.map((v, i) => {
     const len = n2((v / sum) * total) || 0.01
     return {
@@ -112,6 +155,7 @@ export function lineDetail(x: GenRow, k: LineKind): LineDetail {
       laying: i === points ? "В грунте" : r() > 0.75 ? "Подвес" : "Канализация",
       len,
       cable: n2(len * (1.04 + r() * 0.08)),
+      channels: r() > 0.5 ? 4 : 2,
     }
   })
 
@@ -125,7 +169,7 @@ export function lineDetail(x: GenRow, k: LineKind): LineDetail {
     route.push(i % 2 ? [la + 0.0012 + r() * 0.002, lo] : [la, lo + 0.0018 + r() * 0.003])
   }
   const pointLl = Array.from({ length: points }, (_, i) => route[Math.min(route.length - 1, 1 + Math.round(((i + 1) * 5) / (points + 1)))])
-  const [what, was, now] = k.lastEdit(c)
+  const [what, was, now] = k.lastEdit(c, x)
 
   const d: LineDetail = {
     start,
