@@ -138,3 +138,90 @@ export function CapacityBars({ title, rows, note }: { title: string; rows: { t: 
     </div>
   )
 }
+
+export type PortGroup = { label: string; ports: ("up" | "warn" | "free")[] }
+
+/** Корпус 1U (pdh-04-panel): порты группами, решётка, оптический линк и порт управления. */
+export function Unit1U({
+  title,
+  sub,
+  left,
+  right,
+  groups,
+  callouts,
+}: {
+  title: string
+  sub: string
+  left: string
+  right: string
+  groups: PortGroup[]
+  callouts: Callout[]
+}) {
+  return (
+    <div className="absolute inset-x-0 top-[50px] px-[2%] max-[1279px]:top-0">
+      <div className="relative h-[110px]">
+        {callouts
+          .filter((c) => !c.below)
+          .map((c) => (
+            <Note key={c.t} c={c} />
+          ))}
+      </div>
+      <p className="flex justify-between text-[11px] text-muted-foreground">
+        <span>{left}</span>
+        <span>{right}</span>
+      </p>
+      <div className="relative mt-2 flex h-[96px] items-center gap-5 rounded-xl border border-border bg-[linear-gradient(180deg,#2a2d35,#17191f)] px-5 shadow-[0_24px_60px_rgba(0,0,0,0.5)] not-dark:bg-[linear-gradient(180deg,#f3f4f7,#d9dce3)]">
+        <i className="absolute top-3 -left-3 h-[calc(100%-24px)] w-2.5 rounded bg-[var(--chip-bg)]" />
+        <i className="absolute top-3 -right-3 h-[calc(100%-24px)] w-2.5 rounded bg-[var(--chip-bg)]" />
+        <span className="w-[100px] flex-none">
+          <b className="block text-sm font-semibold">{title}</b>
+          <span className="text-[11px] text-muted-foreground">{sub}</span>
+          <span className="mt-1 grid w-fit grid-cols-[8px_8px_auto_auto] items-center gap-x-1.5 text-[7px] text-muted-foreground">
+            <i className="size-2 rounded-full bg-[#2bd463]" />
+            <i className="size-2 rounded-full bg-[#3a3f4b]" />
+            PWR
+            <span>ALM</span>
+          </span>
+        </span>
+        {groups.map((g) => (
+          <span key={g.label} className="flex flex-col items-center gap-1">
+            <span className="flex gap-1.5">
+              {g.ports.map((p, i) => (
+                <span key={i} className="flex flex-col items-center gap-0.5">
+                  <span className="relative grid h-[38px] w-8 place-items-center rounded-[4px] bg-[#0b0c10] ring-1 ring-[#3a3f4b]">
+                    <i
+                      className="absolute top-1 left-1 size-1.5 rounded-full"
+                      style={{ background: p === "free" ? "#3a3f4b" : "#2bd463" }}
+                    />
+                    <i
+                      className="absolute top-1 right-1 size-1.5 rounded-full"
+                      style={{ background: p === "warn" ? "#ffc53d" : p === "up" ? "#ffc53d" : "#3a3f4b" }}
+                    />
+                    <i className="mt-2 h-3 w-4 rounded-[2px] bg-[#1d2027]" />
+                  </span>
+                  <span className="text-[8px] text-muted-foreground">{i + 1}</span>
+                </span>
+              ))}
+            </span>
+            <span className="text-[8px] tracking-[0.5px] text-muted-foreground">{g.label}</span>
+          </span>
+        ))}
+        <span className="h-[52px] flex-1 rounded-md bg-[repeating-linear-gradient(90deg,#0b0c10_0_3px,#2a2d35_3px_6px)] opacity-80" />
+        <span className="flex flex-col items-center gap-1">
+          <span className="flex gap-2">
+            {[0, 1].map((i) => (
+              <i key={i} className="grid size-6 place-items-center rounded-full border-2 border-[#4f8dff] bg-[#0b0c10]">
+                <i className="size-2 rounded-full bg-[#4f8dff]" />
+              </i>
+            ))}
+          </span>
+          <span className="text-[8px] tracking-[0.5px] text-muted-foreground">FIBER LINK</span>
+        </span>
+        <span className="flex flex-col items-center gap-1">
+          <i className="h-7 w-10 rounded-[4px] bg-[#0b0c10] ring-1 ring-[#3a3f4b]" />
+          <span className="text-[8px] tracking-[0.5px] text-muted-foreground">CONTROL</span>
+        </span>
+      </div>
+    </div>
+  )
+}
