@@ -44,7 +44,7 @@ export function RadioPanel({
   left: string
   right: string
   /** Блок в помещении: подпись, модель, группы портов (вкл. / выкл.), есть ли E1 и разъём ODU */
-  indoor: { t: string; sub: string; groups: { label: string; ports: boolean[] }[]; e1?: boolean; odu?: boolean }
+  indoor: { t: string; sub: string; groups: { label: string; ports: boolean[] }[]; e1?: boolean; odu?: boolean; coax?: string[] }
   /** Радиоблок: подпись, частоты, строки монитора, подписи концов */
   outdoor: { t: string; sub: string; lines: string[]; from: string; to: string; len: string }
   notes: { t: string; v: string; pct?: number; at: number }[]
@@ -82,6 +82,18 @@ export function RadioPanel({
           </span>
         )}
         <span className="h-[52px] flex-1 rounded-md bg-[repeating-linear-gradient(90deg,#0b0c10_0_3px,#2a2d35_3px_6px)] opacity-80" />
+        {indoor.coax && (
+          <span className="flex flex-col items-center gap-1">
+            {indoor.coax.map((t) => (
+              <span key={t} className="flex flex-col items-center gap-0.5">
+                <i className="grid size-8 place-items-center rounded-full border-2 border-[#4f8dff] bg-[#0b0c10] shadow-[0_0_10px_rgba(79,141,255,0.5)]">
+                  <i className="size-2.5 rounded-full bg-white" />
+                </i>
+                <span className="text-[8px] text-muted-foreground">{t}</span>
+              </span>
+            ))}
+          </span>
+        )}
         {indoor.odu && (
           <>
             <span className="flex flex-col items-center gap-1">
@@ -192,6 +204,70 @@ export function RadioSpan({
             </text>
           </g>
         ))}
+      </svg>
+    </div>
+  )
+}
+
+/** Спутниковый канал (vsat-04-schema, ow-04-schema): спутник на орбите, антенна, линии вверх / вниз, карточка услуг. */
+export function SatelliteLink({
+  orbit,
+  up,
+  down,
+  station,
+  stationSub,
+  card,
+}: {
+  orbit: string
+  up: string
+  down: string
+  station: string
+  stationSub: string
+  card: { t: string; v: string; sub: string; ok: string }
+}) {
+  return (
+    <div className="absolute inset-x-0 top-[40px] flex justify-center max-[1279px]:top-0">
+      <svg viewBox="0 0 980 590" className="h-[520px] w-auto max-w-full" fill="none" fontFamily="inherit">
+        {Array.from({ length: 40 }, (_, i) => (
+          <circle key={i} cx={(i * 211) % 980} cy={(i * 97) % 360} r="1" fill="#fff" opacity="0.35" />
+        ))}
+        <path d="M0 300 Q490 160 980 300" stroke="#4f8dff" strokeOpacity="0.4" strokeDasharray="4 6" />
+        <text x="20" y="282" fontSize="11" fill="var(--muted-foreground)">
+          {orbit}
+        </text>
+        <rect x="520" y="155" width="80" height="14" rx="2" fill="#2f6bff" />
+        <rect x="680" y="155" width="80" height="14" rx="2" fill="#2f6bff" />
+        <rect x="620" y="146" width="40" height="32" rx="6" fill="#9fb8ff" />
+        <circle cx="640" cy="162" r="40" fill="#2f6bff" opacity="0.15" />
+        <path d="M300 410 L630 182" stroke="#2bd463" strokeWidth="2" strokeDasharray="8 6" />
+        <path d="M312 420 L645 186" stroke="#ffc53d" strokeWidth="2" strokeDasharray="8 6" />
+        <text x="340" y="330" fontSize="12" fill="#2bd463">
+          ↑ {up}
+        </text>
+        <text x="470" y="380" fontSize="12" fill="#ffc53d">
+          ↓ {down}
+        </text>
+        <ellipse cx="260" cy="450" rx="48" ry="54" fill="#d5d9e0" transform="rotate(-25 260 450)" />
+        <path d="M250 490 L238 530 L270 530 Z" fill="#8a93a6" />
+        <text x="255" y="556" textAnchor="middle" fontSize="14" fontWeight="600" fill="var(--foreground)">
+          {station}
+        </text>
+        <text x="255" y="576" textAnchor="middle" fontSize="11" fill="var(--muted-foreground)">
+          {stationSub}
+        </text>
+        <rect x="680" y="380" width="250" height="150" rx="18" fill="var(--glass-card-solid)" stroke="var(--border)" />
+        <text x="704" y="412" fontSize="11" fill="var(--muted-foreground)">
+          {card.t}
+        </text>
+        <text x="704" y="444" fontSize="16" fontWeight="600" fill="var(--foreground)">
+          {card.v}
+        </text>
+        <text x="704" y="474" fontSize="11" fill="var(--muted-foreground)">
+          {card.sub}
+        </text>
+        <text x="704" y="500" fontSize="11" fill="#2bd463">
+          ● {card.ok}
+        </text>
       </svg>
     </div>
   )

@@ -130,7 +130,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
           <div aria-hidden className="absolute inset-0 bg-[radial-gradient(900px_300px_at_60%_0%,rgba(0,26,159,0.45),transparent_70%)]" />
         )}
 
-        <header className="pointer-events-none relative z-[2] flex flex-wrap items-center gap-x-[18px] gap-y-4 px-(--page-gutter) [&>*]:pointer-events-auto">
+        <header className="pointer-events-none relative z-[2] flex items-center gap-x-[18px] gap-y-4 px-(--page-gutter) max-[1700px]:flex-wrap [&>*]:pointer-events-auto">
           <button
             type="button"
             onClick={() => router.push(`/${section}`)}
@@ -139,16 +139,16 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
           >
             <ChevronLeft />
           </button>
-          <div className="min-w-0">
-            <p className="text-sm text-[var(--nav-text)]">
+          <div className="min-w-[min(100%,420px)] flex-1">
+            <p className="truncate text-sm text-[var(--nav-text)]">
               {spec.crumb} /{" "}
               <Link href={`/${section}`} className="hover:text-foreground">
                 {spec.title}
               </Link>{" "}
               / Паспорт
             </p>
-            <h1 className="mt-1 flex flex-wrap items-center gap-3 text-4xl font-semibold tracking-[-0.6px] max-sm:text-[26px]">
-              <span className="max-w-[720px] truncate max-[1700px]:max-w-[520px]" title={title}>
+            <h1 className="mt-1 flex items-center gap-3 text-4xl font-semibold tracking-[-0.6px] max-[1279px]:flex-wrap max-sm:text-[26px]">
+              <span className="min-w-0 truncate" title={title}>
                 {title}
               </span>
               <button
@@ -159,18 +159,20 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
               >
                 <Copy className="size-5" />
               </button>
-              <Pill tone={status.tone}>{status.label}</Pill>
-              <span className="inline-flex h-[26px] items-center rounded-full bg-[var(--chip-bg)] px-2.5 text-xs font-semibold">
+              <Pill tone={status.tone} className="flex-none">
+                {status.label}
+              </Pill>
+              <span className="inline-flex h-[26px] flex-none items-center rounded-full whitespace-nowrap bg-[var(--chip-bg)] px-2.5 text-xs font-semibold">
                 {k.pill(x)}
               </span>
             </h1>
           </div>
-          <div className="ml-6 flex flex-wrap gap-x-[26px] gap-y-3 max-[1700px]:ml-0">
+          <div className="flex flex-none flex-wrap gap-x-[26px] gap-y-3 max-[1700px]:order-last max-[1700px]:basis-full max-[1700px]:pl-[72px] max-sm:pl-0">
             {k.stats(c).map((st) => (
               <Stat key={st.t} {...st} />
             ))}
           </div>
-          <div className="ml-auto flex gap-2.5">
+          <div className="ml-auto flex flex-none gap-2.5">
             <button type="button" className={cn(circ, "size-11")} title="QR-код" onClick={() => setQr(true)}>
               <QrCode />
             </button>

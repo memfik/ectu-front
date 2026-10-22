@@ -38,7 +38,7 @@ function Panel({ x }: { x: GenRow }) {
         <span>TETRA / SmartTrunk</span>
       </p>
       <div className="relative mt-2 flex h-[160px] items-center gap-5 rounded-xl border border-border bg-[linear-gradient(180deg,#2a2d35,#17191f)] px-5 shadow-[0_24px_60px_rgba(0,0,0,0.5)] not-dark:bg-[linear-gradient(180deg,#f3f4f7,#d9dce3)]">
-        <span className="w-[300px] flex-none">
+        <span className="w-[300px] min-w-0 shrink">
           <b className="block text-sm font-semibold">Ретранслятор</b>
           <span className="block truncate text-[11px] text-muted-foreground">{String(x.f.model)}</span>
         </span>
@@ -50,7 +50,7 @@ function Panel({ x }: { x: GenRow }) {
             <i className="absolute top-1 left-1/2 h-3 w-0.5 -translate-x-1/2 rounded bg-white" />
           </i>
         ))}
-        <span className="h-[120px] flex-1 rounded-md bg-[repeating-linear-gradient(90deg,#0b0c10_0_3px,#2a2d35_3px_6px)] opacity-80" />
+        <span className="h-[120px] min-w-0 flex-1 rounded-md bg-[repeating-linear-gradient(90deg,#0b0c10_0_3px,#2a2d35_3px_6px)] opacity-80" />
         <span className="flex flex-col items-center gap-1.5">
           {["TX", "RX"].map((t) => (
             <span key={t} className="flex flex-col items-center gap-0.5">
