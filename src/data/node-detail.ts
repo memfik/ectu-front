@@ -7,7 +7,18 @@ import type { NodeRow } from "./nodes"
  * TODO: API — GET /api/nodes/pasport?node_id=… и вкладки.
  */
 
-export type Person = { initials: string; name: string; role: string; color: string; synced?: boolean; phone?: string; email?: string }
+export type Person = {
+  initials: string
+  name: string
+  role: string
+  color: string
+  synced?: boolean
+  /** Телефон в макете скрыт: «+7 701 *** 12 45» */
+  phone?: string
+  email?: string
+  dept?: string
+  inv?: string
+}
 export type FiberLine = {
   id: number
   num: string
@@ -63,6 +74,10 @@ export type NodeDetail = {
   /** ID-каналы на соседних узлах — можно привязать к этому */
   nearChannels: { id: string; node: string; kind: string; km: number }[]
   people: Person[]
+  /** История назначений ответственных */
+  assignments: { name: string; role: string; date: string; by: string; source: "hr" | "import" | "manual" }[]
+  /** Разделы документации и отметка «есть на бумаге» */
+  docGroups: { kind: string; paper: boolean }[]
   docs: Doc[]
   comments: Comment[]
   history: HistoryItem[]
@@ -70,8 +85,8 @@ export type NodeDetail = {
 }
 
 const P = {
-  bd: { initials: "БД", name: "Борис Б. Дегтярь", role: "Инженер ЦТ", color: "linear-gradient(135deg,#0ea5e9,#0369a1)", synced: true, phone: "+7 701 000 00 00", email: "b.degtyar@qmobile.kz" },
-  no: { initials: "НО", name: "Нурдаулет С. Осербай", role: "Ведущий инженер ГЭ", color: "linear-gradient(135deg,#a855f7,#6d28d9)", synced: true, phone: "+7 702 000 00 00", email: "n.oserbay@qmobile.kz" },
+  bd: { initials: "БД", name: "Борис Б. Дегтярь", role: "Инженер ЦТ", color: "linear-gradient(135deg,#0ea5e9,#0369a1)", synced: true, phone: "+7 701 *** 12 45", email: "b.degtyar@qmobile.kz", dept: "ЦТ, г. Астана", inv: "INV-004471" },
+  no: { initials: "НО", name: "Нурдаулет С. Осербай", role: "Ведущий инженер ГЭ", color: "linear-gradient(135deg,#a855f7,#6d28d9)", synced: true, phone: "+7 702 *** 88 10", email: "n.oserbay@qmobile.kz", dept: "ГЭ ЦТ", inv: "INV-005120" },
   ag: { initials: "АГ", name: "Артем Г.", role: "ApiServDE", color: "linear-gradient(135deg,#085eff,#001a9f)" },
 } satisfies Record<string, Person>
 
@@ -200,13 +215,22 @@ export function nodeDetail(x: NodeRow): NodeDetail {
       { id: "ID-00351", node: "КСО АТС-14", kind: "L3 · 200M", km: 2.8 },
     ],
     people: [P.bd, P.no],
+    assignments: [
+      { name: P.no.name, role: "Ответственный №2", date: "03.12.2025", by: "Артем С. Галустьян", source: "hr" },
+      { name: P.bd.name, role: "Ответственный №1", date: "12.05.2024", by: "Импорт Excel", source: "import" },
+    ],
+    docGroups: [
+      { kind: "Оперативно-техническая", paper: true },
+      { kind: "Техническая", paper: false },
+      { kind: "Приёмо-сдаточная", paper: false },
+    ],
     docs: [
-      { id: 1, name: "КТС-РФ-ДЭ-83 График ежедн. ОПР — апрель 2026", kind: "Оперативно-техническая", size: "1.2 МБ", date: "02.04.2026", ext: "pdf" },
-      { id: 2, name: "ТД Ренко.pdf", kind: "Техническая", size: "4.8 МБ", date: "14.01.2026", ext: "pdf" },
-      { id: 3, name: "Филиал г. Астана (18).xlsx", kind: "Приёмо-сдаточная", size: "86 КБ", date: "20.12.2025", ext: "xlsx" },
-      { id: 4, name: "Договор аренды площадки.docx", kind: "Правоустанавливающая", size: "312 КБ", date: "11.11.2025", ext: "docx" },
-      { id: 5, name: "Схема размещения оборудования.dwg", kind: "Техническая", size: "2.1 МБ", date: "03.10.2025", ext: "dwg" },
-      { id: 6, name: "Акт ввода в эксплуатацию.pdf", kind: "Приёмо-сдаточная", size: "640 КБ", date: "18.06.2025", ext: "pdf" },
+      { id: 1, name: "График ежедн. ОПР — апрель 2026", kind: "Оперативно-техническая", size: "1.2 МБ", date: "02.04.2026", ext: "pdf" },
+      { id: 2, name: "График ежедн. ОПР — март 2026", kind: "Оперативно-техническая", size: "1.1 МБ", date: "01.03.2026", ext: "pdf" },
+      { id: 3, name: "График ежедн. ОПР — февраль 2026", kind: "Оперативно-техническая", size: "1.1 МБ", date: "02.02.2026", ext: "pdf" },
+      { id: 4, name: "Журнал ТО ИБП 2025", kind: "Оперативно-техническая", size: "640 КБ", date: "15.01.2026", ext: "pdf" },
+      { id: 5, name: "ТД Ренко.pdf", kind: "Техническая", size: "4.8 МБ", date: "14.01.2026", ext: "pdf" },
+      { id: 6, name: "Филиал г. Астана (18).xlsx", kind: "Приёмо-сдаточная", size: "86 КБ", date: "20.12.2025", ext: "xlsx" },
     ],
     comments: [
       { id: 1, author: P.ag, when: "06.10", text: "Арендодатель меняется с 01.11 — нужен новый договор.", pinned: true },

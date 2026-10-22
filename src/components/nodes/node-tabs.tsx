@@ -9,6 +9,14 @@ import {
   Cable,
   ChartColumn,
   ChevronDown,
+  Download,
+  Eye,
+  FileText,
+  Hash,
+  History,
+  Mail,
+  Upload,
+  UserRound,
   Info,
   MapPin,
   Users,
@@ -30,7 +38,7 @@ import {
   Wifi,
   Zap,
 } from "lucide-react"
-import { btn, circ, Pill } from "@/components/list/ui"
+import { btn, checkBox, circ, Pill } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import type { Equipment, NodeDetail, PortState } from "@/data/node-detail"
 import type { NodeRow } from "@/data/nodes"
@@ -755,6 +763,273 @@ export function ClientsTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
             />
           </div>
         </Card>
+      </div>
+    </div>
+  )
+}
+
+/* ---------- t05 · Ответственные ---------- */
+
+const SOURCE = { hr: ["HR-синхронизация", "info"], import: ["Импорт", "muted"], manual: ["Вручную", "muted"] } as const
+
+/** Вкладка «Ответственные» (экран t05): МОЛ, карточки ответственных, история назначений. */
+export function PeopleTab({ d }: { d: NodeDetail }) {
+  // TODO: назначение МОЛ и ответственных — API (HR-справочник сотрудников)
+  const manage = () => toast("Назначение ответственных — после подключения API")
+  return (
+    <div className="flex flex-col gap-[18px]">
+      <div className="grid grid-cols-3 gap-[18px] max-[1279px]:grid-cols-1">
+        <Card
+          icon={UserCog}
+          title="МОЛ"
+          action={<span className="rounded-full bg-[var(--chip-bg)] px-2.5 py-1 text-xs font-semibold">Не указано</span>}
+        >
+          <div className="flex flex-col items-center pb-2 text-center">
+            <span className="grid size-[150px] place-items-center rounded-full border border-dashed border-[rgba(8,94,255,0.25)]">
+              <span className="grid size-[84px] place-items-center rounded-full border border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.16)] text-[var(--link)]">
+                <UserRound className="size-8" strokeWidth={1.5} />
+              </span>
+            </span>
+            <b className="mt-4 text-[17px] font-semibold">Материально ответственное лицо не назначено</b>
+            <p className="mt-1.5 text-[13.5px] text-muted-foreground">Укажите сотрудника, за которым числится оборудование узла.</p>
+            <button type="button" className={cn(btn({ primary: true }), "mt-4")} onClick={manage}>
+              <Plus />
+              Назначить МОЛ
+            </button>
+          </div>
+        </Card>
+        {d.people.map((p, i) => (
+          <section key={p.initials} className={cn(glass, "p-[22px]")}>
+            <header className="mb-4 flex items-center gap-3.5">
+              <Avatar initials={p.initials} color={p.color} className="size-16 text-xl" />
+              <span className="min-w-0 flex-1">
+                <b className="block text-lg font-semibold">{p.name}</b>
+                <span className="text-[13px] text-muted-foreground">
+                  {p.role} · ответственный №{i + 1}
+                </span>
+              </span>
+              {p.synced && (
+                <span className="rounded-full bg-[rgba(43,212,99,0.14)] px-2.5 py-1 text-xs font-semibold text-[var(--status-ok)]">
+                  Синхронизировано
+                </span>
+              )}
+            </header>
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  [Phone, p.phone, "Телефон"],
+                  [Mail, p.email, "Почта"],
+                  [UserRound, p.dept, "Департамент"],
+                  [Hash, p.inv, "Инвентарный №"],
+                ] as const
+              ).map(([I, v, t]) => (
+                <span key={t} className="flex items-center gap-3 rounded-2xl border border-border bg-[var(--chip-bg)] px-4 py-3">
+                  <I className="size-4 flex-none text-[var(--link)]" />
+                  <span className="min-w-0">
+                    <b className="block truncate text-[13.5px] font-medium">{v ?? "—"}</b>
+                    <span className="text-[11.5px] text-muted-foreground">{t}</span>
+                  </span>
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 flex gap-2">
+              {/* в макете номер скрыт — звонок по полному номеру из API */}
+              <button type="button" className={cn(btn(), "flex-1 justify-center")} onClick={() => toast("Звонок — номер придёт из API")}>
+                <Phone />
+                Позвонить
+              </button>
+              <a href={`mailto:${p.email}`} className={cn(btn(), "flex-1 justify-center")}>
+                <Mail />
+                Написать
+              </a>
+              <button type="button" className={cn(circ, "size-11")} aria-label="Ещё" onClick={manage}>
+                <MoreHorizontal />
+              </button>
+            </div>
+          </section>
+        ))}
+      </div>
+      <Card
+        icon={History}
+        title="История назначений"
+        count={d.assignments.length}
+        action={
+          <button type="button" className={btn({ primary: true, sm: true })} onClick={manage}>
+            <Users />
+            Управлять ответственными
+          </button>
+        }
+      >
+        <Table
+          head={["Сотрудник", "Роль", "Назначен", "Кем", "Источник"]}
+          rows={d.assignments.map((a) => ({
+            key: a.name + a.date,
+            cells: [
+              <b key="n" className="font-semibold">
+                {a.name}
+              </b>,
+              a.role,
+              a.date,
+              a.by,
+              <Pill key="s" tone={SOURCE[a.source][1]} className="[&>i]:hidden">
+                {SOURCE[a.source][0]}
+              </Pill>,
+            ],
+          }))}
+        />
+      </Card>
+    </div>
+  )
+}
+
+/* ---------- t06 · Документация ---------- */
+
+const EXT_LABEL = { pdf: ["PDF", "#ff5257"], xlsx: ["XLS", "#2bd463"], docx: ["DOC", "#4f8dff"], dwg: ["DWG", "#ffc24a"] } as const
+
+/** Вкладка «Документация» (экран t06): поиск и тип файла, колонки по разделам с превью, загрузка перетаскиванием. */
+export function DocsTab({ d }: { d: NodeDetail }) {
+  const [q, setQ] = useState("")
+  const [ext, setExt] = useState<"all" | "pdf" | "xlsx">("all")
+  const [paper, setPaper] = useState(() => Object.fromEntries(d.docGroups.map((g) => [g.kind, g.paper])))
+  const [open, setOpen] = useState<Record<string, boolean>>({})
+  const docs = d.docs.filter((f) => (ext === "all" || f.ext === ext) && f.name.toLowerCase().includes(q.trim().toLowerCase()))
+  // TODO: загрузка, просмотр и скачивание файлов — API (S3 / файловое хранилище)
+  const upload = (files?: FileList | null) =>
+    toast(files?.length ? `Файлов: ${files.length} — загрузка после подключения API` : "Загрузка — после подключения API")
+
+  return (
+    <div className="flex flex-col gap-[18px]">
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchBox value={q} onChange={setQ} placeholder="Поиск по документам…" />
+        {(
+          [
+            ["all", "Все", d.docs.length],
+            ["pdf", "PDF", d.docs.filter((f) => f.ext === "pdf").length],
+            ["xlsx", "Excel", d.docs.filter((f) => f.ext === "xlsx").length],
+          ] as const
+        ).map(([k, t, n]) => (
+          <button
+            key={k}
+            type="button"
+            aria-pressed={ext === k}
+            onClick={() => setExt(k)}
+            className={cn(
+              "flex h-10 items-center gap-2 rounded-full border border-border bg-[var(--chip-bg)] px-4 text-[13.5px] text-[var(--nav-text)]",
+              ext === k && "border-[rgba(8,94,255,0.5)] bg-[rgba(8,94,255,0.16)] text-foreground",
+            )}
+          >
+            {t}
+            <em className="rounded-full bg-[var(--chip-bg)] px-[7px] text-[11.5px] not-italic">{n}</em>
+          </button>
+        ))}
+        <span className="flex-1" />
+        <button type="button" className={btn()} onClick={() => toast("Архив ZIP — после подключения API")}>
+          <Download />
+          Скачать всё (ZIP)
+        </button>
+        <label className={cn(btn({ primary: true }), "cursor-pointer")}>
+          <Upload />
+          Загрузить
+          <input type="file" multiple hidden onChange={(e) => upload(e.target.files)} />
+        </label>
+      </div>
+
+      <div className="grid grid-cols-3 items-start gap-[18px] max-[1279px]:grid-cols-1">
+        {d.docGroups.map((g) => {
+          const items = docs.filter((f) => f.kind === g.kind)
+          const shown = open[g.kind] ? items : items.slice(0, 2)
+          return (
+            <section key={g.kind} className={cn(glass, "p-[18px]")}>
+              <header className="mb-3 flex items-center gap-3">
+                <span className="grid size-8 place-items-center rounded-[10px] border border-[var(--thumb-line)] bg-[var(--thumb-bg)] text-[var(--thumb-ic)]">
+                  <FileText className="size-4" />
+                </span>
+                <b className="flex-1 text-[15px] font-semibold">
+                  {g.kind} <em className="font-normal text-muted-foreground not-italic">{items.length}</em>
+                </b>
+                <label className={cn(circ, "cursor-pointer")} aria-label="Добавить файл">
+                  <Plus />
+                  <input type="file" multiple hidden onChange={(e) => upload(e.target.files)} />
+                </label>
+              </header>
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={paper[g.kind]}
+                onClick={() => setPaper({ ...paper, [g.kind]: !paper[g.kind] })}
+                className="mb-3 flex w-full items-center gap-2.5 rounded-xl bg-[var(--chip-bg)] px-3 py-2.5 text-left text-[13px] text-[var(--nav-text)]"
+              >
+                <span className={checkBox(paper[g.kind])} />
+                Имеется на бумажном носителе
+              </button>
+              <div className="flex flex-col gap-2.5">
+                {shown.map((f) => {
+                  const [label, color] = EXT_LABEL[f.ext]
+                  return (
+                    <div key={f.id} className="rounded-2xl border border-border bg-[var(--chip-bg)] p-3.5">
+                      <div
+                        aria-hidden
+                        className="mb-3 flex h-[120px] flex-col gap-2.5 rounded-xl border border-border bg-[var(--glass-card-solid)] p-4"
+                      >
+                        {[80, 95, 60, 85, 55].map((w, i) => (
+                          <i key={i} className="h-1 rounded-full bg-[var(--chip-bg)]" style={{ width: `${w}%` }} />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-[13px] font-medium" style={{ color }}>
+                          {label}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <b className="block truncate text-[13.5px] font-medium">{f.name}</b>
+                          <span className="text-[11.5px] text-muted-foreground">
+                            {f.size} · {f.date}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          className={cn(circ, "size-8")}
+                          title="Просмотр"
+                          onClick={() => toast("Просмотр — после подключения API")}
+                        >
+                          <Eye />
+                        </button>
+                        <button
+                          type="button"
+                          className={cn(circ, "size-8")}
+                          title="Скачать"
+                          onClick={() => toast("Скачивание — после подключения API")}
+                        >
+                          <Download />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+                {items.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setOpen({ ...open, [g.kind]: !open[g.kind] })}
+                    className="h-10 rounded-xl border border-border bg-[var(--chip-bg)] text-[13px] text-[var(--nav-text)]"
+                  >
+                    {open[g.kind] ? "Свернуть" : `Ещё ${items.length - 2} ${items.length - 2 === 1 ? "файл" : "файла"}`}
+                  </button>
+                )}
+                <label
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    upload(e.dataTransfer.files)
+                  }}
+                  className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border text-[13px] text-muted-foreground"
+                >
+                  <Upload className="size-4" />
+                  Перетащите файлы или <b className="font-semibold text-[var(--link)]">выберите</b>
+                  <input type="file" multiple hidden onChange={(e) => upload(e.target.files)} />
+                </label>
+              </div>
+            </section>
+          )
+        })}
       </div>
     </div>
   )
