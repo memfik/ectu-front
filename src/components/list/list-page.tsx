@@ -339,7 +339,7 @@ const td = (on: boolean, edge?: "first" | "last") =>
     on && edge === "last" && "shadow-[inset_-1px_1px_rgba(8,94,255,0.4),inset_0_-1px_rgba(8,94,255,0.4)]",
   )
 
-function Hero<T extends Row>({ cfg, total, onAction }: { cfg: ListConfig<T>; total: number; onAction: (b: HeroButton) => void }) {
+export function Hero<T extends Row>({ cfg, total, onAction }: { cfg: ListConfig<T>; total: number; onAction: (b: HeroButton) => void }) {
   return (
     <section className="relative -mt-[96px] h-[470px] max-[1279px]:h-auto max-[1279px]:pb-2">
       {/* фон на всю ширину окна, уходит под шапку, как в макете */}
@@ -543,7 +543,7 @@ function Cards<T extends Row>({
   )
 }
 
-function Pager({
+export function Pager({
   total,
   page,
   pages,
