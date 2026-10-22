@@ -30,6 +30,8 @@ const km = (a: [number, number], b: [number, number]) => {
 }
 
 type Latest = {
+  ring?: { ll: [number, number]; m: number }
+  noCluster?: boolean
   points: MapPoint[]
   selected: number | null
   onSelect: (id: number) => void
@@ -43,6 +45,8 @@ export function PointsMap({
   onSelect,
   onVisible,
   mini,
+  ring,
+  noCluster,
   className,
 }: {
   points: MapPoint[]
@@ -51,13 +55,17 @@ export function PointsMap({
   onVisible?: (v: Visible) => void
   /** Маленькая карта в карточке: без подписи источника, кнопки масштаба сверху справа. */
   mini?: boolean
+  /** Круг охвата вокруг точки: центр и радиус, м (клиенты рядом с узлом). Карта подстраивается под круг. */
+  ring?: { ll: [number, number]; m: number }
+  /** Не собирать точки в кластеры и не подписывать (много мелких точек рядом). */
+  noCluster?: boolean
   className?: string
 }) {
   const box = useRef<HTMLDivElement>(null)
   const map = useRef<MlMap | null>(null)
-  const latest = useRef<Latest>({ points, selected, onSelect, onVisible })
+  const latest = useRef<Latest>({ points, selected, onSelect, onVisible, ring, noCluster })
   useLayoutEffect(() => {
-    latest.current = { points, selected, onSelect, onVisible }
+    latest.current = { points, selected, onSelect, onVisible, ring, noCluster }
   })
   const { resolvedTheme } = useTheme()
   const theme = resolvedTheme === "light" ? "light" : "dark"
@@ -73,8 +81,8 @@ export function PointsMap({
       m = new ml.Map({
         container: box.current,
         style: STYLE[theme],
-        center: first ? [first.ll[1], first.ll[0]] : [71.43, 51.13],
-        zoom: 12,
+        center: ring ? [ring.ll[1], ring.ll[0]] : first ? [first.ll[1], first.ll[0]] : [71.43, 51.13],
+        zoom: ring ? 15.5 : 12,
         attributionControl: mini ? false : { compact: true },
       })
       m.addControl(new ml.NavigationControl({ showCompass: false }), mini ? "top-right" : "bottom-right")
@@ -120,6 +128,7 @@ export function PointsMap({
     if (!m || !ready || !m.getSource("nodes")) return
     ;(m.getSource("nodes") as GeoJSONSource).setData(toGeo(points))
     m.setFilter("nodes-selected", ["==", ["get", "id"], selected ?? -1])
+    if (latest.current.noCluster) m.setFilter("nodes-label", ["==", ["get", "id"], selected ?? -1])
     report(m, latest)
   }, [points, selected, ready])
 
@@ -160,7 +169,19 @@ function addLayers(m: MlMap, latest: RefObject<Latest>) {
       m.setLayoutProperty(l.id, "text-field", ["coalesce", ["get", "name:ru"], ["get", "name"]])
     }
   }
-  m.addSource("nodes", { type: "geojson", data: toGeo(latest.current.points), cluster: true, clusterRadius: 48, clusterMaxZoom: 13 })
+  const ring = latest.current.ring
+  if (ring) {
+    m.addSource("ring", { type: "geojson", data: circle(ring.ll, ring.m) })
+    m.addLayer({ id: "ring-fill", type: "fill", source: "ring", paint: { "fill-color": "#085eff", "fill-opacity": 0.1 } })
+    m.addLayer({ id: "ring-line", type: "line", source: "ring", paint: { "line-color": "#4f8dff", "line-width": 1.5, "line-dasharray": [3, 3] } })
+  }
+  m.addSource("nodes", {
+    type: "geojson",
+    data: toGeo(latest.current.points),
+    cluster: !latest.current.noCluster,
+    clusterRadius: 48,
+    clusterMaxZoom: 13,
+  })
   m.addLayer({
     id: "nodes-cluster",
     type: "circle",
@@ -204,7 +225,8 @@ function addLayers(m: MlMap, latest: RefObject<Latest>) {
     id: "nodes-label",
     type: "symbol",
     source: "nodes",
-    filter: ["!", ["has", "point_count"]],
+    // при noCluster подписываем только выбранную точку
+    filter: latest.current.noCluster ? ["==", ["get", "id"], latest.current.selected ?? -1] : ["!", ["has", "point_count"]],
     minzoom: 13,
     layout: {
       "text-field": ["get", "title"],
@@ -215,6 +237,16 @@ function addLayers(m: MlMap, latest: RefObject<Latest>) {
     },
     paint: { "text-color": "#dfe2e7", "text-halo-color": "rgba(10,11,14,0.9)", "text-halo-width": 1.5 },
   })
+}
+
+/** Многоугольник-круг радиусом m метров. */
+function circle([lat, lng]: [number, number], m: number): GeoJSON.Feature {
+  const k = m / 111320
+  const ring = Array.from({ length: 65 }, (_, i) => {
+    const a = (i / 64) * 2 * Math.PI
+    return [lng + (Math.cos(a) * k) / Math.cos((lat * Math.PI) / 180), lat + Math.sin(a) * k]
+  })
+  return { type: "Feature", geometry: { type: "Polygon", coordinates: [ring] }, properties: {} }
 }
 
 function toGeo(points: MapPoint[]): GeoJSON.FeatureCollection {

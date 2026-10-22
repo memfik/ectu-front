@@ -1,10 +1,17 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
+import dynamic from "next/dynamic"
 import {
   ArrowRight,
   ArrowUpRight,
   Cable,
+  ChartColumn,
+  ChevronDown,
+  Info,
+  MapPin,
+  Users,
   Cpu,
   Grid2x2,
   Link as LinkIcon,
@@ -29,6 +36,11 @@ import type { Equipment, NodeDetail, PortState } from "@/data/node-detail"
 import type { NodeRow } from "@/data/nodes"
 import { cn } from "@/lib/utils"
 import { Avatar, Card, glass, Kv } from "@/components/passport/ui"
+
+const PointsMap = dynamic(() => import("@/components/map/points-map").then((m) => m.PointsMap), {
+  ssr: false,
+  loading: () => <div className="absolute inset-0 animate-pulse bg-[var(--feat-bg)]" />,
+})
 
 /* ---------- t01 · ВОЛС трассы ---------- */
 
@@ -494,5 +506,256 @@ export function Empty({
       <p className="mt-1 max-w-[420px] text-[13.5px] text-muted-foreground">{text}</p>
       {children && <div className="mt-5">{children}</div>}
     </section>
+  )
+}
+
+/* ---------- t03 · ID-каналы ---------- */
+
+/** Вкладка «ID-каналы» (экран t03): фильтры, пустое состояние или таблица, «Как это работает», каналы рядом. */
+export function IdTab({ d }: { d: NodeDetail }) {
+  const [q, setQ] = useState("")
+  const list = d.idChannels.filter((c) => `${c.num} ${c.client}`.toLowerCase().includes(q.trim().toLowerCase()))
+  // TODO: привязка канала из реестра (14) и создание — API
+  const link = () => toast("Привязка ID-канала — после подключения API")
+
+  return (
+    <div className="grid grid-cols-[1.6fr_1fr] gap-[18px] max-[1279px]:grid-cols-1">
+      <section className={cn(glass, "p-[22px]")}>
+        <div className="flex flex-wrap gap-2.5">
+          <SearchBox value={q} onChange={setQ} placeholder="Поиск каналов…" />
+          {["Тип канала", "Тип трафика", "Статус"].map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={cn(btn(), "h-10 font-normal text-[var(--nav-text)]")}
+              onClick={() => toast(`Фильтр «${t}» — когда появятся каналы`)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        {d.idChannels.length ? (
+          <div className="mt-3">
+            <Table
+              head={["ID", "Клиент", "Скорость", "Статус"]}
+              rows={list.map((c) => ({
+                key: c.id,
+                cells: [
+                  <b key="n" className="font-semibold">
+                    {c.num}
+                  </b>,
+                  c.client,
+                  c.speed,
+                  <Pill key="s" tone={c.status === "ok" ? "ok" : "muted"}>
+                    {c.status === "ok" ? "Активен" : "Отключён"}
+                  </Pill>,
+                ],
+              }))}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center px-6 py-10 text-center">
+            <span className="grid size-[200px] place-items-center rounded-full border border-dashed border-[rgba(8,94,255,0.25)]">
+              <span className="grid size-[120px] place-items-center rounded-full border border-[rgba(8,94,255,0.45)] bg-[radial-gradient(circle,rgba(8,94,255,0.35),rgba(8,94,255,0.08))] text-[var(--link)]">
+                <LinkIcon className="size-10" strokeWidth={1.5} />
+              </span>
+            </span>
+            <b className="mt-6 text-[22px] font-semibold">К узлу пока не привязано ни одного ID-канала</b>
+            <p className="mt-2 max-w-[460px] text-sm text-muted-foreground">
+              Привяжите существующий канал из реестра ID-каналов или создайте новый — он появится здесь вместе с трафиком, KLM и статусом.
+            </p>
+            <div className="mt-6 flex gap-2.5">
+              <button type="button" className={btn({ primary: true })} onClick={link}>
+                <LinkIcon />
+                Привязать из реестра
+              </button>
+              <button type="button" className={btn()} onClick={link}>
+                <Plus />
+                Создать канал
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+      <Card icon={Info} title="Как это работает">
+        {[
+          ["Найдите канал", "по ID, KLM или имени клиента в реестре"],
+          ["Выберите узел и порт", "канал привяжется к оборудованию этого УС"],
+          ["Проверьте статус", "трафик и состояние обновятся автоматически"],
+        ].map(([t, s], i) => (
+          <div key={t} className="mb-3 flex items-center gap-4 rounded-2xl border border-border bg-[var(--chip-bg)] px-4 py-3.5">
+            <span className="grid size-8 place-items-center rounded-full bg-[rgba(8,94,255,0.18)] text-[13px] font-semibold text-[var(--link)]">
+              {i + 1}
+            </span>
+            <span>
+              <b className="block text-sm font-medium">{t}</b>
+              <span className="text-xs text-muted-foreground">{s}</span>
+            </span>
+          </div>
+        ))}
+        <b className="mt-5 mb-1 block text-base font-semibold">
+          Каналы рядом <em className="font-normal text-muted-foreground not-italic">{d.nearChannels.length}</em>
+        </b>
+        {d.nearChannels.slice(0, 2).map((c) => (
+          <div key={c.id} className="flex items-center gap-3 border-b border-border py-3 last:border-0">
+            <span className="grid size-9 place-items-center rounded-[10px] border border-[var(--thumb-line)] bg-[var(--thumb-bg)] text-[var(--thumb-ic)]">
+              <LinkIcon className="size-[17px]" />
+            </span>
+            <span className="flex-1">
+              <b className="block text-sm font-semibold">
+                {c.id} · {c.node}
+              </b>
+              <span className="text-xs text-muted-foreground">
+                {c.kind} · {String(c.km).replace(".", ",")} км
+              </span>
+            </span>
+            <button type="button" className={circ} aria-label={`Привязать ${c.id}`} onClick={link}>
+              <Plus />
+            </button>
+          </div>
+        ))}
+      </Card>
+    </div>
+  )
+}
+
+/* ---------- t04 · Потенциальные клиенты ---------- */
+
+const CLIENT = {
+  client: { t: "Клиент", tone: "ok", c: "var(--status-ok)" },
+  processed: { t: "Обработан", tone: "warn", c: "#ffc24a" },
+  none: { t: "Не обработан", tone: "muted", c: "#8c919b" },
+} as const
+
+/** Вкладка «Потенциальные клиенты» (экран t04): статусы, радиус, карта с кругом охвата, таблица B2B-клиентов. */
+export function ClientsTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
+  const [st, setSt] = useState<"all" | keyof typeof CLIENT>("all")
+  const [radius, setRadius] = useState(d.clients.radius)
+  const [q, setQ] = useState("")
+  const [sel, setSel] = useState<number | null>(null)
+  const inRadius = d.clientList.filter((c) => c.m <= radius)
+  const list = inRadius.filter(
+    (c) => (st === "all" || c.status === st) && `${c.bin} ${c.name}`.toLowerCase().includes(q.trim().toLowerCase()),
+  )
+  const count = (k: keyof typeof CLIENT) => inRadius.filter((c) => c.status === k).length
+  const points = [
+    { id: 0, ll: x.ll, title: x.code, sub: x.object, tone: "info" as const },
+    ...list.map((c) => ({ id: c.id, ll: c.ll, title: c.name, sub: c.bin, tone: CLIENT[c.status].tone })),
+  ]
+
+  return (
+    <div className="flex flex-col gap-[18px]">
+      <div className="flex flex-wrap items-center gap-2">
+        {(
+          [
+            ["all", "Все", inRadius.length, ""],
+            ["client", "Клиент", count("client"), CLIENT.client.c],
+            ["processed", "Обработан", count("processed"), CLIENT.processed.c],
+            ["none", "Не обработан", count("none"), CLIENT.none.c],
+          ] as const
+        ).map(([k, t, n, c]) => (
+          <button
+            key={k}
+            type="button"
+            aria-pressed={st === k}
+            onClick={() => setSt(k)}
+            className={cn(
+              "flex h-10 items-center gap-2 rounded-full border border-border bg-[var(--chip-bg)] px-4 text-[13.5px] text-[var(--nav-text)]",
+              st === k && "border-[rgba(8,94,255,0.5)] bg-[rgba(8,94,255,0.16)] text-foreground",
+            )}
+          >
+            {c && <i className="size-1.5 rounded-full" style={{ background: c }} />}
+            {t}
+            <em className="rounded-full bg-[var(--chip-bg)] px-[7px] text-[11.5px] not-italic">{n}</em>
+          </button>
+        ))}
+        <label className="relative flex h-10 items-center rounded-full border border-border bg-[var(--chip-bg)] pr-9 pl-4 text-[13.5px] text-[var(--nav-text)]">
+          Радиус: {radius} м
+          <select
+            aria-label="Радиус"
+            value={radius}
+            onChange={(e) => setRadius(Number(e.target.value))}
+            className="absolute inset-0 cursor-pointer opacity-0"
+          >
+            {[100, 150, 250].map((r) => (
+              <option key={r} value={r}>
+                {r} м
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-3 size-4 opacity-60" />
+        </label>
+        <span className="flex-1" />
+        <Link href="/summary-files?section=prospects" className={btn()}>
+          <ChartColumn />
+          Сводный отчёт
+        </Link>
+        <Link href={`/prospects?node=${x.code}`} className={btn()}>
+          <ArrowRight />
+          Все клиенты
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-[1fr_1.4fr] gap-[18px] max-[1279px]:grid-cols-1">
+        <section className={cn(glass, "relative h-[600px] overflow-hidden max-[1279px]:h-[420px]")}>
+          <PointsMap
+            noCluster
+            key={radius}
+            points={points}
+            selected={sel ?? 0}
+            onSelect={setSel}
+            ring={{ ll: x.ll, m: radius }}
+            className="absolute inset-0"
+          />
+          <span className="absolute top-4 right-4 z-[1] rounded-full bg-[var(--glass-card)] px-3 py-1 text-[13px] font-semibold backdrop-blur">
+            {radius} м
+          </span>
+        </section>
+        <Card
+          icon={Users}
+          title="Потенциальные клиенты"
+          count={inRadius.length}
+          action={<SearchBox value={q} onChange={setQ} placeholder="БИН или название…" />}
+        >
+          <div className="max-h-[504px] overflow-auto">
+            <Table
+              head={["БИН", "Наименование", "Размер", "Дистанция", "Статус", ""]}
+              rows={list.map((c) => ({
+                key: c.id,
+                on: c.id === sel,
+                onClick: () => setSel(c.id),
+                cells: [
+                  <span key="b" className="text-muted-foreground tabular-nums">
+                    {c.bin}
+                  </span>,
+                  <b key="n" className="font-semibold">
+                    {c.name}
+                  </b>,
+                  c.size,
+                  <span key="d" className="flex items-center gap-2 tabular-nums">
+                    <span className="h-1 w-[80px] overflow-hidden rounded-full bg-[var(--chip-bg)]">
+                      <i className="block h-full bg-[#085eff]" style={{ width: `${(c.m / radius) * 100}%` }} />
+                    </span>
+                    {c.m} м
+                  </span>,
+                  <Pill key="s" tone={CLIENT[c.status].tone} className="[&>i]:hidden">
+                    {CLIENT[c.status].t}
+                  </Pill>,
+                  <span key="a" className="flex justify-end gap-1.5">
+                    <button type="button" className={cn(circ, "size-8")} title="Показать на карте" onClick={() => setSel(c.id)}>
+                      <MapPin />
+                    </button>
+                    {/* TODO: карточка клиента — раздел «Потенциальные» (12) */}
+                    <Link href={`/prospects?bin=${c.bin}`} className={cn(circ, "size-8")} title="Карточка клиента">
+                      <ArrowUpRight />
+                    </Link>
+                  </span>,
+                ],
+              }))}
+            />
+          </div>
+        </Card>
+      </div>
+    </div>
   )
 }

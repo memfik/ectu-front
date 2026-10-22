@@ -58,6 +58,10 @@ export type NodeDetail = {
   equipment: Equipment[]
   idChannels: { id: number; num: string; client: string; speed: string; status: "ok" | "off" }[]
   clients: { total: number; client: number; processed: number; none: number; radius: number }
+  /** Потенциальные клиенты рядом (B2B, таблица potential_clients) */
+  clientList: { id: number; bin: string; name: string; size: string; m: number; status: "client" | "processed" | "none"; ll: [number, number] }[]
+  /** ID-каналы на соседних узлах — можно привязать к этому */
+  nearChannels: { id: string; node: string; kind: string; km: number }[]
   people: Person[]
   docs: Doc[]
   comments: Comment[]
@@ -188,6 +192,13 @@ export function nodeDetail(x: NodeRow): NodeDetail {
       status: i === 2 ? "off" : "ok",
     })),
     clients: { total: x.clients, client: Math.round(x.clients * 0.12), processed: Math.round(x.clients * 0.2), none: x.clients - Math.round(x.clients * 0.12) - Math.round(x.clients * 0.2), radius: 250 },
+    clientList: clientList(x),
+    nearChannels: [
+      { id: "ID-00412", node: "ast011.02.AS", kind: "L2 · 100M", km: 1.9 },
+      { id: "ID-00398", node: "УС «РТПЦ»", kind: "L3 · 1G", km: 1.4 },
+      { id: "ID-00377", node: "ast004.01.AS", kind: "L2 · 50M", km: 2.3 },
+      { id: "ID-00351", node: "КСО АТС-14", kind: "L3 · 200M", km: 2.8 },
+    ],
     people: [P.bd, P.no],
     docs: [
       { id: 1, name: "КТС-РФ-ДЭ-83 График ежедн. ОПР — апрель 2026", kind: "Оперативно-техническая", size: "1.2 МБ", date: "02.04.2026", ext: "pdf" },
@@ -212,4 +223,52 @@ export function nodeDetail(x: NodeRow): NodeDetail {
     ],
     media,
   }
+}
+
+const COMPANIES: [string, string, string][] = [
+  ["000440005502", "ТОО «Авиакомпания Орлан-2000»", "Малые (41–50)"],
+  ["070540014109", "ТОО «Асыл-Ана компаниясы»", "Малые (≤ 5)"],
+  ["100440017386", "ТОО «СП Универсал Сервис»", "Малые (≤ 5)"],
+  ["170640008446", "ТОО «Бота-2017»", "Малые (6–10)"],
+  ["190840025982", "ТОО «A&Meirim»", "Малые (≤ 5)"],
+  ["200940036391", "ТОО «Нуран Групп»", "Малые (≤ 5)"],
+  ["210140011204", "ИП «Сапарова А.»", "Микро (1)"],
+  ["150340021877", "ТОО «Жайык Строй»", "Средние (51–100)"],
+  ["160640005512", "ТОО «Батыс Агро»", "Малые (11–20)"],
+  ["180240013390", "ИП «Ермеков Д.»", "Микро (1)"],
+  ["120840007741", "ТОО «Орал Логистик»", "Малые (21–40)"],
+  ["190140029936", "ТОО «Медцентр Шипагер»", "Малые (6–10)"],
+]
+
+/** Клиенты в радиусе 250 м: первые 7 — из макета, статусы по пропорциям карточки «Клиенты рядом». */
+function clientList(x: NodeRow): NodeDetail["clientList"] {
+  const n = x.clients
+  const client = Math.round(n * 0.12)
+  const processed = Math.round(n * 0.2)
+  const order: ("client" | "processed" | "none")[] = ["client", "processed", "none", "none", "processed", "none", "client"]
+  const statuses = [...Array(client).fill("client"), ...Array(processed).fill("processed"), ...Array(n - client - processed).fill("none")] as ("client" | "processed" | "none")[]
+  // первые строки — в порядке макета, если хватает статусов
+  const head = order.filter((st) => {
+    const i = statuses.indexOf(st)
+    if (i < 0) return false
+    statuses.splice(i, 1)
+    return true
+  })
+  const all = [...head, ...statuses].slice(0, n)
+  const DIST = [115, 229, 115, 71, 246, 219, 64]
+  return all.map((status, i) => {
+    const [bin, name, size] = COMPANIES[i % COMPANIES.length]
+    const m = DIST[i] ?? 40 + ((i * 37 + x.id * 11) % 210)
+    const a = ((i * 137.5 + x.id * 13) % 360) * (Math.PI / 180)
+    const k = m / 111000
+    return {
+      id: i + 1,
+      bin: i < COMPANIES.length ? bin : String(Number(bin) + i),
+      name: i < COMPANIES.length ? name : `${name} (${Math.floor(i / COMPANIES.length) + 1})`,
+      size,
+      m,
+      status,
+      ll: [x.ll[0] + Math.sin(a) * k, x.ll[1] + (Math.cos(a) * k) / Math.cos((x.ll[0] * Math.PI) / 180)] as [number, number],
+    }
+  })
 }
