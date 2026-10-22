@@ -130,11 +130,11 @@ export function FormDrawer<T extends Row>({
                   {s.title}
                   <i className="h-px flex-1 bg-[var(--dd-line)]" />
                 </legend>
-                <div className="grid grid-cols-2 gap-x-3.5 gap-y-4 max-sm:grid-cols-1">
+                <div className="grid grid-cols-6 gap-x-3.5 gap-y-4 max-sm:grid-cols-1">
                   {s.fields.map((x) => {
                     const err = tried ? errors[x.k] : undefined
                     return (
-                      <div key={x.k} className={cn("min-w-0", !x.half && "col-span-full")}>
+                      <div key={x.k} className={cn("min-w-0 max-sm:col-span-full", x.third ? "col-span-2" : x.half ? "col-span-3" : "col-span-full")}>
                         <span className="mb-2 flex items-baseline gap-1 text-[13.5px] font-medium">
                           {x.t}
                           {x.required && <span className="text-[#ff5257]">*</span>}

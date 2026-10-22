@@ -62,6 +62,8 @@ export type HeroButton = { icon: LucideIcon; label: string; primary?: boolean; h
 /** Превью записи справа от таблицы. */
 export type Preview = {
   photo?: string
+  /** Порты устройства вместо цифр (оборудование СПД) */
+  ports?: { n: string; state: "up" | "down" | "sfp" | "free" }[]
   status: { label: string; tone: Tone }
   title: string
   sub: string
@@ -97,6 +99,8 @@ export type Field<T> = {
   type: "text" | "number" | "select" | "tags" | "textarea"
   /** Половина ширины — два поля в строке. */
   half?: boolean
+  /** Треть ширины — три поля в строке (комплектация). */
+  third?: boolean
   required?: boolean
   placeholder?: string
   /** Подсказка справа от подписи («формат: город+№.№.филиал»). */

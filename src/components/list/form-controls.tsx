@@ -31,8 +31,12 @@ export function Select({
   onChange: (v: string) => void
 }) {
   const [open, setOpen] = useState(false)
+  const [q, setQ] = useState("")
   const cur = opts.find((o) => o.v === value)
   const t = cur && tone?.(cur.v)
+  // Длинный список (узлы связи) — с поиском, показываем первые 50 совпадений
+  const searchable = opts.length > 12
+  const shown = searchable ? opts.filter((o) => o.label.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 50) : opts
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger className={field} aria-invalid={invalid || undefined}>
@@ -42,7 +46,17 @@ export function Select({
         <ChevronDown className="size-4 opacity-60" />
       </Popover.Trigger>
       <Popover.Content sideOffset={8} align="start" className={menu}>
-        {opts.map((o) => {
+        {searchable && (
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Поиск…"
+            className="mb-1.5 h-10 w-full rounded-[10px] border border-[var(--dd-line)] bg-[var(--chip-bg)] px-3 text-sm outline-none focus:border-[#085eff]"
+          />
+        )}
+        {searchable && !shown.length && <p className="px-2.5 py-3 text-sm text-muted-foreground">Ничего не найдено</p>}
+        {shown.map((o) => {
           const tt = tone?.(o.v)
           return (
             <button

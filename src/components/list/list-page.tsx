@@ -620,14 +620,37 @@ function PreviewPanel<T extends Row>({ cfg, row, onClose, onEdit }: { cfg: ListC
             </div>
           ))}
         </dl>
-        <div className="my-3.5 grid grid-cols-4 gap-2">
-          {p.stats.map((s) => (
-            <div key={s.t} className="rounded-[14px] border border-border bg-[var(--chip-bg)] p-3">
-              <span className="block truncate text-xs text-muted-foreground">{s.t}</span>
-              <b className="mt-1 block text-xl font-medium tabular-nums">{s.v}</b>
+        {p.ports ? (
+          <div className="my-3.5">
+            <span className="text-[13px] text-muted-foreground">
+              Порты · {p.ports.filter((x) => x.state === "up").length} / {p.ports.length}
+            </span>
+            <div className="mt-2 grid grid-cols-14 gap-1">
+              {p.ports.map((x) => (
+                <i
+                  key={x.n}
+                  title={`${x.n} · ${x.state}`}
+                  className={cn(
+                    "aspect-square rounded-[4px] border",
+                    x.state === "up" && "border-[rgba(43,212,99,0.5)] bg-[rgba(43,212,99,0.18)]",
+                    x.state === "down" && "border-[rgba(255,59,59,0.55)] bg-[rgba(255,59,59,0.18)]",
+                    x.state === "sfp" && "border-[rgba(8,94,255,0.6)] bg-[rgba(8,94,255,0.25)]",
+                    x.state === "free" && "border-border bg-[var(--chip-bg)]"
+                  )}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="my-3.5 grid grid-cols-4 gap-2">
+            {p.stats.map((s) => (
+              <div key={s.t} className="rounded-[14px] border border-border bg-[var(--chip-bg)] p-3">
+                <span className="block truncate text-xs text-muted-foreground">{s.t}</span>
+                <b className="mt-1 block text-xl font-medium tabular-nums">{s.v}</b>
+              </div>
+            ))}
+          </div>
+        )}
         {p.tags && (
           <div className="flex flex-wrap gap-1.5">
             {p.tags.map((t) => (

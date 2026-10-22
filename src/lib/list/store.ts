@@ -8,14 +8,15 @@ import type { ListConfig, Row } from "./types"
  * TODO: API — сохранение и удаление на сервере; это хранилище станет кешем.
  */
 
-type Slot = { rows: Row[]; listeners: Set<() => void>; subscribe: (l: () => void) => () => void }
+type Slot = { rows: Row[]; source: () => Row[]; listeners: Set<() => void>; subscribe: (l: () => void) => () => void }
 const slots = new Map<string, Slot>()
 
 function slot<T extends Row>(cfg: ListConfig<T>): Slot {
   let s = slots.get(cfg.key)
-  if (!s) {
-    const listeners = new Set<() => void>()
-    s = { rows: cfg.rows(), listeners, subscribe: (l) => (listeners.add(l), () => void listeners.delete(l)) }
+  // Новый источник данных (горячая перезагрузка конфига в dev) — пересобираем записи
+  if (!s || s.source !== cfg.rows) {
+    const listeners = s?.listeners ?? new Set<() => void>()
+    s = { rows: cfg.rows(), source: cfg.rows, listeners, subscribe: (l) => (listeners.add(l), () => void listeners.delete(l)) }
     slots.set(cfg.key, s)
   }
   return s
