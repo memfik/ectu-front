@@ -59,16 +59,126 @@ const MODELS: Record<SpdRow["kind"], [vendor: string, model: string, ports: numb
 }
 
 const SEED_SW: Partial<SpdRow>[] = [
-  { host: "sw2.atr2", model: "X440-24t", nodeCode: "atr002.02.ZF", branch: "ЮФ", city: "г. Алматы", address: "пр. Абулхаир Хана, 45", network: "ГМС", ip: "10.13.93.x", portsUsed: 20, portsTotal: 28 },
-  { host: "sw1.pvl53", model: "DGS-1100-10/ME", nodeCode: "pvl001.01.VF", branch: "ВФ", city: "г. Павлодар", address: "ул. Ак. Бектурова, 2", network: "ГАС", ip: "192.168.78.152", portsUsed: 14, portsTotal: 28 },
-  { host: "sw1.akb1", model: "X430-24t", nodeCode: "akb001.01.AF", branch: "АФ", city: "г. Актобе", address: "ж/м Коктем, 516Б", network: "ГРС", ip: "192.168.20.2", portsUsed: 22, portsTotal: 28 },
-  { host: "sw2.aks1", model: "SF220-24-K9", nodeCode: "aks001.01.UF", branch: "УФ", city: "г. Аксай", address: "Промзона, 158Н", network: "ГРС", ip: "10.12.13.2", portsUsed: 9, portsTotal: 28 },
-  { host: "sw15.akt1", model: "X460-24x", nodeCode: "akt001.01.MF", branch: "МФ", city: "г. Актау", address: "43.649392, 51.177749", network: "МС", ip: "10.13.7.2", portsUsed: 40, portsTotal: 52 },
-  { host: "sw1.aks1", model: "DGS-1100-05", nodeCode: "aks001.01.UF", branch: "УФ", city: "г. Аксай", address: "Промзона, 158Н", network: "ГМС", ip: "10.12.13.13", portsUsed: 12, portsTotal: 28 },
-  { host: "sw0.kbd0", model: "WS-C2960-24TC-S", nodeCode: "kbd001.01.AF", branch: "АФ", city: "Кобда", address: "KAZ10, Кобда", network: "ГМС", ip: "192.168.105.16", portsUsed: 5, portsTotal: 26 },
-  { host: "sw6.ast1", model: "X440G2-24x-10G4", nodeCode: "ast001.01.AS", branch: "АС", city: "Астана", address: "Коргалжынское ш., 4/2", network: "ГРС", ip: "10.13.93.x", portsUsed: 26, portsTotal: 28 },
-  { host: "sw3.alm1", model: "SLM224GT", nodeCode: "atr002.02.ZF", branch: "ЮФ", city: "г. Алматы", address: "пр. Абулхаир Хана, 45", network: "ГРС", ip: "217.196.19.x3", portsUsed: 17, portsTotal: 28 },
-  { host: "sw2.shm7", model: "DGS-1100-10/ME", nodeCode: "shm007.03.SF", branch: "ШФ", city: "г. Шымкент", address: "42.312034, 69.525305", network: "ГРС", ip: "192.168.17.14", portsUsed: 31, portsTotal: 52 },
+  {
+    host: "sw2.atr2",
+    model: "X440-24t",
+    nodeCode: "atr002.02.ZF",
+    branch: "ЮФ",
+    city: "г. Алматы",
+    address: "пр. Абулхаир Хана, 45",
+    network: "ГМС",
+    ip: "10.13.93.x",
+    portsUsed: 20,
+    portsTotal: 28,
+  },
+  {
+    host: "sw1.pvl53",
+    model: "DGS-1100-10/ME",
+    nodeCode: "pvl001.01.VF",
+    branch: "ВФ",
+    city: "г. Павлодар",
+    address: "ул. Ак. Бектурова, 2",
+    network: "ГАС",
+    ip: "192.168.78.152",
+    portsUsed: 14,
+    portsTotal: 28,
+  },
+  {
+    host: "sw1.akb1",
+    model: "X430-24t",
+    nodeCode: "akb001.01.AF",
+    branch: "АФ",
+    city: "г. Актобе",
+    address: "ж/м Коктем, 516Б",
+    network: "ГРС",
+    ip: "192.168.20.2",
+    portsUsed: 22,
+    portsTotal: 28,
+  },
+  {
+    host: "sw2.aks1",
+    model: "SF220-24-K9",
+    nodeCode: "aks001.01.UF",
+    branch: "УФ",
+    city: "г. Аксай",
+    address: "Промзона, 158Н",
+    network: "ГРС",
+    ip: "10.12.13.2",
+    portsUsed: 9,
+    portsTotal: 28,
+  },
+  {
+    host: "sw15.akt1",
+    model: "X460-24x",
+    nodeCode: "akt001.01.MF",
+    branch: "МФ",
+    city: "г. Актау",
+    address: "43.649392, 51.177749",
+    network: "МС",
+    ip: "10.13.7.2",
+    portsUsed: 40,
+    portsTotal: 52,
+  },
+  {
+    host: "sw1.aks1",
+    model: "DGS-1100-05",
+    nodeCode: "aks001.01.UF",
+    branch: "УФ",
+    city: "г. Аксай",
+    address: "Промзона, 158Н",
+    network: "ГМС",
+    ip: "10.12.13.13",
+    portsUsed: 12,
+    portsTotal: 28,
+  },
+  {
+    host: "sw0.kbd0",
+    model: "WS-C2960-24TC-S",
+    nodeCode: "kbd001.01.AF",
+    branch: "АФ",
+    city: "Кобда",
+    address: "KAZ10, Кобда",
+    network: "ГМС",
+    ip: "192.168.105.16",
+    portsUsed: 5,
+    portsTotal: 26,
+  },
+  {
+    host: "sw6.ast1",
+    model: "X440G2-24x-10G4",
+    nodeCode: "ast001.01.AS",
+    branch: "АС",
+    city: "Астана",
+    address: "Коргалжынское ш., 4/2",
+    network: "ГРС",
+    ip: "10.13.93.x",
+    portsUsed: 26,
+    portsTotal: 28,
+  },
+  {
+    host: "sw3.alm1",
+    model: "SLM224GT",
+    nodeCode: "atr002.02.ZF",
+    branch: "ЮФ",
+    city: "г. Алматы",
+    address: "пр. Абулхаир Хана, 45",
+    network: "ГРС",
+    ip: "217.196.19.x3",
+    portsUsed: 17,
+    portsTotal: 28,
+  },
+  {
+    host: "sw2.shm7",
+    model: "DGS-1100-10/ME",
+    nodeCode: "shm007.03.SF",
+    branch: "ШФ",
+    city: "г. Шымкент",
+    address: "42.312034, 69.525305",
+    network: "ГРС",
+    ip: "192.168.17.14",
+    portsUsed: 31,
+    portsTotal: 52,
+  },
 ]
 
 function rng(seed: number) {
@@ -85,14 +195,16 @@ const cache: Partial<Record<SpdRow["kind"], SpdRow[]>> = {}
 export function spdRows(kind: SpdRow["kind"]): SpdRow[] {
   if (cache[kind]) return cache[kind]
   const r = rng(kind === "switch" ? 31 : 47)
-  const pick = <T,>(a: readonly T[]) => a[Math.floor(r() * a.length)]
+  const pick = <T>(a: readonly T[]) => a[Math.floor(r() * a.length)]
   const nodes = nodeRows()
   const total = kind === "switch" ? 1324 : 78
   const rows: SpdRow[] = []
   for (let i = 0; i < total; i++) {
     const seed = kind === "switch" ? SEED_SW[i] : undefined
     const n = seed ? (nodes.find((x) => x.code === seed.nodeCode) ?? pick(nodes)) : pick(nodes)
-    const [vendor, model, ports, os] = seed ? (MODELS.switch.find((m) => m[1] === seed.model && m[2] === seed.portsTotal) ?? MODELS.switch[0]) : pick(MODELS[kind])
+    const [vendor, model, ports, os] = seed
+      ? (MODELS.switch.find((m) => m[1] === seed.model && m[2] === seed.portsTotal) ?? MODELS.switch[0])
+      : pick(MODELS[kind])
     // загрузка 50–92% (в среднем ~71%, > 90% — примерно у 5%), как в KPI макета
     const used = Math.max(1, Math.round(ports * (0.5 + r() * 0.42)))
     const city = n.city

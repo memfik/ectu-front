@@ -216,9 +216,6 @@ export function SpdPassport({ kind, id }: { kind: SpdRow["kind"]; id: number }) 
                     className="absolute inset-0 bg-contain bg-center bg-no-repeat"
                     style={{ backgroundImage: "url(/equipment/rack-scene.png)" }}
                   />
-                  <span className="absolute top-[38%] left-1/2 -translate-x-1/2 text-[13px] font-semibold text-white drop-shadow">
-                    {x.vendor} {x.model}
-                  </span>
                 </div>
               )}
               {stage === "panel" && <FrontPanel x={x} d={d} onPort={setPort} />}
