@@ -8,4 +8,4 @@
 - Отложенное и вопросы — `docs/backlog.md`.
 - Токены тем: конец `src/app/globals.css`. Тёмная по умолчанию (`html.dark`); тема переключается в «Быстрых настройках» шапки (`header-popovers.tsx`).
 - Порядок работ: docs/design-handoff.md §7. Бренд только синий `#085eff`.
-- Бэкенд: `../kticket-back`. 3D — через `dynamic(..., { ssr: false })`.
+- Бэкенд: техучёт `https://stage-techaccount.jusanmobile.kz:8101` (как в старом фронте `../techaccaunt_front`, `src/services/api/modules/*`; токен Bearer). Адрес — `NEXT_PUBLIC_API_URL` (`.env.example`). Ядро сети (43) — из `../kticket-back`. 3D — через `dynamic(..., { ssr: false })`.
