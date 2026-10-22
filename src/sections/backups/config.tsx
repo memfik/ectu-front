@@ -52,7 +52,7 @@ export const spec: Spec = {
   sub2: (x) => `${x.f.ip} · ${x.f.os} · ${x.f.date}`,
   api: genApi({
     base: "/api/network-backups",
-    list: "",
+    list: "/devices",
     idParam: "id",
     readOnly: true,
     fields: { ip: "ip", host: "network_name", os: "os_type.name", date: "created_at", by: "created_by" },
