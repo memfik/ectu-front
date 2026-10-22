@@ -7,7 +7,18 @@ import { useSyncExternalStore } from "react"
  * TODO: API — пометка deleted_at и причина на сервере, список корзины оттуда же.
  */
 
-export type TrashItem = { section: string; sectionTitle: string; id: number; name: string; reason: string; at: string; by: string }
+export type TrashItem = {
+  section: string
+  sectionTitle: string
+  id: number
+  name: string
+  reason: string
+  at: string
+  by: string
+  branch?: string
+  /** Сама запись — для «Восстановить» */
+  row?: unknown
+}
 
 let items: TrashItem[] = []
 const listeners = new Set<() => void>()

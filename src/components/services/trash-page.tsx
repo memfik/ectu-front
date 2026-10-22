@@ -1,0 +1,252 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import { RotateCcw, Search, Trash2 } from "lucide-react"
+import { Input, Select } from "@/components/list/form-controls"
+import { btn, checkBox, Pill } from "@/components/list/ui"
+import { glass } from "@/components/passport/ui"
+import { toast } from "@/components/shared/toast"
+import { LISTS } from "@/config/lists"
+import { BRANCHES } from "@/data/nodes"
+import { rowsStore } from "@/lib/list/store"
+import { trash, useTrash, type TrashItem } from "@/lib/list/trash"
+import { cn } from "@/lib/utils"
+
+/*
+ * Корзина (макет 19): удалённые записи с причиной, восстановление в течение 30 дней.
+ * Записи, удалённые в этой вкладке, восстанавливаются по-настоящему; строки из макета — пример.
+ * TODO: API — список корзины, восстановление, очистка старше 30 дней; доступ admin, mega_user, super_user, ip_manager.
+ */
+
+const SEED: TrashItem[] = [
+  {
+    section: "nodes",
+    sectionTitle: "Узел связи",
+    id: 1842,
+    name: "ast021.01.AS · Сыганак 2",
+    branch: "АС",
+    by: "Б. Дегтярь",
+    reason: "Дубликат записи",
+    at: "07.10.2026",
+  },
+  {
+    section: "switches",
+    sectionTitle: "Коммутатор",
+    id: 1838,
+    name: "sw3.pvl53 · WS-C2960-24TT",
+    branch: "ВФ",
+    by: "Н. Осербай",
+    reason: "Демонтаж после реконструкции, акт № 118-р",
+    at: "06.10.2026",
+  },
+  {
+    section: "fiber-lines",
+    sectionTitle: "ВОЛС",
+    id: 1830,
+    name: "ВОЛС №33 · Республики — ast004",
+    branch: "АС",
+    by: "А. Галустьян",
+    reason: "Ошибка ввода",
+    at: "03.10.2026",
+  },
+  {
+    section: "pbx",
+    sectionTitle: "АТС",
+    id: 1802,
+    name: "АТС kbd001 · Iskratel",
+    branch: "АФ",
+    by: "Е. Сапаров",
+    reason: "Списание",
+    at: "08.09.2026",
+  },
+]
+
+const day = (s: string) => {
+  const [d, m, y] = s.slice(0, 10).split(".").map(Number)
+  return new Date(y, m - 1, d).getTime()
+}
+
+export function TrashPage() {
+  const live = useTrash()
+  const [hidden, setHidden] = useState<string[]>([])
+  const [q, setQ] = useState("")
+  const [branch, setBranch] = useState("")
+  const [type, setType] = useState("")
+  const [sel, setSel] = useState<string[]>([])
+  const key = (x: TrashItem) => `${x.section}:${x.id}`
+  const all = useMemo(() => [...live, ...SEED].filter((x) => !hidden.includes(key(x))), [live, hidden])
+  // «Сегодня» — по самой свежей записи, чтобы не зависеть от часов сервера при отрисовке
+  const today = Math.max(...all.map((x) => day(x.at)), day("07.10.2026"))
+  const left = (x: TrashItem) => 30 - Math.round((today - day(x.at)) / 864e5)
+  const list = all.filter(
+    (x) =>
+      (!branch || x.branch === branch) &&
+      (!type || x.sectionTitle === type) &&
+      `${x.name} ${x.reason} ${x.by}`.toLowerCase().includes(q.trim().toLowerCase()),
+  )
+  const types = [...new Set(all.map((x) => x.sectionTitle))]
+
+  const restore = (items: TrashItem[]) => {
+    for (const x of items) {
+      if (x.row && LISTS[x.section]) rowsStore.save(LISTS[x.section], x.row as { id: number })
+      if (live.includes(x)) trash.drop(x.section, [x.id])
+      else setHidden((h) => [...h, key(x)])
+    }
+    setSel([])
+    toast(`Восстановлено: ${items.length}`)
+  }
+
+  const kpis: [string, number, string][] = [
+    ["Всего", all.length + 33, "#085eff"],
+    ["Узлы связи", all.filter((x) => x.section === "nodes").length + 3, "#4f8dff"],
+    [
+      "Оборудование",
+      all.filter((x) => ["switches", "routers", "pbx", "pdh", "sdh", "dwdm", "rrl"].includes(x.section)).length + 19,
+      "#a78bfa",
+    ],
+    ["ВОЛС", all.filter((x) => x.section === "fiber-lines").length + 5, "#22d3ee"],
+    ["Истекают сегодня", all.filter((x) => left(x) <= 0).length + 1, "#ff5257"],
+  ]
+
+  return (
+    <div className="px-(--page-gutter)">
+      <section className="relative -mx-(--page-gutter) -mt-[96px] px-(--page-gutter) pt-[150px] pb-6">
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 bg-[radial-gradient(800px_400px_at_20%_30%,rgba(255,59,59,0.1),transparent_70%)]"
+        />
+        <div className="flex flex-wrap items-end gap-5">
+          <div>
+            <p className="text-sm text-muted-foreground">Сервисы</p>
+            <h1 className="mt-1.5 text-[60px] leading-[1.05] font-semibold tracking-[-1.6px] max-sm:text-[34px]">
+              Корзина <em className="text-[42px] font-normal text-muted-foreground not-italic">{all.length + 33}</em>
+            </h1>
+            <p className="mt-2 text-[15px] text-[var(--nav-text)]">
+              Удалённые записи · восстановить можно в течение 30 дней · доступ: admin, mega_user, super_user, ip_manager
+            </p>
+          </div>
+          {/* TODO: очистка — на сервере, с подтверждением */}
+          <button
+            type="button"
+            className={cn(btn({ danger: true }), "ml-auto")}
+            onClick={() => toast("Очистка старше 30 дней — после подключения API")}
+          >
+            <Trash2 />
+            Очистить старше 30 дней
+          </button>
+        </div>
+      </section>
+      <div className="grid grid-cols-5 gap-3.5 max-[1279px]:grid-cols-3 max-sm:grid-cols-2">
+        {kpis.map(([t, v, c]) => (
+          <div key={t} className={cn(glass, "px-5 py-[18px]")}>
+            <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+              <i className="size-[7px] rounded-full" style={{ background: c }} />
+              {t}
+            </span>
+            <b className="mt-2 block text-[30px] font-medium tabular-nums">{v}</b>
+          </div>
+        ))}
+      </div>
+      <section className={cn(glass, "mt-[18px] p-3")}>
+        <div className="mx-1.5 mb-2 flex flex-wrap items-center gap-2.5">
+          <Input
+            icon={<Search />}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Поиск…"
+            className="h-11 w-[320px] rounded-full"
+          />
+          <Select
+            value={branch}
+            opts={[{ v: "", label: "Все филиалы" }, ...BRANCHES.map((b) => ({ v: b.v, label: `Филиал: ${b.v}` }))]}
+            onChange={setBranch}
+            className="h-11 w-[180px] rounded-full"
+          />
+          <Select
+            value={type}
+            opts={[{ v: "", label: "Тип: все" }, ...types.map((t) => ({ v: t, label: t }))]}
+            onChange={setType}
+            className="h-11 w-[200px] rounded-full"
+          />
+          <button
+            type="button"
+            disabled={!sel.length}
+            className={cn(btn({ primary: true }), "ml-auto")}
+            onClick={() => restore(all.filter((x) => sel.includes(key(x))))}
+          >
+            <RotateCcw />
+            Восстановить выбранные ({sel.length})
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1100px] border-separate border-spacing-y-1.5 text-[13.5px]">
+            <thead>
+              <tr className="text-left text-[12.5px] text-muted-foreground">
+                {["", "ID", "Наименование", "Филиал", "Тип", "Удалил", "Причина удаления", "Удалено", "Осталось", ""].map((h, i) => (
+                  <th key={i} className="px-3.5 py-1 font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((x) => {
+                const on = sel.includes(key(x))
+                const d = left(x)
+                return (
+                  <tr key={key(x)}>
+                    {[
+                      <button
+                        key="c"
+                        type="button"
+                        role="checkbox"
+                        aria-checked={on}
+                        aria-label="Выбрать"
+                        onClick={() => setSel(on ? sel.filter((s) => s !== key(x)) : [...sel, key(x)])}
+                        className={checkBox(on)}
+                      />,
+                      <span key="i" className="text-muted-foreground tabular-nums">
+                        {x.id}
+                      </span>,
+                      <b key="n" className="font-semibold">
+                        {x.name}
+                      </b>,
+                      x.branch ?? "—",
+                      x.sectionTitle,
+                      x.by,
+                      <span key="r" className="block max-w-[320px] truncate text-muted-foreground">
+                        {x.reason}
+                      </span>,
+                      x.at.slice(0, 10),
+                      <Pill key="d" tone={d <= 0 ? "bad" : d <= 3 ? "warn" : "muted"} className="[&>i]:hidden">
+                        {d <= 0 ? "сегодня" : `${d} дн.`}
+                      </Pill>,
+                      <button key="b" type="button" className={btn({ sm: true })} onClick={() => restore([x])}>
+                        <RotateCcw />
+                        Восстановить
+                      </button>,
+                    ].map((c, i) => (
+                      <td
+                        key={i}
+                        className="bg-[color-mix(in_srgb,var(--foreground)_3%,transparent)] px-3.5 py-3 whitespace-nowrap first:rounded-l-[14px] last:rounded-r-[14px]"
+                      >
+                        {c}
+                      </td>
+                    ))}
+                  </tr>
+                )
+              })}
+              {!list.length && (
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-muted-foreground">
+                    Корзина пуста
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  )
+}

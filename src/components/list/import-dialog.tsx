@@ -19,7 +19,16 @@ const MAX_MB = 20
  * Импорт Excel (экраны n-06 «Файл» и n-07 «Проверка»): тип и филиал → файл → проверка строк → загрузка.
  * Филиал из окна подставляется во все строки (поле `branch` формы).
  */
-export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<T>; onClose: () => void }) {
+export function ImportDialog<T extends Row>({
+  cfg,
+  onClose,
+  onType,
+}: {
+  cfg: ListConfig<T>
+  onClose: () => void
+  /** Смена раздела (страница «Импорт Excel»); в списке раздела тип фиксирован */
+  onType?: (key: string) => void
+}) {
   const branchField = cfg.form.fields.find((f) => f.k === "branch")
   const [branch, setBranch] = useState("")
   const [file, setFile] = useState<File | null>(null)
@@ -110,11 +119,10 @@ export function ImportDialog<T extends Row>({ cfg, onClose }: { cfg: ListConfig<
                   <span className="mb-2 block text-[13.5px] font-medium">
                     Тип импорта <span className="text-[#ff5257]">*</span>
                   </span>
-                  {/* TODO: импорт в другие разделы — когда у них появятся формы */}
                   <Select
                     value={cfg.key}
                     opts={Object.values(LISTS).map((l) => ({ v: l.key, label: l.title }))}
-                    onChange={() => toast("Импорт в другие разделы — после переноса их макетов")}
+                    onChange={(k) => (onType ? onType(k) : toast("Тип импорта меняется на странице «Импорт Excel»"))}
                   />
                 </div>
                 {branchField && (

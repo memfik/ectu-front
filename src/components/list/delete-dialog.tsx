@@ -46,6 +46,8 @@ export function DeleteDialog<T extends Row>({
         reason,
         at: new Date().toLocaleString("ru-RU"),
         by: CURRENT_USER.name,
+        branch: (x as { branch?: string }).branch,
+        row: x,
       })),
     )
     toast(`Удалено ${fmt(n)} ${plural(n, cfg.noun)} · в Корзине`, () => {
