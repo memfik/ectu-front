@@ -23,18 +23,19 @@ import { Card, Kv } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
 import { Table } from "@/sections/nodes/tabs"
 import { cn } from "@/lib/utils"
-import { LAYING, kmStr, parseKm, type FiberState, type Segment, type VolsDetail, type VolsEvent } from "./detail"
+import type { GenRow } from "@/sections/make"
+import { LAYING, kmStr, parseKm, type LineDetail, type LineEvent, type LineKind, type Segment, type Strand } from "./detail"
 
 /* ---------- vols-t1 · Участки ---------- */
 
-/** Вкладка «Участки» (vols-t1): таблица участков трассы, добавление и правка (vols-x0), удаление. */
-export function SegmentsTab({ d, onChange }: { d: VolsDetail; onChange: (s: Segment[]) => void }) {
+/** Вкладка «Участки» (vols-t1, kls-t1): таблица участков трассы, добавление и правка (vols-x0), удаление. */
+export function SegmentsTab({ d, k, onChange }: { d: LineDetail; k: LineKind; onChange: (s: Segment[]) => void }) {
   const [edit, setEdit] = useState<Segment | "new" | null>(null)
   const list = d.segments
   return (
     <Card
       icon={GitBranch}
-      title="Участки трассы"
+      title={k.laying ? "Участки трассы" : "Участки"}
       count={list.length}
       action={
         <button type="button" className={btn({ primary: true, sm: true })} onClick={() => setEdit("new")}>
@@ -44,14 +45,22 @@ export function SegmentsTab({ d, onChange }: { d: VolsDetail; onChange: (s: Segm
       }
     >
       <Table
-        head={["Нумерация", "Начало участка", "Конец участка", "Тип прокладки", "Длина участка, км", "Длина кабеля, км", ""]}
+        head={[
+          "Нумерация",
+          "Начало участка",
+          "Конец участка",
+          ...(k.laying ? ["Тип прокладки"] : []),
+          "Длина участка, км",
+          k.laying ? "Длина кабеля, км" : "Длина кабеля участка, км",
+          "",
+        ]}
         rows={list.map((s) => ({
           key: s.id,
           cells: [
             s.num,
             s.from,
             s.to,
-            s.laying,
+            ...(k.laying ? [s.laying] : []),
             kmStr(s.len),
             kmStr(s.cable),
             <span key="a" className="flex justify-end gap-1.5">
@@ -76,9 +85,10 @@ export function SegmentsTab({ d, onChange }: { d: VolsDetail; onChange: (s: Segm
       {edit && (
         <SegmentDialog
           seg={edit === "new" ? null : edit}
+          laying={!!k.laying}
           next={{
             num: Math.max(0, ...list.map((s) => s.num)) + 1,
-            from: list.length > 1 ? `Муфта М-${list.length}` : d.start.title,
+            from: list.length > 1 ? `${k.point} М-${list.length}` : d.start.title,
             to: d.end.title,
           }}
           onClose={() => setEdit(null)}
@@ -96,18 +106,20 @@ export function SegmentsTab({ d, onChange }: { d: VolsDetail; onChange: (s: Segm
 /** Окно «Новый участок трассы» (vols-x0). TODO(API): POST /api/bols/children. */
 function SegmentDialog({
   seg,
+  laying,
   next,
   onClose,
   onSave,
 }: {
   seg: Segment | null
+  laying: boolean
   next: { num: number; from: string; to: string }
   onClose: () => void
   onSave: (s: Segment) => void
 }) {
   const [v, set] = useState({
     num: String(seg?.num ?? next.num),
-    laying: seg?.laying ?? LAYING[0],
+    laying: seg?.laying ?? (laying ? LAYING[0] : ""),
     from: seg?.from ?? next.from,
     to: seg?.to ?? next.to,
     len: seg ? kmStr(seg.len) : "",
@@ -148,10 +160,12 @@ function SegmentDialog({
             <Label t="Нумерация" req />
             <Input inputMode="numeric" value={v.num} onChange={f("num")} invalid={tried && bad.num} />
           </label>
-          <div>
-            <Label t="Тип прокладки" req />
-            <Select value={v.laying} opts={LAYING.map((t) => ({ v: t, label: t }))} onChange={(laying) => set({ ...v, laying })} />
-          </div>
+          {laying && (
+            <div>
+              <Label t="Тип прокладки" req />
+              <Select value={v.laying} opts={LAYING.map((t) => ({ v: t, label: t }))} onChange={(laying) => set({ ...v, laying })} />
+            </div>
+          )}
           <label>
             <Label t="Начало участка" req />
             <Input value={v.from} onChange={f("from")} invalid={tried && bad.from} />
@@ -183,46 +197,42 @@ function SegmentDialog({
   )
 }
 
-/* ---------- vols-t2 · Волокна ---------- */
+/* ---------- vols-t2 / kls-t2 · Волокна, медные пары ---------- */
 
-export const FIBER_COLOR: Record<FiberState, string> = {
-  used: "#4f8dff",
-  reserve: "#ffc53d",
-  free: "var(--chip-bg)",
-}
+export const strandColor = (k: LineKind, f: Strand) => (f === "a" ? k.strand.a[1] : f === "b" ? k.strand.b[1] : "var(--chip-bg)")
 
-/** Вкладка «Волокна» (vols-t2): сетка волокон (занято / резерв / свободно) и сводка. */
-export function FibersTab({ d, own }: { d: VolsDetail; own: boolean }) {
-  const used = d.fibers.filter((f) => f !== "free").length
-  const busy = d.fibers.filter((f) => f === "used").length
+/** Вкладка «Волокна» (vols-t2) / «Медные пары» (kls-t2): сетка жил и сводка. */
+export function StrandsTab({ x, d, k }: { x: GenRow; d: LineDetail; k: LineKind }) {
   return (
-    <Card icon={Rows3} title="Волокна" count={d.fibers.length}>
+    <Card icon={Rows3} title={k.strand.tab} count={d.strands.length}>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-2">
-        {d.fibers.map((f, i) => (
-          <span
-            key={i}
-            title={f === "used" ? "Занято" : f === "reserve" ? "Резерв" : "Свободно"}
-            className={cn(
-              "grid h-11 place-items-center rounded-[10px] border text-[13px] font-medium tabular-nums",
-              f === "used" && "border-[#2f5fd0] bg-[rgba(8,94,255,0.22)] text-foreground",
-              f === "reserve" && "border-[#a3801f] bg-[rgba(255,197,61,0.14)] text-[#ffc53d]",
-              f === "free" && "border-border bg-[color-mix(in_srgb,var(--foreground)_3%,transparent)] text-muted-foreground",
-            )}
-          >
-            {i + 1}
-          </span>
-        ))}
+        {d.strands.map((f, i) => {
+          const c = strandColor(k, f)
+          return (
+            <span
+              key={i}
+              title={f === "a" ? k.strand.a[0] : f === "b" ? k.strand.b[0] : "Свободно"}
+              className={cn(
+                "grid h-11 place-items-center rounded-[10px] border text-[13px] font-medium tabular-nums",
+                f === "free" && "border-border bg-[color-mix(in_srgb,var(--foreground)_3%,transparent)] text-muted-foreground",
+              )}
+              style={
+                f === "free"
+                  ? undefined
+                  : {
+                      borderColor: `color-mix(in srgb, ${c} 55%, transparent)`,
+                      background: `color-mix(in srgb, ${c} 18%, transparent)`,
+                      color: f === "b" ? c : undefined,
+                    }
+              }
+            >
+              {i + 1}
+            </span>
+          )
+        })}
       </div>
       <div className="mt-5">
-        <Kv
-          rows={[
-            { t: "Кол-во волокон всего", v: d.fibers.length },
-            { t: "Принадлежит JM", v: own ? d.fibers.length : 0 },
-            { t: "Арендуемых", v: own ? 0 : d.fibers.length },
-            { t: "Занятых", v: busy ? `${busy} · ${d.fiberNote}` : 0 },
-            { t: "Свободных", v: d.fibers.length - used },
-          ]}
-        />
+        <Kv rows={k.strandRows(x, d)} />
       </div>
     </Card>
   )
@@ -231,7 +241,7 @@ export function FibersTab({ d, own }: { d: VolsDetail; own: boolean }) {
 /* ---------- vols-t3 · Аренда КК ---------- */
 
 /** Вкладка «Аренда КК» (vols-t3). */
-export function RentTab({ d }: { d: VolsDetail }) {
+export function RentTab({ d }: { d: LineDetail }) {
   return (
     <Card icon={Waypoints} title="Аренда кабельной канализации" className="max-w-[1200px]">
       <Kv
@@ -250,7 +260,7 @@ export function RentTab({ d }: { d: VolsDetail }) {
 /* ---------- vols-t4 · Документация ---------- */
 
 /** Вкладка «Документация» (vols-t4): обязательные документы с отметкой загрузки и фото / схемы. */
-export function VolsDocsTab({ d, onGallery }: { d: VolsDetail; onGallery: (i: number) => void }) {
+export function LineDocsTab({ d, onGallery }: { d: LineDetail; onGallery: (i: number) => void }) {
   const upload = () => toast("Загрузка документов — после подключения API")
   return (
     <div className="grid grid-cols-[1fr_590px] gap-[18px] max-[1500px]:grid-cols-[1fr_440px] max-[1279px]:grid-cols-1">
@@ -310,7 +320,7 @@ export function VolsDocsTab({ d, onGallery }: { d: VolsDetail; onGallery: (i: nu
 
 /* ---------- vols-t5 · История ---------- */
 
-const EV: Record<VolsEvent["kind"], [typeof Pencil, string]> = {
+const EV: Record<LineEvent["kind"], [typeof Pencil, string]> = {
   edit: [Pencil, "bg-[rgba(8,94,255,0.16)] text-[var(--link)]"],
   upload: [Upload, "bg-[rgba(43,212,99,0.14)] text-[var(--status-ok)]"],
   link: [LinkIcon, "bg-[rgba(8,94,255,0.16)] text-[var(--link)]"],
@@ -318,7 +328,7 @@ const EV: Record<VolsEvent["kind"], [typeof Pencil, string]> = {
 }
 
 /** Вкладка «История» (vols-t5): события с изменением «было → стало». */
-export function VolsHistoryTab({ d }: { d: VolsDetail }) {
+export function LineHistoryTab({ d }: { d: LineDetail }) {
   return (
     <Card
       icon={History}
