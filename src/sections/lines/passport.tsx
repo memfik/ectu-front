@@ -359,7 +359,13 @@ function Stat({ icon: Icon, t, v, em }: LineStat) {
       </span>
       <span>
         <span className="block text-[12.5px] whitespace-nowrap text-[var(--nav-text)]">{t}</span>
-        <b className="text-[28px] leading-tight font-medium tracking-[-0.5px] tabular-nums">
+        <b
+          className={cn(
+            "text-[28px] leading-tight font-medium tracking-[-0.5px] whitespace-nowrap tabular-nums",
+            // длинный текст («Демонтирована») — мельче, чтобы шапка не переносилась
+            typeof v === "string" && v.length > 9 && "text-xl",
+          )}
+        >
           {v}
           {em && <em className="ml-1.5 text-xs font-normal text-muted-foreground not-italic">{em}</em>}
         </b>

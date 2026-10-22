@@ -104,14 +104,13 @@ function Note({ t, v, at }: { t: string; v: string; at: number }) {
 }
 
 /** Покрытие (wimax-04-schema): круг с секторами по азимутам, абоненты точками, сводка справа. */
-function Coverage({ x, p }: { x: GenRow; p: BwaParams }) {
-  const n = sectors(x)
+export function Coverage({ n, km, freq, used: z, total: m }: { n: number; km: number; freq: string; used: number; total: number }) {
+  const width = Math.round(360 / n)
   const r = 210
   const c = 220
   const pt = (deg: number, rr = r) => [c + rr * Math.sin((deg * Math.PI) / 180), c - rr * Math.cos((deg * Math.PI) / 180)]
   const step = 360 / n
   const start = n === 4 ? 30 - step / 2 : -step / 2
-  const { z, m } = subs(x)
   const dots = Array.from({ length: 18 }, (_, i) => pt((i * 137) % 360, 30 + ((i * 53) % 170)))
   return (
     <div className="absolute inset-x-0 top-[80px] flex items-center justify-center gap-14 max-[1279px]:top-0 max-[1279px]:flex-col">
@@ -151,16 +150,16 @@ function Coverage({ x, p }: { x: GenRow; p: BwaParams }) {
           БС
         </text>
         <text x={c + r + 6} y={c + 4} fontSize="11" fill="var(--muted-foreground)">
-          {p.km} км
+          {km} км
         </text>
       </svg>
       <section className={cn(glass, "w-[300px] p-6")}>
         <span className="block text-xs text-muted-foreground">Секторов · ширина · дальность</span>
         <b className="mb-4 block text-xl font-semibold">
-          {n} × {width(x)}° · {p.km} км
+          {n} × {width}° · {km} км
         </b>
         <span className="block text-xs text-muted-foreground">Частота несущей</span>
-        <b className="mb-4 block text-xl font-semibold">{String(x.f.freq)} MHz</b>
+        <b className="mb-4 block text-xl font-semibold">{freq} MHz</b>
         <span className="block text-xs text-muted-foreground">Абонентская ёмкость</span>
         <b className="block text-xl font-semibold">
           {z} / {m} лицензий
@@ -180,7 +179,7 @@ export function bwaKind(spec: Spec, list: ListConfig<GenRow>, p: BwaParams) {
     list,
     pill: (x) => String(x.f.network ?? "ГРС"),
     panel: (c) => <Panel x={c.x} />,
-    schema: (c) => <Coverage x={c.x} p={p} />,
+    schema: (c) => <Coverage n={sectors(c.x)} km={p.km} freq={String(c.x.f.freq)} used={subs(c.x).z} total={subs(c.x).m} />,
     schemaLabel: ["Покрытие", Signal],
     capTitle: "",
     cap: () => [],
