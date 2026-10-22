@@ -48,6 +48,13 @@ export const nodesList: ListConfig<NodeRow> = {
     ]
   },
   unit: ["узел", "узла", "узлов"],
+  noun: ["узел связи", "узла связи", "узлов связи"],
+  remove: {
+    warning: "Связанные ВОЛС, оборудование и ID-каналы останутся, но потеряют привязку к узлу.",
+    reasons: ["Демонтаж", "Дубликат записи", "Ошибка ввода", "Передано другому филиалу", "Списание"],
+  },
+  // TODO: адрес короткой ссылки — от бэкенда
+  qr: (x) => ({ title: x.code, sub: `${x.object} · ${x.address}`, url: `https://estu.qmobile.kz/q/${x.code}` }),
   filters: [
     {
       k: "branch",

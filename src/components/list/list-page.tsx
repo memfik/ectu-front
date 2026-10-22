@@ -13,6 +13,8 @@ import { FilterDrawer } from "./filter-drawer"
 import { FormDrawer } from "./form-drawer"
 import { ImportDialog } from "./import-dialog"
 import { ReportDialog } from "./report-dialog"
+import { DeleteDialog } from "./delete-dialog"
+import { QrDialog } from "./qr-dialog"
 import { ActiveChips, FilterChip } from "./filters"
 import { MapView } from "./map-view"
 import { Bar, btn, Check, circ, Pill, Tag } from "./ui"
@@ -36,6 +38,8 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   const [form, setForm] = useState<{ id: number | null } | null>(null)
   const [importing, setImporting] = useState(false)
   const [report, setReport] = useState(false)
+  const [del, setDel] = useState<T[] | null>(null)
+  const [qr, setQr] = useState<T | null>(null)
   const [size, setSize] = useState(SIZE.table)
   const [checked, setChecked] = useState<Set<number>>(new Set())
   const [active, setActive] = useState<number | null>(rows[0]?.id ?? null)
@@ -107,7 +111,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
         type="button"
         disabled={!checked.size}
         className={cn(btn({ danger: true }), "max-sm:h-10")}
-        onClick={() => toast("Удаление с причиной — следующим экраном")}
+        onClick={() => setDel(rows.filter((x) => checked.has(x.id)))}
       >
         <Trash2 />
         Удалить ({checked.size})
@@ -146,9 +150,22 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   return (
     <div className="relative isolate">
       <FilterDrawer cfg={cfg} rows={rows} q={q} open={more} onOpenChange={setMore} onApply={setQ} />
+      {del && <DeleteDialog cfg={cfg} rows={del} onClose={() => setDel(null)} onDone={() => setChecked(new Set())} />}
+      {qr && cfg.qr && <QrDialog {...cfg.qr(qr)} onClose={() => setQr(null)} />}
       {report && <ReportDialog cfg={cfg} rows={rows} q={q} onClose={() => setReport(false)} />}
       {importing && <ImportDialog cfg={cfg} onClose={() => setImporting(false)} />}
-      {form && <FormDrawer key={form.id ?? "new"} cfg={cfg} id={form.id} onClose={() => setForm(null)} />}
+      {form && (
+        <FormDrawer
+          key={form.id ?? "new"}
+          cfg={cfg}
+          id={form.id}
+          onClose={() => setForm(null)}
+          onDelete={(x) => {
+            setForm(null)
+            setDel([x])
+          }}
+        />
+      )}
       <Hero cfg={cfg} total={rows.length} onAction={action} />
 
       <div className="relative z-[1] -mt-[148px] grid grid-cols-6 gap-3.5 px-(--page-gutter) max-[1500px]:grid-cols-3 max-sm:grid-cols-2 max-sm:gap-2.5 max-[1279px]:mt-4">
@@ -184,7 +201,15 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
             {toolbar}
             <ActiveChips cfg={cfg} q={q} setQ={setQ} />
           </section>
-          <Cards cfg={cfg} rows={view} checked={checked} toggle={toggle} onEdit={(id) => setForm({ id })} />
+          <Cards
+            cfg={cfg}
+            rows={view}
+            checked={checked}
+            toggle={toggle}
+            onEdit={(id) => setForm({ id })}
+            onQr={(x) => setQr(x)}
+            onDelete={(x) => setDel([x])}
+          />
           {pager}
         </div>
       ) : (
@@ -251,7 +276,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
                           </td>
                         ))}
                         <td className={td(on, "last")} onClick={(e) => e.stopPropagation()}>
-                          <RowActions onEdit={() => setForm({ id: x.id })} />
+                          <RowActions onQr={cfg.qr && (() => setQr(x))} onEdit={() => setForm({ id: x.id })} onDelete={() => setDel([x])} />
                         </td>
                       </tr>
                     )
@@ -407,22 +432,19 @@ function SortSelect<T extends Row>({ cfg, q, setQ }: { cfg: ListConfig<T>; q: Qu
   )
 }
 
-/** QR · изменить · удалить. TODO: QR (n-10), удаление с причиной (n-09). */
-function RowActions({ onEdit }: { onEdit: () => void }) {
+/** QR · изменить · удалить. */
+function RowActions({ onQr, onEdit, onDelete }: { onQr?: () => void; onEdit: () => void; onDelete: () => void }) {
   return (
     <div className="flex justify-end gap-1.5">
-      <button type="button" className={cn(circ, "size-8")} title="QR-код" onClick={() => toast("QR-код узла — следующим экраном")}>
-        <QrCode />
-      </button>
+      {onQr && (
+        <button type="button" className={cn(circ, "size-8")} title="QR-код" onClick={onQr}>
+          <QrCode />
+        </button>
+      )}
       <button type="button" className={cn(circ, "size-8")} title="Изменить" onClick={onEdit}>
         <Pencil />
       </button>
-      <button
-        type="button"
-        className={cn(circ, "size-8 hover:border-[#ff3b30] hover:bg-[#ff3b30]")}
-        title="Удалить"
-        onClick={() => toast("Удаление с причиной — следующим экраном")}
-      >
+      <button type="button" className={cn(circ, "size-8 hover:border-[#ff3b30] hover:bg-[#ff3b30]")} title="Удалить" onClick={onDelete}>
         <Trash2 />
       </button>
     </div>
@@ -436,12 +458,16 @@ function Cards<T extends Row>({
   checked,
   toggle,
   onEdit,
+  onQr,
+  onDelete,
 }: {
   cfg: ListConfig<T>
   rows: T[]
   checked: Set<number>
   toggle: (id: number) => void
   onEdit: (id: number) => void
+  onQr: (x: T) => void
+  onDelete: (x: T) => void
 }) {
   if (!rows.length) return <div className="py-16 text-center text-muted-foreground">Ничего не найдено — измените поиск или фильтры</div>
   return (
@@ -487,7 +513,7 @@ function Cards<T extends Row>({
                 </>
               )}
               <div className="mt-4 flex items-center gap-1.5">
-                <RowActions onEdit={() => onEdit(x.id)} />
+                <RowActions onQr={cfg.qr && (() => onQr(x))} onEdit={() => onEdit(x.id)} onDelete={() => onDelete(x)} />
                 <button type="button" className={cn(btn({ sm: true }), "ml-auto")} onClick={() => toast("Паспорт — следующим этапом")}>
                   <ArrowRight />
                   {c.open}

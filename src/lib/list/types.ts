@@ -149,6 +149,12 @@ export type ListConfig<T extends Row> = {
   /** «Показать 1 110 узлов» — родительный падеж мн. ч. и склонения: [1, 2–4, 5+]. */
   unit: [string, string, string]
   form: FormConfig<T>
+  /** «Удалить 2 узла связи?» — формы слова для 1, 2–4, 5+. */
+  noun: [string, string, string]
+  /** Удаление с причиной (экран n-09): что станет со связанными записями и быстрые причины. */
+  remove: { warning: string; reasons: string[] }
+  /** QR-код для наклейки (экран n-10). */
+  qr?: (x: T) => { title: string; sub: string; url: string }
   report: {
     cols: ReportCol<T>[]
     /** Дата записи для «Периода», ДД.ММ.ГГГГ. */
