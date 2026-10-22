@@ -11,7 +11,9 @@ import { cn } from "@/lib/utils"
 import { ActiveChips, FilterChip } from "./filters"
 import { Bar, btn, Check, circ, Pill, Tag } from "./ui"
 
-const SIZES = [10, 20, 50, 100]
+type Mode = "table" | "cards"
+const SIZES: Record<Mode, number[]> = { table: [10, 20, 50, 100], cards: [8, 16, 32, 64] }
+const SIZE: Record<Mode, number> = { table: 20, cards: 8 }
 
 /** Шаблон «Список» (макет 02, экран «Список узлов»): шапка с KPI, панель фильтров, таблица, превью справа. */
 export function ListPage({ list: key }: { list: string }) {
@@ -22,7 +24,8 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   const rows = useMemo(() => cfg.rows(), [cfg])
   const [q, setQState] = useState<Query>(() => emptyQuery(cfg))
   const [page, setPage] = useState(0)
-  const [size, setSize] = useState(20)
+  const [mode, setModeState] = useState<Mode>("table")
+  const [size, setSize] = useState(SIZE.table)
   const [checked, setChecked] = useState<Set<number>>(new Set())
   const [active, setActive] = useState<number | null>(rows[0]?.id ?? null)
 
@@ -55,6 +58,62 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
     toast(`«${b.label}» — следующим экраном`)
   }
 
+  const setMode = (m: Mode) => {
+    setModeState(m)
+    setSize(SIZE[m])
+    setPage(0)
+  }
+
+  const toolbar = (
+    <div className="mx-1.5 mb-2 flex flex-wrap items-center gap-2.5 max-sm:gap-2">
+      <label className="flex h-11 min-w-[200px] flex-[1_1_220px] items-center gap-2.5 rounded-full border border-border bg-[var(--chip-bg)] px-4 max-sm:h-10 max-sm:flex-[1_1_100%]">
+        <Search className="size-[18px] text-muted-foreground" />
+        <input
+          value={q.q}
+          onChange={(e) => setQ({ ...q, q: e.target.value })}
+          placeholder={cfg.search}
+          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+        />
+        {q.q && (
+          <button type="button" aria-label="Очистить поиск" onClick={() => setQ({ ...q, q: "" })}>
+            <X className="size-4 text-muted-foreground" />
+          </button>
+        )}
+      </label>
+      {cfg.filters
+        .filter((f) => !f.more)
+        .map((f) => (
+          <FilterChip key={f.k} filter={f} rows={rows} value={q.f[f.k] ?? []} onChange={(v) => setQ({ ...q, f: { ...q.f, [f.k]: v } })} />
+        ))}
+      {/* TODO: шторка «Ещё фильтры» — экран n-03 */}
+      <button type="button" className={cn(btn(), "font-normal text-[var(--nav-text)] max-sm:h-10")} onClick={() => toast("«Ещё фильтры» — следующим экраном")}>
+        <Filter />
+        Ещё фильтры
+      </button>
+      <button type="button" disabled={!checked.size} className={cn(btn({ danger: true }), "max-sm:h-10")} onClick={() => toast("Удаление с причиной — следующим экраном")}>
+        <Trash2 />
+        Удалить ({checked.size})
+      </button>
+      <span className="flex-1 max-sm:hidden" />
+      {mode === "cards" && <SortSelect cfg={cfg} q={q} setQ={setQ} />}
+      <ViewSwitch mode={mode} onChange={setMode} />
+    </div>
+  )
+  const pager = (
+    <Pager
+      total={list.length}
+      page={pg}
+      pages={pages}
+      size={size}
+      sizes={SIZES[mode]}
+      onSize={(n) => {
+        setSize(n)
+        setPage(0)
+      }}
+      onPage={setPage}
+    />
+  )
+
   return (
     <div className="relative isolate">
       <Hero cfg={cfg} total={rows.length} onAction={action} />
@@ -75,146 +134,93 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
         ))}
       </div>
 
-      <div className="mt-[18px] flex items-start gap-[18px] px-(--page-gutter)">
-        <section className="min-w-0 flex-1 rounded-3xl border border-border bg-[var(--glass-card)] px-3 pt-4 pb-3 backdrop-blur-[18px] max-sm:px-2">
-          <div className="mx-1.5 mb-2 flex flex-wrap items-center gap-2.5 max-sm:gap-2">
-            <label className="flex h-11 min-w-[200px] flex-[1_1_220px] items-center gap-2.5 rounded-full border border-border bg-[var(--chip-bg)] px-4 max-sm:h-10 max-sm:flex-[1_1_100%]">
-              <Search className="size-[18px] text-muted-foreground" />
-              <input
-                value={q.q}
-                onChange={(e) => setQ({ ...q, q: e.target.value })}
-                placeholder={cfg.search}
-                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-              />
-              {q.q && (
-                <button type="button" aria-label="Очистить поиск" onClick={() => setQ({ ...q, q: "" })}>
-                  <X className="size-4 text-muted-foreground" />
-                </button>
-              )}
-            </label>
-            {cfg.filters
-              .filter((f) => !f.more)
-              .map((f) => (
-                <FilterChip key={f.k} filter={f} rows={rows} value={q.f[f.k] ?? []} onChange={(v) => setQ({ ...q, f: { ...q.f, [f.k]: v } })} />
-              ))}
-            {/* TODO: шторка «Ещё фильтры» — экран n-03 */}
-            <button type="button" className={cn(btn(), "font-normal text-[var(--nav-text)] max-sm:h-10")} onClick={() => toast("«Ещё фильтры» — следующим экраном")}>
-              <Filter />
-              Ещё фильтры
-            </button>
-            <button
-              type="button"
-              disabled={!checked.size}
-              className={cn(btn({ danger: true }), "max-sm:h-10")}
-              onClick={() => toast("Удаление с причиной — следующим экраном")}
-            >
-              <Trash2 />
-              Удалить ({checked.size})
-            </button>
-            <ViewSwitch />
-          </div>
-
-          <ActiveChips cfg={cfg} q={q} setQ={setQ} />
-
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] border-separate border-spacing-y-1.5 text-[13.5px]">
-              <thead>
-                <tr className="text-left text-[12.5px] text-muted-foreground">
-                  <th className="w-11 px-3.5 py-1 font-medium">
-                    <Check
-                      on={allOnPage}
-                      label="Выбрать страницу"
-                      onClick={() => {
-                        const s = new Set(checked)
-                        view.forEach((x) => (allOnPage ? s.delete(x.id) : s.add(x.id)))
-                        setChecked(s)
-                      }}
-                    />
-                  </th>
-                  <th className="w-12 px-3.5 py-1 font-medium">№</th>
-                  {cfg.cols.map((c) => {
-                    const sorted = q.sort[0] === c.k
+      {mode === "cards" ? (
+        <div className="mt-[18px] px-(--page-gutter)">
+          <section className="rounded-3xl border border-border bg-[var(--glass-card)] px-3 py-3 backdrop-blur-[18px] max-sm:px-2">
+            {toolbar}
+            <ActiveChips cfg={cfg} q={q} setQ={setQ} />
+          </section>
+          <Cards cfg={cfg} rows={view} checked={checked} toggle={toggle} />
+          {pager}
+        </div>
+      ) : (
+        <div className="mt-[18px] flex items-start gap-[18px] px-(--page-gutter)">
+          <section className="min-w-0 flex-1 rounded-3xl border border-border bg-[var(--glass-card)] px-3 pt-4 pb-3 backdrop-blur-[18px] max-sm:px-2">
+            {toolbar}
+            <ActiveChips cfg={cfg} q={q} setQ={setQ} />
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] border-separate border-spacing-y-1.5 text-[13.5px]">
+                <thead>
+                  <tr className="text-left text-[12.5px] text-muted-foreground">
+                    <th className="w-11 px-3.5 py-1 font-medium">
+                      <Check
+                        on={allOnPage}
+                        label="Выбрать страницу"
+                        onClick={() => {
+                          const s = new Set(checked)
+                          view.forEach((x) => (allOnPage ? s.delete(x.id) : s.add(x.id)))
+                          setChecked(s)
+                        }}
+                      />
+                    </th>
+                    <th className="w-12 px-3.5 py-1 font-medium">№</th>
+                    {cfg.cols.map((c) => {
+                      const sorted = q.sort[0] === c.k
+                      return (
+                        <th
+                          key={c.k}
+                          style={{ width: c.w }}
+                          onClick={() => !c.noSort && setQ({ ...q, sort: sorted ? [c.k, q.sort[1] === 1 ? -1 : 1] : [c.k, c.num ? -1 : 1] })}
+                          className={cn("group px-3.5 py-1 font-medium whitespace-nowrap", !c.noSort && "cursor-pointer select-none")}
+                        >
+                          {c.t}
+                          {!c.noSort && (
+                            <span className={cn("ml-1 opacity-0 transition-opacity group-hover:opacity-100", sorted && "text-[var(--link)] opacity-100")}>
+                              {sorted ? (q.sort[1] > 0 ? "↑" : "↓") : "↕"}
+                            </span>
+                          )}
+                        </th>
+                      )
+                    })}
+                    <th className="px-3.5 py-1 text-right font-medium">Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {view.map((x, i) => {
+                    const on = x.id === active
                     return (
-                      <th
-                        key={c.k}
-                        style={{ width: c.w }}
-                        onClick={() => !c.noSort && setQ({ ...q, sort: sorted ? [c.k, q.sort[1] === 1 ? -1 : 1] : [c.k, c.num ? -1 : 1] })}
-                        className={cn("group px-3.5 py-1 font-medium whitespace-nowrap", !c.noSort && "cursor-pointer select-none")}
-                      >
-                        {c.t}
-                        {!c.noSort && (
-                          <span className={cn("ml-1 opacity-0 transition-opacity group-hover:opacity-100", sorted && "text-[var(--link)] opacity-100")}>
-                            {sorted ? (q.sort[1] > 0 ? "↑" : "↓") : "↕"}
-                          </span>
-                        )}
-                      </th>
+                      <tr key={x.id} onClick={() => setActive(x.id)} className={cn("group/r cursor-pointer", on && "on")}>
+                        <td className={td(on, "first")} onClick={(e) => e.stopPropagation()}>
+                          <Check on={checked.has(x.id)} label="Выбрать" onClick={() => toggle(x.id)} />
+                        </td>
+                        <td className={cn(td(on), "text-muted-foreground tabular-nums")}>{pg * size + i + 1}</td>
+                        {cfg.cols.map((c) => (
+                          <td key={c.k} className={cn(td(on), "whitespace-nowrap", c.num && "tabular-nums")}>
+                            {c.render(x)}
+                          </td>
+                        ))}
+                        <td className={td(on, "last")} onClick={(e) => e.stopPropagation()}>
+                          <RowActions />
+                      </td>
+                      </tr>
                     )
                   })}
-                  <th className="px-3.5 py-1 text-right font-medium">Действия</th>
-                </tr>
-              </thead>
-              <tbody>
-                {view.map((x, i) => {
-                  const on = x.id === active
-                  return (
-                    <tr key={x.id} onClick={() => setActive(x.id)} className={cn("group/r cursor-pointer", on && "on")}>
-                      <td className={td(on, "first")} onClick={(e) => e.stopPropagation()}>
-                        <Check on={checked.has(x.id)} label="Выбрать" onClick={() => toggle(x.id)} />
-                      </td>
-                      <td className={cn(td(on), "text-muted-foreground tabular-nums")}>{pg * size + i + 1}</td>
-                      {cfg.cols.map((c) => (
-                        <td key={c.k} className={cn(td(on), "whitespace-nowrap", c.num && "tabular-nums")}>
-                          {c.render(x)}
-                        </td>
-                      ))}
-                      <td className={td(on, "last")} onClick={(e) => e.stopPropagation()}>
-                        {/* TODO: QR (n-10), правка (n-05), удаление с причиной (n-09) */}
-                        <div className="flex justify-end gap-1.5">
-                          <button type="button" className={cn(circ, "size-8")} title="QR-код" onClick={() => toast("QR-код узла — следующим экраном")}>
-                            <QrCode />
-                          </button>
-                          <button type="button" className={cn(circ, "size-8")} title="Изменить" onClick={() => toast("Редактирование — следующим экраном")}>
-                            <Pencil />
-                          </button>
-                          <button
-                            type="button"
-                            className={cn(circ, "size-8 hover:border-[#ff3b30] hover:bg-[#ff3b30]")}
-                            title="Удалить"
-                            onClick={() => toast("Удаление с причиной — следующим экраном")}
-                          >
-                            <Trash2 />
-                          </button>
-                        </div>
+                  {!view.length && (
+                    <tr>
+                      <td colSpan={cfg.cols.length + 3} className="py-12 text-center text-muted-foreground">
+                        Ничего не найдено — измените поиск или фильтры
                       </td>
                     </tr>
-                  )
-                })}
-                {!view.length && (
-                  <tr>
-                    <td colSpan={cfg.cols.length + 3} className="py-12 text-center text-muted-foreground">
-                      Ничего не найдено — измените поиск или фильтры
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {pager}
+          </section>
 
-          <Pager
-            total={list.length}
-            page={pg}
-            pages={pages}
-            size={size}
-            onSize={(s) => {
-              setSize(s)
-              setPage(0)
-            }}
-            onPage={setPage}
-          />
-        </section>
-
-        {current && <PreviewPanel cfg={cfg} row={current} onClose={() => setActive(null)} />}
-      </div>
+          {current && <PreviewPanel cfg={cfg} row={current} onClose={() => setActive(null)} />}
+        </div>
+      )}
     </div>
   )
 }
@@ -276,15 +282,16 @@ function Hero<T extends Row>({ cfg, total, onAction }: { cfg: ListConfig<T>; tot
   )
 }
 
-/** Таблица / Карточки / Карта. TODO: карточки (n-01) и карта (n-02). */
-function ViewSwitch() {
+/** Таблица / Карточки / Карта. TODO: карта (n-02). */
+function ViewSwitch({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
   const b = "grid size-[34px] cursor-pointer place-items-center rounded-full text-muted-foreground [&_svg]:size-[17px]"
+  const on = "bg-[var(--nav-hover)] text-foreground"
   return (
-    <div className="ml-auto flex gap-0.5 rounded-full border border-border bg-[var(--chip-bg)] p-1">
-      <button type="button" title="Таблица" aria-pressed className={cn(b, "bg-[var(--nav-hover)] text-foreground")}>
+    <div className="flex gap-0.5 rounded-full border border-border bg-[var(--chip-bg)] p-1">
+      <button type="button" title="Таблица" aria-pressed={mode === "table"} className={cn(b, mode === "table" && on)} onClick={() => onChange("table")}>
         <List />
       </button>
-      <button type="button" title="Карточки" className={b} onClick={() => toast("Вид «Карточки» — следующим экраном")}>
+      <button type="button" title="Карточки" aria-pressed={mode === "cards"} className={cn(b, mode === "cards" && on)} onClick={() => onChange("cards")}>
         <LayoutGrid />
       </button>
       <button type="button" title="Карта" className={b} onClick={() => toast("Вид «Карта» — следующим экраном")}>
@@ -294,11 +301,126 @@ function ViewSwitch() {
   )
 }
 
+/** «Сортировка: ID» в виде карточек — те же колонки, что и в таблице. */
+function SortSelect<T extends Row>({ cfg, q, setQ }: { cfg: ListConfig<T>; q: Query; setQ: (q: Query) => void }) {
+  const cols = cfg.cols.filter((c) => !c.noSort)
+  const cur = cols.find((c) => c.k === q.sort[0])
+  return (
+    <label className="relative flex h-11 flex-none items-center gap-1 rounded-full border border-border bg-[var(--chip-bg)] pr-10 pl-4 text-sm whitespace-nowrap text-[var(--nav-text)] max-sm:h-10">
+      Сортировка: {cur ? (cur.k === cols[0]?.k ? "ID" : cur.t) : "ID"}
+      {cur && q.sort[1] < 0 && " ↓"}
+      <select
+        aria-label="Сортировка"
+        value={q.sort[0] ? `${q.sort[0]}:${q.sort[1]}` : ""}
+        onChange={(e) => {
+          const [k, d] = e.target.value.split(":")
+          setQ({ ...q, sort: [k ?? "", d === "-1" ? -1 : 1] })
+        }}
+        className="absolute inset-0 cursor-pointer opacity-0"
+      >
+        <option value="">ID — как в базе</option>
+        {cols.flatMap((c) => [
+          <option key={`${c.k}:1`} value={`${c.k}:1`}>
+            {c.t} ↑
+          </option>,
+          <option key={`${c.k}:-1`} value={`${c.k}:-1`}>
+            {c.t} ↓
+          </option>,
+        ])}
+      </select>
+      <ChevronDown className="absolute right-3.5 size-4 opacity-60" />
+    </label>
+  )
+}
+
+/** QR · изменить · удалить. TODO: QR (n-10), правка (n-05), удаление с причиной (n-09). */
+function RowActions() {
+  return (
+    <div className="flex justify-end gap-1.5">
+      <button type="button" className={cn(circ, "size-8")} title="QR-код" onClick={() => toast("QR-код узла — следующим экраном")}>
+        <QrCode />
+      </button>
+      <button type="button" className={cn(circ, "size-8")} title="Изменить" onClick={() => toast("Редактирование — следующим экраном")}>
+        <Pencil />
+      </button>
+      <button
+        type="button"
+        className={cn(circ, "size-8 hover:border-[#ff3b30] hover:bg-[#ff3b30]")}
+        title="Удалить"
+        onClick={() => toast("Удаление с причиной — следующим экраном")}
+      >
+        <Trash2 />
+      </button>
+    </div>
+  )
+}
+
+/** Вид «Карточки» (экран n-01): фото со статусом, название, теги, полоса, действия и «Паспорт». */
+function Cards<T extends Row>({ cfg, rows, checked, toggle }: { cfg: ListConfig<T>; rows: T[]; checked: Set<number>; toggle: (id: number) => void }) {
+  if (!rows.length) return <div className="py-16 text-center text-muted-foreground">Ничего не найдено — измените поиск или фильтры</div>
+  return (
+    <div className="mt-[18px] grid grid-cols-4 gap-4 max-[1500px]:grid-cols-3 max-[1100px]:grid-cols-2 max-sm:grid-cols-1">
+      {rows.map((x) => {
+        const c = cfg.card(x)
+        const on = checked.has(x.id)
+        return (
+          <article
+            key={x.id}
+            className={cn(
+              "flex min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-[var(--glass-card)] backdrop-blur-[18px] transition-[transform,box-shadow] duration-250 hover:-translate-y-0.5",
+              on && "border-[#085eff] shadow-[0_0_0_1px_#085eff]"
+            )}
+          >
+            <div className="relative h-[130px] bg-[var(--feat-bg)]">
+              {c.photo && <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${c.photo})` }} />}
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,var(--glass-card-solid))]" />
+              <Pill tone={c.status.tone} className="absolute top-3 left-3 bg-[rgba(10,11,14,0.6)] backdrop-blur">
+                {c.status.label}
+              </Pill>
+              <span className="absolute top-3 right-3 [&_button]:bg-[rgba(10,11,14,0.4)]">
+                <Check on={on} label="Выбрать" onClick={() => toggle(x.id)} />
+              </span>
+            </div>
+            <div className="flex flex-1 flex-col px-4 pt-2 pb-4">
+              <b className="truncate text-base font-semibold">{c.title}</b>
+              <span className="mt-1 truncate text-[12.5px] text-muted-foreground">{c.sub}</span>
+              {c.tags && (
+                <span className="mt-2.5 flex flex-wrap gap-1.5">
+                  {c.tags.map((t) => (
+                    <Tag key={t}>{t}</Tag>
+                  ))}
+                </span>
+              )}
+              {c.bar && (
+                <>
+                  <span className="mt-3 flex justify-between text-[12.5px] text-muted-foreground">
+                    {c.bar.t}
+                    <b className="font-medium text-foreground tabular-nums">{c.bar.v}</b>
+                  </span>
+                  <Bar pct={c.bar.pct} className="mt-2 h-1" />
+                </>
+              )}
+              <div className="mt-4 flex items-center gap-1.5">
+                <RowActions />
+                <button type="button" className={cn(btn({ sm: true }), "ml-auto")} onClick={() => toast("Паспорт — следующим этапом")}>
+                  <ArrowRight />
+                  {c.open}
+                </button>
+              </div>
+            </div>
+          </article>
+        )
+      })}
+    </div>
+  )
+}
+
 function Pager({
   total,
   page,
   pages,
   size,
+  sizes,
   onSize,
   onPage,
 }: {
@@ -306,6 +428,7 @@ function Pager({
   page: number
   pages: number
   size: number
+  sizes: number[]
   onSize: (s: number) => void
   onPage: (p: number) => void
 }) {
@@ -324,7 +447,7 @@ function Pager({
           className="absolute inset-0 cursor-pointer opacity-0"
           aria-label="Строк на странице"
         >
-          {SIZES.map((s) => (
+          {sizes.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>

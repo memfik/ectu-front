@@ -65,6 +65,19 @@ export type Preview = {
   more: string
 }
 
+/** Карточка записи в виде «Карточки». */
+export type Card = {
+  photo?: string
+  status: { label: string; tone: Tone }
+  title: string
+  sub: string
+  tags?: string[]
+  /** Полоса внизу карточки: «Волокна 3/32». */
+  bar?: { t: string; v: string; pct: number }
+  /** Кнопка карточки («Паспорт»). */
+  open: string
+}
+
 export type ListConfig<T extends Row> = {
   key: string
   title: string
@@ -86,4 +99,5 @@ export type ListConfig<T extends Row> = {
   /** Сортировка по умолчанию; "" — в исходном порядке. */
   sort: [string, 1 | -1]
   preview: (x: T) => Preview
+  card: (x: T) => Card
 }

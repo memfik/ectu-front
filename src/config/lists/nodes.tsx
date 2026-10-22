@@ -99,6 +99,15 @@ export const nodesList: ListConfig<NodeRow> = {
     },
     { k: "status", t: "Статус", value: (x) => STATUS_LABEL[x.status], render: (x) => <Pill tone={TONE[x.status]}>{STATUS_LABEL[x.status]}</Pill> },
   ],
+  card: (x) => ({
+    photo: `/nodes/photo-${((x.id - 1) % 5) + 1}.jpg`,
+    status: { label: STATUS_LABEL[x.status], tone: TONE[x.status] },
+    title: x.code,
+    sub: `${x.object} · ${x.city}`,
+    tags: x.tech,
+    bar: { t: "Волокна", v: x.fibers ? `${x.fibers[0]}/${x.fibers[1]}` : "0/—", pct: x.fibers ? pct(x.fibers[0], x.fibers[1]) : 0 },
+    open: "Паспорт",
+  }),
   preview: (x) => ({
     photo: "/nodes/tower.jpg",
     status: { label: STATUS_LABEL[x.status], tone: TONE[x.status] },
