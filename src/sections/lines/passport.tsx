@@ -176,18 +176,22 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
               <MapIcon />
               На карту сети
             </Link>
-            <button type="button" className={btn({ primary: true })} onClick={() => setEdit(true)}>
-              <Pencil />
-              Редактировать
-            </button>
-            <button
-              type="button"
-              aria-label="Удалить"
-              onClick={() => setDel(true)}
-              className={cn(circ, "size-11 text-[#ff5257] hover:border-[#ff3b30] hover:bg-[#ff3b30]")}
-            >
-              <Trash2 />
-            </button>
+            {!spec.readOnly && (
+              <>
+                <button type="button" className={btn({ primary: true })} onClick={() => setEdit(true)}>
+                  <Pencil />
+                  Редактировать
+                </button>
+                <button
+                  type="button"
+                  aria-label="Удалить"
+                  onClick={() => setDel(true)}
+                  className={cn(circ, "size-11 text-[#ff5257] hover:border-[#ff3b30] hover:bg-[#ff3b30]")}
+                >
+                  <Trash2 />
+                </button>
+              </>
+            )}
           </div>
         </header>
 
@@ -198,9 +202,11 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
               title="Паспорт"
               className="self-start"
               action={
-                <button type="button" className={circ} title="Все поля" onClick={() => setEdit(true)}>
-                  <Maximize2 />
-                </button>
+                !spec.readOnly && (
+                  <button type="button" className={circ} title="Все поля" onClick={() => setEdit(true)}>
+                    <Maximize2 />
+                  </button>
+                )
               }
             >
               <Kv rows={k.rows(x, d)} />
