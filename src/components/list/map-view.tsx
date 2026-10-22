@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react"
 import dynamic from "next/dynamic"
+import Link from "next/link"
 import { ArrowRight, Search } from "lucide-react"
-import { toast } from "@/components/shared/toast"
 import type { MapPoint, Visible } from "@/components/map/points-map"
 import { fmt } from "@/lib/list/query"
 import type { ListConfig, Row, Tone } from "@/lib/list/types"
@@ -91,11 +91,10 @@ export function MapView<T extends Row>({
             </span>
             <b className="block truncate text-sm font-semibold">{cur.note}</b>
           </span>
-          {/* TODO: паспорт узла (p01) */}
-          <button type="button" className={btn({ sm: true })} onClick={() => toast("Паспорт — следующим этапом")}>
+          <Link href={`/${cfg.key}/${cur.id}`} className={btn({ sm: true })}>
             Паспорт
             <ArrowRight />
-          </button>
+          </Link>
         </div>
       )}
     </section>

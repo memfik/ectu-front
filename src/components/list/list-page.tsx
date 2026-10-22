@@ -2,6 +2,7 @@
 
 import { useDeferredValue, useMemo, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowRight, ChevronDown, Filter, Layers, LayoutGrid, List, Map as MapIcon, Pencil, QrCode, Search, Trash2, X } from "lucide-react"
 import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/config/lists"
@@ -29,6 +30,7 @@ export function ListPage({ list: key }: { list: string }) {
 }
 
 function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
+  const router = useRouter()
   const rows = useRows(cfg)
   const [q, setQState] = useState<Query>(() => emptyQuery(cfg))
   const [page, setPage] = useState(0)
@@ -265,7 +267,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
                   {view.map((x, i) => {
                     const on = x.id === active
                     return (
-                      <tr key={x.id} onClick={() => setActive(x.id)} className={cn("group/r cursor-pointer", on && "on")}>
+                      <tr key={x.id} onClick={() => setActive(x.id)} onDoubleClick={() => router.push(`/${cfg.key}/${x.id}`)} className={cn("group/r cursor-pointer", on && "on")}>
                         <td className={td(on, "first")} onClick={(e) => e.stopPropagation()}>
                           <Check on={checked.has(x.id)} label="Выбрать" onClick={() => toggle(x.id)} />
                         </td>
@@ -514,10 +516,10 @@ function Cards<T extends Row>({
               )}
               <div className="mt-4 flex items-center gap-1.5">
                 <RowActions onQr={cfg.qr && (() => onQr(x))} onEdit={() => onEdit(x.id)} onDelete={() => onDelete(x)} />
-                <button type="button" className={cn(btn({ sm: true }), "ml-auto")} onClick={() => toast("Паспорт — следующим этапом")}>
+                <Link href={`/${cfg.key}/${x.id}`} className={cn(btn({ sm: true }), "ml-auto")}>
                   <ArrowRight />
                   {c.open}
-                </button>
+                </Link>
               </div>
             </div>
           </article>
@@ -646,14 +648,10 @@ function PreviewPanel<T extends Row>({ cfg, row, onClose, onEdit }: { cfg: ListC
           >
             <Pencil />
           </button>
-          <button
-            type="button"
-            className={cn(btn({ primary: true }), "flex-1 justify-center")}
-            onClick={() => toast("Паспорт — следующим этапом")}
-          >
+          <Link href={`/${cfg.key}/${row.id}`} className={cn(btn({ primary: true }), "flex-1 justify-center")}>
             {p.more}
             <ArrowRight />
-          </button>
+          </Link>
         </div>
       </div>
     </aside>

@@ -42,12 +42,15 @@ export function PointsMap({
   selected,
   onSelect,
   onVisible,
+  mini,
   className,
 }: {
   points: MapPoint[]
   selected: number | null
   onSelect: (id: number) => void
   onVisible?: (v: Visible) => void
+  /** Маленькая карта в карточке: без подписи источника, кнопки масштаба сверху справа. */
+  mini?: boolean
   className?: string
 }) {
   const box = useRef<HTMLDivElement>(null)
@@ -72,9 +75,9 @@ export function PointsMap({
         style: STYLE[theme],
         center: first ? [first.ll[1], first.ll[0]] : [71.43, 51.13],
         zoom: 12,
-        attributionControl: { compact: true },
+        attributionControl: mini ? false : { compact: true },
       })
-      m.addControl(new ml.NavigationControl({ showCompass: false }), "bottom-right")
+      m.addControl(new ml.NavigationControl({ showCompass: false }), mini ? "top-right" : "bottom-right")
       m.on("style.load", () => {
         addLayers(m!, latest)
         setReady(true)
