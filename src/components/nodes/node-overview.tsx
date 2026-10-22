@@ -1,6 +1,22 @@
 "use client"
 
-import { ArrowRight, ArrowUpRight, Cable, Download, Eye, FileText, History, Image as ImageIcon, Link as LinkIcon, Maximize2, MessageSquare, Plus, Server, UserCog, Users } from "lucide-react"
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Cable,
+  Download,
+  Eye,
+  FileText,
+  History,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Maximize2,
+  MessageSquare,
+  Plus,
+  Server,
+  UserCog,
+  Users,
+} from "lucide-react"
 import { btn, circ } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import type { NodeDetail } from "@/data/node-detail"
@@ -18,19 +34,42 @@ export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) =
   )
   const fiberTotal = d.fibers.reduce((a, f) => a + f.total, 0)
   const fiberUsed = d.fibers.reduce((a, f) => a + f.used, 0)
-  const ports = d.equipment.reduce((a, e) => ({ up: a.up + e.ports.up, down: a.down + e.ports.down, free: a.free + e.ports.free }), { up: 0, down: 0, free: 0 })
+  const ports = d.equipment.reduce((a, e) => ({ up: a.up + e.ports.up, down: a.down + e.ports.down, free: a.free + e.ports.free }), {
+    up: 0,
+    down: 0,
+    free: 0,
+  })
 
   return (
     <div className="flex flex-col gap-[18px]">
       <div className="grid grid-cols-4 gap-[18px] max-[1500px]:grid-cols-2 max-sm:grid-cols-1">
         <Card icon={Cable} title="ВОЛС трассы" action={go("fibers")}>
-          <Big n={d.fibers.length} t={`${plural(d.fibers.length, ["трасса", "трассы", "трасс"])} · ${fiberTotal} ${plural(fiberTotal, ["волокно", "волокна", "волокон"])}`} />
-          <SegBar parts={[{ v: fiberUsed, color: "#085eff" }, { v: fiberTotal - fiberUsed || (fiberTotal ? 0 : 1), color: "var(--chip-bg)" }]} />
-          <Legend items={[{ t: `Занято ${fiberUsed}`, color: "#085eff" }, { t: `Свободно ${fiberTotal - fiberUsed}`, color: "#8c919b" }]} />
+          <Big
+            n={d.fibers.length}
+            t={`${plural(d.fibers.length, ["трасса", "трассы", "трасс"])} · ${fiberTotal} ${plural(fiberTotal, ["волокно", "волокна", "волокон"])}`}
+          />
+          <SegBar
+            parts={[
+              { v: fiberUsed, color: "#085eff" },
+              { v: fiberTotal - fiberUsed || (fiberTotal ? 0 : 1), color: "var(--chip-bg)" },
+            ]}
+          />
+          <Legend
+            items={[
+              { t: `Занято ${fiberUsed}`, color: "#085eff" },
+              { t: `Свободно ${fiberTotal - fiberUsed}`, color: "#8c919b" },
+            ]}
+          />
         </Card>
         <Card icon={Server} title="Оборудование" action={go("equipment")}>
           <Big n={d.equipment.length} t={d.equipment.map((e) => e.model).join(", ")} />
-          <SegBar parts={[{ v: ports.up, color: "var(--status-ok)" }, { v: ports.down, color: "var(--status-alarm)" }, { v: ports.free, color: "var(--chip-bg)" }]} />
+          <SegBar
+            parts={[
+              { v: ports.up, color: "var(--status-ok)" },
+              { v: ports.down, color: "var(--status-alarm)" },
+              { v: ports.free, color: "var(--chip-bg)" },
+            ]}
+          />
           <Legend
             items={[
               { t: `Порты up ${ports.up}`, color: "var(--status-ok)" },
@@ -95,9 +134,15 @@ export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) =
                 style={{ backgroundImage: `url(${m.src})` }}
                 title={m.title}
               >
-                {m.video && <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/70 px-1.5 py-px text-[10px] font-bold text-white">▶ {m.video}</span>}
+                {m.video && (
+                  <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/70 px-1.5 py-px text-[10px] font-bold text-white">
+                    ▶ {m.video}
+                  </span>
+                )}
                 {i === 4 && d.media.length > 5 && (
-                  <span className="absolute inset-0 grid place-items-center rounded-[14px] bg-black/45 text-lg font-semibold text-white">+{d.media.length - 5}</span>
+                  <span className="absolute inset-0 grid place-items-center rounded-[14px] bg-black/45 text-lg font-semibold text-white">
+                    +{d.media.length - 5}
+                  </span>
                 )}
               </span>
             ))}
@@ -140,7 +185,11 @@ export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) =
                 <b className="block text-sm font-semibold">{p.name}</b>
                 <span className="text-xs text-muted-foreground">{p.role}</span>
               </span>
-              {p.synced && <span className="rounded-full bg-[rgba(43,212,99,0.14)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-ok)]">Синхр.</span>}
+              {p.synced && (
+                <span className="rounded-full bg-[rgba(43,212,99,0.14)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-ok)]">
+                  Синхр.
+                </span>
+              )}
             </div>
           ))}
           <div className="flex items-center gap-3 py-2.5">
@@ -171,7 +220,7 @@ export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) =
                 <div
                   className={cn(
                     "min-w-0 flex-1 rounded-2xl border border-border bg-[var(--chip-bg)] px-4 py-3 text-[13.5px]",
-                    c.pinned && "border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.08)]"
+                    c.pinned && "border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.08)]",
                   )}
                 >
                   <span className="text-xs text-muted-foreground">
@@ -229,7 +278,10 @@ export function DocRow({ doc: f }: { doc: NodeDetail["docs"][number] }) {
   const [label, color] = EXT[f.ext]
   return (
     <div className="flex items-center gap-3.5 rounded-2xl border border-border bg-[var(--chip-bg)] px-3.5 py-3">
-      <span className="grid size-10 flex-none place-items-center rounded-[10px] text-[10.5px] font-bold" style={{ color, background: `color-mix(in srgb, ${color} 14%, transparent)` }}>
+      <span
+        className="grid size-10 flex-none place-items-center rounded-[10px] text-[10.5px] font-bold"
+        style={{ color, background: `color-mix(in srgb, ${color} 14%, transparent)` }}
+      >
         {label}
       </span>
       <span className="min-w-0 flex-1">
@@ -239,7 +291,12 @@ export function DocRow({ doc: f }: { doc: NodeDetail["docs"][number] }) {
         </span>
       </span>
       {/* TODO: просмотр и скачивание — файлы из API */}
-      <button type="button" className={cn(circ, "size-8")} title="Просмотр" onClick={() => toast("Просмотр документа — после подключения API")}>
+      <button
+        type="button"
+        className={cn(circ, "size-8")}
+        title="Просмотр"
+        onClick={() => toast("Просмотр документа — после подключения API")}
+      >
         <Eye />
       </button>
       <button type="button" className={cn(circ, "size-8")} title="Скачать" onClick={() => toast("Скачивание — после подключения API")}>

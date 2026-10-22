@@ -8,8 +8,43 @@ import type { NodeRow } from "./nodes"
  */
 
 export type Person = { initials: string; name: string; role: string; color: string; synced?: boolean; phone?: string; email?: string }
-export type FiberLine = { id: number; num: string; to: string; km: number; used: number; total: number; type: string; status: "work" | "plan" }
-export type Equipment = { id: number; kind: string; host: string; model: string; ip: string; ports: { up: number; down: number; free: number }; status: "ok" | "warn" }
+export type FiberLine = {
+  id: number
+  num: string
+  /** Конец трассы: название и ID узла */
+  to: string
+  toCode: string
+  km: number
+  /** Способ прокладки */
+  way: string
+  used: number
+  reserve: number
+  total: number
+  cable: string
+  odf: string
+  status: "work" | "plan"
+  /** Чем заняты волокна: «1–2 · sw1.ast009» */
+  usage: { range: string; title: string; sub: string; kind: "equipment" | "id" }[]
+}
+export type PortState = "up" | "down" | "sfp" | "free"
+export type Equipment = {
+  id: number
+  /** Группа во вкладке: СПД, АТС, Электропитание, Беспроводное, Спутниковое, ЗИП */
+  group: "spd" | "pbx" | "power" | "wireless" | "sat" | "spare"
+  kind: string
+  host: string
+  model: string
+  vendor: string
+  serial: string
+  os: string
+  ip: string
+  photo: string
+  ports: { up: number; down: number; free: number }
+  /** Порты по порядку: 1…24, затем X1…X4 (SFP) */
+  portList: { n: string; state: PortState }[]
+  module: { slot: string; port: string; type: string; serial: string }
+  status: "ok" | "warn"
+}
 export type Doc = { id: number; name: string; kind: string; size: string; date: string; ext: "pdf" | "xlsx" | "docx" | "dwg" }
 export type Comment = { id: number; author: Person; when: string; text: string; pinned?: boolean }
 export type HistoryItem = { id: number; what: string; who: string; when: string; kind: "edit" | "file" | "link" | "create" }
@@ -62,14 +97,87 @@ export function nodeDetail(x: NodeRow): NodeDetail {
     capacity: { ports: [18, 25], fibers: [used, total] },
     fibers: total
       ? [
-          { id: 49, num: "ВОЛС №49", to: "УС «РТПЦ»", km: 1.4, used, total, type: "ОКЛ-01-6-32", status: "work" },
-          ...(r(1) > 0.5 ? [{ id: 52, num: "ВОЛС №52", to: "ast011.02.AS", km: 1.9, used: 4, total: 16, type: "ОКЛ-01-6-16", status: "plan" as const }] : []),
+          {
+            id: 49,
+            num: "49",
+            to: "УС «РТПЦ»",
+            toCode: "url001.02.UF",
+            km: 1.4,
+            way: "кабельная канализация",
+            used,
+            reserve: 1,
+            total,
+            cable: `ОКЛ-0,22-${total}`,
+            odf: `ODF-1 · порты 1–${total}`,
+            status: "work",
+            usage: [
+              { range: used > 2 ? `1–${used - 1}` : "1", title: `sw1.${x.code.split(".")[0]}`, sub: "Uplink X440-24t-10G", kind: "equipment" },
+              { range: String(used), title: "ID-канал (в процессе)", sub: "FTTB клиент", kind: "id" },
+            ],
+          },
+          ...(r(1) > 0.5
+            ? [
+                {
+                  id: 52,
+                  num: "52",
+                  to: "УС «Сыганак»",
+                  toCode: "ast011.02.AS",
+                  km: 1.9,
+                  way: "подвес на опорах",
+                  used: 4,
+                  reserve: 0,
+                  total: 16,
+                  cable: "ОКЛ-0,22-16",
+                  odf: "ODF-2 · порты 1–16",
+                  status: "plan" as const,
+                  usage: [{ range: "1–4", title: `bb1.${x.code.slice(0, 4)}`, sub: "Магистраль CISCO3845", kind: "equipment" as const }],
+                },
+              ]
+            : []),
         ]
       : [],
     equipment: [
-      { id: 1, kind: "Коммутатор", host: `sw1.${x.code.split(".")[0]}`, model: "X440-24t-10G", ip: "10.13.93.x", ports: { up: 18, down: 2, free: 5 }, status: "ok" },
+      {
+        id: 1,
+        group: "spd",
+        kind: "Коммутатор",
+        host: `sw1.${x.code.split(".")[0]}`,
+        model: "X440-24t-10G",
+        vendor: "Extreme",
+        serial: "1317N-42395",
+        os: "EXOS 22.6.1.4",
+        ip: "10.13.93.x",
+        photo: "/nodes/g-3.jpg",
+        ports: { up: 18, down: 2, free: 5 },
+        portList: [
+          ...Array.from({ length: 24 }, (_, i): { n: string; state: PortState } => ({
+            n: String(i + 1),
+            state: i === 6 || i === 11 ? "down" : i < 18 ? "up" : "free",
+          })),
+          ...["X1", "X2", "X3", "X4"].map((n, i): { n: string; state: PortState } => ({ n, state: i < 2 ? "sfp" : "free" })),
+        ],
+        module: { slot: "—", port: "0/25", type: "1000BaseLX SFP", serial: "AGC1435U4PJ" },
+        status: "ok",
+      },
       ...(x.equipment > 1
-        ? [{ id: 2, kind: "Маршрутизатор", host: `bb1.${x.code.slice(0, 4)}`, model: "CISCO3845", ip: "10.13.90.x", ports: { up: 6, down: 0, free: 2 }, status: "ok" as const }]
+        ? [
+            {
+              id: 2,
+              group: "power" as const,
+              kind: "ИБП",
+              host: "ИБП Delta 60kVa",
+              model: "Delta Ultron DPH 60",
+              vendor: "Delta",
+              serial: "DPH60-88213",
+              os: "—",
+              ip: "10.13.95.x",
+              photo: "/nodes/g-4.jpg",
+              ports: { up: 0, down: 0, free: 0 },
+              portList: [],
+              module: { slot: "—", port: "—", type: "40 АБ 12 В", serial: "—" },
+              status: "ok" as const,
+            },
+          ]
         : []),
     ],
     idChannels: Array.from({ length: x.idChannels }, (_, i) => ({
