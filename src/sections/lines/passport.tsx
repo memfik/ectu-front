@@ -148,7 +148,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
               / Паспорт
             </p>
             <h1 className="mt-1 flex flex-wrap items-center gap-3 text-4xl font-semibold tracking-[-0.6px] max-sm:text-[26px]">
-              <span className="max-w-[520px] truncate" title={title}>
+              <span className="max-w-[720px] truncate max-[1700px]:max-w-[520px]" title={title}>
                 {title}
               </span>
               <button
