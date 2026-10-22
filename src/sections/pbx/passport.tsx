@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Activity, ArrowLeftRight, FileText, Hash, Phone, RadioTower, Truck, UserCog, Users } from "lucide-react"
 import { Card, Kv } from "@/components/passport/ui"
 import { CapacityBars, Chassis, type Slot } from "@/components/passport/chassis"
@@ -8,8 +7,7 @@ import { Table } from "@/sections/nodes/tabs"
 import { LinePassport } from "@/sections/lines/passport"
 import { type LineCtx, type LineKind } from "@/sections/lines/detail"
 import { BRANCHES, nodeRows } from "@/sections/nodes/data"
-import { staffOf } from "@/sections/spd/detail"
-import { MolTab, MovesTab, type Staff } from "@/sections/spd/tabs"
+import { MolPane, MovesPane } from "@/sections/lines/staff"
 import { SegBar } from "@/components/passport/ui"
 import { list, spec } from "./config"
 
@@ -39,16 +37,6 @@ const cap = (c: LineCtx) => {
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0)
 const E1 = { m: 32, z: 24 }
 const EM = { m: 24, z: 16 }
-
-/** МОЛ и ответственные — свой стейт на вкладке. */
-function MolPane({ c }: { c: LineCtx }) {
-  const [d, set] = useState<Staff>(() => staffOf({ branch: c.x.branch, nodeCode: c.x.nodeCode, since: "12.03.2019" }, "Отдел эксплуатации"))
-  return <MolTab d={d} onChange={(mol) => set({ ...d, mol })} />
-}
-function MovesPane({ c }: { c: LineCtx }) {
-  const [d, set] = useState<Staff>(() => staffOf({ branch: c.x.branch, nodeCode: c.x.nodeCode, since: "12.03.2019" }, "Отдел эксплуатации"))
-  return <MovesTab d={d} x={c.x} onChange={(moves) => set({ ...d, moves })} />
-}
 
 const SLOTS: Slot[] = [
   ...Array.from({ length: 6 }, () => ({ label: "MEA-48", led: "ok" as const })),
@@ -208,9 +196,9 @@ const ATS: LineKind = {
         </Card>
       ),
     },
-    { k: "mol", t: "МОЛ и ответственные", icon: UserCog, n: 2, node: <MolPane c={c} /> },
+    { k: "mol", t: "МОЛ и ответственные", icon: UserCog, n: 2, node: <MolPane x={c.x} /> },
   ],
-  tail: (c) => [{ k: "moves", t: "История перемещений", icon: Truck, n: 3, node: <MovesPane c={c} /> }],
+  tail: (c) => [{ k: "moves", t: "История перемещений", icon: Truck, n: 3, node: <MovesPane x={c.x} /> }],
   ends: (x, a) => [
     { code: x.nodeCode, title: a ? a.object : x.nodeCode, nodeId: a?.id },
     { code: "—", title: "—" },
