@@ -67,10 +67,10 @@ export function useUser(): User {
 export const filialId = (short: string) => filials.find((f) => f.short_name === short)?.id
 export const filialShort = (id: number | string | undefined) => filials.find((f) => String(f.id) === String(id))?.short_name
 
-export async function login(username: string, password: string) {
+export async function login(username: string, password: string, remember = true) {
   const r = await api.post<{ token?: string; user?: Profile }>("/api/login", { username, password })
   if (!r.token) throw new Error("Сервер не вернул токен")
-  token.set(r.token)
+  token.set(r.token, remember)
   if (r.user) user = fromProfile(r.user)
   loading = null
   await loadSession()

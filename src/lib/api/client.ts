@@ -10,18 +10,20 @@ const TOKEN = "ectu:token"
 /** Включён ли режим API: задан адрес бэкенда. */
 export const apiOn = () => !!API_URL
 
+/** Токен: «Запомнить меня» — localStorage, иначе sessionStorage (до закрытия вкладки). */
 export const token = {
   get: () => {
     try {
-      return localStorage.getItem(TOKEN)
+      return localStorage.getItem(TOKEN) ?? sessionStorage.getItem(TOKEN)
     } catch {
       return null
     }
   },
-  set: (t: string | null) => {
+  set: (t: string | null, remember = true) => {
     try {
-      if (t) localStorage.setItem(TOKEN, t)
-      else localStorage.removeItem(TOKEN)
+      localStorage.removeItem(TOKEN)
+      sessionStorage.removeItem(TOKEN)
+      if (t) (remember ? localStorage : sessionStorage).setItem(TOKEN, t)
     } catch {}
   },
 }
