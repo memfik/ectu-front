@@ -1,7 +1,7 @@
 import { ChartColumn, Download, Plus, RadioTower, Upload } from "lucide-react"
 import { Bar, Pill, Tag } from "@/components/list/ui"
 import { BRANCHES, nodeRows, STATUS_LABEL, type NodeRow } from "@/data/nodes"
-import { fmt } from "@/lib/list/query"
+import { fmt, plural } from "@/lib/list/query"
 import type { ListConfig, Tone } from "@/lib/list/types"
 
 const TONE: Record<NodeRow["status"], Tone> = { work: "ok", rebuild: "warn", off: "bad" }
@@ -33,7 +33,13 @@ export const nodesList: ListConfig<NodeRow> = {
     const noDocs = rows.filter((x) => !x.hasDocs).length
     return [
       { t: "В работе", color: "var(--status-ok)", value: fmt(by("work")), note: `${pct(by("work"), n)}%`, pct: pct(by("work"), n) },
-      { t: "На реконструкции", color: "var(--status-nolink)", value: fmt(by("rebuild")), note: `${pct(by("rebuild"), n)}%`, pct: pct(by("rebuild"), n) },
+      {
+        t: "На реконструкции",
+        color: "var(--status-nolink)",
+        value: fmt(by("rebuild")),
+        note: `${pct(by("rebuild"), n)}%`,
+        pct: pct(by("rebuild"), n),
+      },
       { t: "Выведены", color: "var(--status-alarm)", value: fmt(by("off")), note: `${pct(by("off"), n)}%`, pct: pct(by("off"), n) },
       { t: "Портовая ёмкость", color: "#a78bfa", value: "100%", note: "568 / 569", pct: 100 },
       { t: "Ёмкость волокон", color: "#22d3ee", value: "98%", note: "370 / 379", pct: 98 },
@@ -41,10 +47,30 @@ export const nodesList: ListConfig<NodeRow> = {
     ]
   },
   filters: [
-    { k: "branch", t: "Филиал", all: "Все филиалы", get: (x) => x.branch, opts: BRANCHES.map((b) => ({ v: b.v, label: b.label })), short: (v) => v },
+    {
+      k: "branch",
+      t: "Филиал",
+      all: "Все филиалы",
+      get: (x) => x.branch,
+      opts: BRANCHES.map((b) => ({ v: b.v, label: b.label })),
+      short: (v) => v,
+    },
     { k: "network", t: "Тип сети", get: (x) => x.network, opts: ["ГМС", "ГРС", "ГАС", "МС"].map((v) => ({ v, label: v })) },
-    { k: "ownership", t: "Форма владения", get: (x) => x.ownership, opts: [{ v: "own", label: "Собственный" }, { v: "rent", label: "Аренда" }] },
-    { k: "status", t: "Статус", get: (x) => x.status, opts: (["work", "rebuild", "off"] as const).map((v) => ({ v, label: STATUS_LABEL[v] })) },
+    {
+      k: "ownership",
+      t: "Форма владения",
+      get: (x) => x.ownership,
+      opts: [
+        { v: "own", label: "Собственный" },
+        { v: "rent", label: "Аренда" },
+      ],
+    },
+    {
+      k: "status",
+      t: "Статус",
+      get: (x) => x.status,
+      opts: (["work", "rebuild", "off"] as const).map((v) => ({ v, label: STATUS_LABEL[v] })),
+    },
     { k: "tech", t: "Технология", get: (x) => x.tech, opts: ["FTTH", "FTTB", "xDSL", "РРЛ"].map((v) => ({ v, label: v })), more: true },
   ],
   sort: ["", 1],
@@ -97,7 +123,12 @@ export const nodesList: ListConfig<NodeRow> = {
           <span className="text-muted-foreground">—</span>
         ),
     },
-    { k: "status", t: "Статус", value: (x) => STATUS_LABEL[x.status], render: (x) => <Pill tone={TONE[x.status]}>{STATUS_LABEL[x.status]}</Pill> },
+    {
+      k: "status",
+      t: "Статус",
+      value: (x) => STATUS_LABEL[x.status],
+      render: (x) => <Pill tone={TONE[x.status]}>{STATUS_LABEL[x.status]}</Pill>,
+    },
   ],
   card: (x) => ({
     photo: `/nodes/photo-${((x.id - 1) % 5) + 1}.jpg`,
@@ -108,6 +139,16 @@ export const nodesList: ListConfig<NodeRow> = {
     bar: { t: "Волокна", v: x.fibers ? `${x.fibers[0]}/${x.fibers[1]}` : "0/—", pct: x.fibers ? pct(x.fibers[0], x.fibers[1]) : 0 },
     open: "Паспорт",
   }),
+  map: (x) =>
+    x.onMap
+      ? {
+          ll: x.ll,
+          title: x.code,
+          sub: x.object,
+          tone: TONE[x.status],
+          note: `${x.object}${x.fibers ? ` · ${x.fibers[1]} ${plural(x.fibers[1], ["волокно", "волокна", "волокон"])}` : ""}`,
+        }
+      : null,
   preview: (x) => ({
     photo: "/nodes/tower.jpg",
     status: { label: STATUS_LABEL[x.status], tone: TONE[x.status] },

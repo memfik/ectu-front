@@ -32,7 +32,7 @@ export function FilterChip<T extends Row>({
       <Popover.Trigger
         className={cn(
           "flex h-11 flex-none cursor-pointer items-center gap-2.5 rounded-full border border-border bg-[var(--chip-bg)] px-4 text-sm whitespace-nowrap text-[var(--nav-text)] data-[state=open]:border-[#085eff] max-sm:h-10 max-sm:text-[13px]",
-          value.length > 0 && "border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.1)] text-foreground"
+          value.length > 0 && "border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.1)] text-foreground",
         )}
       >
         {label}

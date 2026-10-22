@@ -2,18 +2,19 @@
 
 import { useDeferredValue, useMemo, useState } from "react"
 import Link from "next/link"
-import { ArrowRight, ChevronDown, Filter, LayoutGrid, List, Map as MapIcon, Pencil, QrCode, Search, Trash2, X } from "lucide-react"
+import { ArrowRight, ChevronDown, Filter, Layers, LayoutGrid, List, Map as MapIcon, Pencil, QrCode, Search, Trash2, X } from "lucide-react"
 import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/config/lists"
 import { applyQuery, emptyQuery, exportCsv, fmt, type Query } from "@/lib/list/query"
 import type { HeroButton, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { ActiveChips, FilterChip } from "./filters"
+import { MapView } from "./map-view"
 import { Bar, btn, Check, circ, Pill, Tag } from "./ui"
 
-type Mode = "table" | "cards"
-const SIZES: Record<Mode, number[]> = { table: [10, 20, 50, 100], cards: [8, 16, 32, 64] }
-const SIZE: Record<Mode, number> = { table: 20, cards: 8 }
+type Mode = "table" | "cards" | "map"
+const SIZES: Record<Mode, number[]> = { table: [10, 20, 50, 100], cards: [8, 16, 32, 64], map: [20] }
+const SIZE: Record<Mode, number> = { table: 20, cards: 8, map: 20 }
 
 /** Шаблон «Список» (макет 02, экран «Список узлов»): шапка с KPI, панель фильтров, таблица, превью справа. */
 export function ListPage({ list: key }: { list: string }) {
@@ -86,17 +87,37 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
           <FilterChip key={f.k} filter={f} rows={rows} value={q.f[f.k] ?? []} onChange={(v) => setQ({ ...q, f: { ...q.f, [f.k]: v } })} />
         ))}
       {/* TODO: шторка «Ещё фильтры» — экран n-03 */}
-      <button type="button" className={cn(btn(), "font-normal text-[var(--nav-text)] max-sm:h-10")} onClick={() => toast("«Ещё фильтры» — следующим экраном")}>
+      <button
+        type="button"
+        className={cn(btn(), "font-normal text-[var(--nav-text)] max-sm:h-10")}
+        onClick={() => toast("«Ещё фильтры» — следующим экраном")}
+      >
         <Filter />
         Ещё фильтры
       </button>
-      <button type="button" disabled={!checked.size} className={cn(btn({ danger: true }), "max-sm:h-10")} onClick={() => toast("Удаление с причиной — следующим экраном")}>
+      <button
+        type="button"
+        disabled={!checked.size}
+        className={cn(btn({ danger: true }), "max-sm:h-10")}
+        onClick={() => toast("Удаление с причиной — следующим экраном")}
+      >
         <Trash2 />
         Удалить ({checked.size})
       </button>
+      {mode === "map" && (
+        // TODO: «Слои» — узлы, ВОЛС, клиенты, участки; подложка 2D / спутник (макет 05)
+        <button
+          type="button"
+          className={cn(btn(), "font-normal text-[var(--nav-text)] max-sm:h-10")}
+          onClick={() => toast("Слои карты — на экране «Карта сети» (05)")}
+        >
+          <Layers />
+          Слои
+        </button>
+      )}
       <span className="flex-1 max-sm:hidden" />
       {mode === "cards" && <SortSelect cfg={cfg} q={q} setQ={setQ} />}
-      <ViewSwitch mode={mode} onChange={setMode} />
+      <ViewSwitch mode={mode} onChange={setMode} hasMap={!!cfg.map} />
     </div>
   )
   const pager = (
@@ -120,7 +141,10 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
 
       <div className="relative z-[1] -mt-[148px] grid grid-cols-6 gap-3.5 px-(--page-gutter) max-[1500px]:grid-cols-3 max-sm:grid-cols-2 max-sm:gap-2.5 max-[1279px]:mt-4">
         {kpis.map((k) => (
-          <div key={k.t} className="rounded-3xl border border-border bg-[var(--glass-card)] px-5 py-[18px] backdrop-blur-[18px] max-sm:px-3.5 max-sm:py-3">
+          <div
+            key={k.t}
+            className="rounded-3xl border border-border bg-[var(--glass-card)] px-5 py-[18px] backdrop-blur-[18px] max-sm:px-3.5 max-sm:py-3"
+          >
             <div className="flex items-center gap-2 text-[13px] whitespace-nowrap text-muted-foreground">
               <i className="size-[7px] flex-none rounded-full" style={{ background: k.color }} />
               <span className="truncate">{k.t}</span>
@@ -134,7 +158,15 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
         ))}
       </div>
 
-      {mode === "cards" ? (
+      {mode === "map" ? (
+        <div className="mt-[18px] px-(--page-gutter)">
+          <section className="rounded-3xl border border-border bg-[var(--glass-card)] px-3 py-3 backdrop-blur-[18px] max-sm:px-2">
+            {toolbar}
+            <ActiveChips cfg={cfg} q={q} setQ={setQ} />
+          </section>
+          <MapView cfg={cfg} rows={list} active={active} setActive={setActive} />
+        </div>
+      ) : mode === "cards" ? (
         <div className="mt-[18px] px-(--page-gutter)">
           <section className="rounded-3xl border border-border bg-[var(--glass-card)] px-3 py-3 backdrop-blur-[18px] max-sm:px-2">
             {toolbar}
@@ -170,12 +202,19 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
                         <th
                           key={c.k}
                           style={{ width: c.w }}
-                          onClick={() => !c.noSort && setQ({ ...q, sort: sorted ? [c.k, q.sort[1] === 1 ? -1 : 1] : [c.k, c.num ? -1 : 1] })}
+                          onClick={() =>
+                            !c.noSort && setQ({ ...q, sort: sorted ? [c.k, q.sort[1] === 1 ? -1 : 1] : [c.k, c.num ? -1 : 1] })
+                          }
                           className={cn("group px-3.5 py-1 font-medium whitespace-nowrap", !c.noSort && "cursor-pointer select-none")}
                         >
                           {c.t}
                           {!c.noSort && (
-                            <span className={cn("ml-1 opacity-0 transition-opacity group-hover:opacity-100", sorted && "text-[var(--link)] opacity-100")}>
+                            <span
+                              className={cn(
+                                "ml-1 opacity-0 transition-opacity group-hover:opacity-100",
+                                sorted && "text-[var(--link)] opacity-100",
+                              )}
+                            >
                               {sorted ? (q.sort[1] > 0 ? "↑" : "↓") : "↕"}
                             </span>
                           )}
@@ -201,7 +240,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
                         ))}
                         <td className={td(on, "last")} onClick={(e) => e.stopPropagation()}>
                           <RowActions />
-                      </td>
+                        </td>
                       </tr>
                     )
                   })}
@@ -234,14 +273,17 @@ const td = (on: boolean, edge?: "first" | "last") =>
     on &&
       "bg-[rgba(8,94,255,0.1)] shadow-[inset_0_1px_rgba(8,94,255,0.4),inset_0_-1px_rgba(8,94,255,0.4)] group-hover/r:bg-[rgba(8,94,255,0.12)]",
     on && edge === "first" && "shadow-[inset_1px_1px_rgba(8,94,255,0.4),inset_0_-1px_rgba(8,94,255,0.4)]",
-    on && edge === "last" && "shadow-[inset_-1px_1px_rgba(8,94,255,0.4),inset_0_-1px_rgba(8,94,255,0.4)]"
+    on && edge === "last" && "shadow-[inset_-1px_1px_rgba(8,94,255,0.4),inset_0_-1px_rgba(8,94,255,0.4)]",
   )
 
 function Hero<T extends Row>({ cfg, total, onAction }: { cfg: ListConfig<T>; total: number; onAction: (b: HeroButton) => void }) {
   return (
     <section className="relative -mt-[96px] h-[470px] max-[1279px]:h-auto max-[1279px]:pb-2">
       {/* фон на всю ширину окна, уходит под шапку, как в макете */}
-      <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(800px_400px_at_20%_30%,rgba(8,94,255,0.14),transparent_70%)]" />
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-[radial-gradient(800px_400px_at_20%_30%,rgba(8,94,255,0.14),transparent_70%)]"
+      />
       {cfg.hero && (
         <div
           aria-hidden
@@ -274,7 +316,7 @@ function Hero<T extends Row>({ cfg, total, onAction }: { cfg: ListConfig<T>; tot
                 <b.icon />
                 {b.label}
               </button>
-            )
+            ),
           )}
         </div>
       </div>
@@ -282,21 +324,41 @@ function Hero<T extends Row>({ cfg, total, onAction }: { cfg: ListConfig<T>; tot
   )
 }
 
-/** Таблица / Карточки / Карта. TODO: карта (n-02). */
-function ViewSwitch({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
+/** Таблица / Карточки / Карта. */
+function ViewSwitch({ mode, onChange, hasMap }: { mode: Mode; onChange: (m: Mode) => void; hasMap: boolean }) {
   const b = "grid size-[34px] cursor-pointer place-items-center rounded-full text-muted-foreground [&_svg]:size-[17px]"
   const on = "bg-[var(--nav-hover)] text-foreground"
   return (
     <div className="flex gap-0.5 rounded-full border border-border bg-[var(--chip-bg)] p-1">
-      <button type="button" title="Таблица" aria-pressed={mode === "table"} className={cn(b, mode === "table" && on)} onClick={() => onChange("table")}>
+      <button
+        type="button"
+        title="Таблица"
+        aria-pressed={mode === "table"}
+        className={cn(b, mode === "table" && on)}
+        onClick={() => onChange("table")}
+      >
         <List />
       </button>
-      <button type="button" title="Карточки" aria-pressed={mode === "cards"} className={cn(b, mode === "cards" && on)} onClick={() => onChange("cards")}>
+      <button
+        type="button"
+        title="Карточки"
+        aria-pressed={mode === "cards"}
+        className={cn(b, mode === "cards" && on)}
+        onClick={() => onChange("cards")}
+      >
         <LayoutGrid />
       </button>
-      <button type="button" title="Карта" className={b} onClick={() => toast("Вид «Карта» — следующим экраном")}>
-        <MapIcon />
-      </button>
+      {hasMap && (
+        <button
+          type="button"
+          title="Карта"
+          aria-pressed={mode === "map"}
+          className={cn(b, mode === "map" && on)}
+          onClick={() => onChange("map")}
+        >
+          <MapIcon />
+        </button>
+      )}
     </div>
   )
 }
@@ -356,7 +418,17 @@ function RowActions() {
 }
 
 /** Вид «Карточки» (экран n-01): фото со статусом, название, теги, полоса, действия и «Паспорт». */
-function Cards<T extends Row>({ cfg, rows, checked, toggle }: { cfg: ListConfig<T>; rows: T[]; checked: Set<number>; toggle: (id: number) => void }) {
+function Cards<T extends Row>({
+  cfg,
+  rows,
+  checked,
+  toggle,
+}: {
+  cfg: ListConfig<T>
+  rows: T[]
+  checked: Set<number>
+  toggle: (id: number) => void
+}) {
   if (!rows.length) return <div className="py-16 text-center text-muted-foreground">Ничего не найдено — измените поиск или фильтры</div>
   return (
     <div className="mt-[18px] grid grid-cols-4 gap-4 max-[1500px]:grid-cols-3 max-[1100px]:grid-cols-2 max-sm:grid-cols-1">
@@ -368,7 +440,7 @@ function Cards<T extends Row>({ cfg, rows, checked, toggle }: { cfg: ListConfig<
             key={x.id}
             className={cn(
               "flex min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-[var(--glass-card)] backdrop-blur-[18px] transition-[transform,box-shadow] duration-250 hover:-translate-y-0.5",
-              on && "border-[#085eff] shadow-[0_0_0_1px_#085eff]"
+              on && "border-[#085eff] shadow-[0_0_0_1px_#085eff]",
             )}
           >
             <div className="relative h-[130px] bg-[var(--feat-bg)]">
@@ -526,10 +598,19 @@ function PreviewPanel<T extends Row>({ cfg, row, onClose }: { cfg: ListConfig<T>
           <button type="button" title="На карте" className={cn(circ, "size-11")} onClick={() => toast("Узел на карте — экран «Карта»")}>
             <MapIcon />
           </button>
-          <button type="button" title="Изменить" className={cn(circ, "size-11")} onClick={() => toast("Редактирование — следующим экраном")}>
+          <button
+            type="button"
+            title="Изменить"
+            className={cn(circ, "size-11")}
+            onClick={() => toast("Редактирование — следующим экраном")}
+          >
             <Pencil />
           </button>
-          <button type="button" className={cn(btn({ primary: true }), "flex-1 justify-center")} onClick={() => toast("Паспорт — следующим этапом")}>
+          <button
+            type="button"
+            className={cn(btn({ primary: true }), "flex-1 justify-center")}
+            onClick={() => toast("Паспорт — следующим этапом")}
+          >
             {p.more}
             <ArrowRight />
           </button>

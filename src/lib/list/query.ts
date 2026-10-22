@@ -39,10 +39,19 @@ export const fmt = (n: number) => n.toLocaleString("ru-RU").replace(/ /g, " ")
 export function exportCsv<T extends Row>(cfg: ListConfig<T>, rows: T[]) {
   const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`
   const lines = [cfg.cols.map((c) => esc(c.t)), ...rows.map((x) => cfg.cols.map((c) => esc(c.value(x))))]
-  const blob = new Blob(["﻿" + lines.map((l) => l.join(";")).join("\n")], { type: "text/csv;charset=utf-8" })
+  const blob = new Blob(["\ufeff" + lines.map((l) => l.join(";")).join("\n")], { type: "text/csv;charset=utf-8" })
   const a = document.createElement("a")
   a.href = URL.createObjectURL(blob)
   a.download = `${cfg.key}.csv`
   a.click()
   URL.revokeObjectURL(a.href)
+}
+
+/** Склонение: plural(32, ["волокно", "волокна", "волокон"]) → «волокна». */
+export function plural(n: number, [one, few, many]: [string, string, string]) {
+  const d = n % 10
+  const dd = n % 100
+  if (d === 1 && dd !== 11) return one
+  if (d >= 2 && d <= 4 && (dd < 12 || dd > 14)) return few
+  return many
 }

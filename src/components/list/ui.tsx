@@ -13,7 +13,13 @@ const TONE: Record<Tone, string> = {
 
 export function Pill({ tone, children, className }: { tone: Tone; children: React.ReactNode; className?: string }) {
   return (
-    <span className={cn("inline-flex h-[26px] flex-none items-center gap-1.5 rounded-full px-[11px] text-xs font-semibold whitespace-nowrap", TONE[tone], className)}>
+    <span
+      className={cn(
+        "inline-flex h-[26px] flex-none items-center gap-1.5 rounded-full px-[11px] text-xs font-semibold whitespace-nowrap",
+        TONE[tone],
+        className,
+      )}
+    >
       <i className="size-1.5 rounded-full bg-current" />
       {children}
     </span>
@@ -32,7 +38,7 @@ export function btn({ primary, danger, sm }: { primary?: boolean; danger?: boole
     primary
       ? "border-[#085eff] bg-[#085eff] text-white shadow-[0_8px_24px_rgba(8,94,255,0.32)] hover:brightness-110"
       : "border-border bg-[var(--chip-bg)] text-foreground hover:bg-[var(--nav-hover)]",
-    danger && "text-[#ff7a7e]"
+    danger && "text-[#ff7a7e]",
   )
 }
 
@@ -58,7 +64,7 @@ export const checkBox = (on: boolean) =>
   cn(
     "grid size-[18px] flex-none cursor-pointer place-items-center rounded-[5px] border-[1.5px] border-[color-mix(in_srgb,var(--foreground)_25%,transparent)]",
     on &&
-      "border-[#085eff] bg-[#085eff] after:h-1 after:w-2 after:translate-x-px after:-translate-y-px after:-rotate-45 after:border-b-2 after:border-l-2 after:border-white"
+      "border-[#085eff] bg-[#085eff] after:h-1 after:w-2 after:translate-x-px after:-translate-y-px after:-rotate-45 after:border-b-2 after:border-l-2 after:border-white",
   )
 
 export function Check({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {

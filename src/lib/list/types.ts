@@ -100,4 +100,6 @@ export type ListConfig<T extends Row> = {
   sort: [string, 1 | -1]
   preview: (x: T) => Preview
   card: (x: T) => Card
+  /** Точка для вида «Карта»; без него вида «Карта» нет. */
+  map?: (x: T) => { ll: [number, number]; title: string; sub: string; tone: Tone; note: string } | null
 }
