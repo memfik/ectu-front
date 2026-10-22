@@ -225,3 +225,37 @@ export function Unit1U({
     </div>
   )
 }
+
+export type ShelfSlot = { label: string; tone: "ok" | "blue" | "bad" | "off" }
+const SHELF_TONE = { ok: "#2bd463", blue: "#4f8dff", bad: "#ff3b3b", off: "#3a3f4b" }
+
+/** Полка с платами по слотам (sdh-04-schema, dwdm-04-schema) и подпись связей под ней. */
+export function Shelf({ title, sub, slots, note }: { title: string; sub: string; slots: ShelfSlot[]; note: string }) {
+  return (
+    <div className="absolute inset-x-0 top-[120px] px-[3%] max-[1279px]:top-0">
+      <section className={cn(glass, "p-7")}>
+        <b className="block text-base font-semibold">{title}</b>
+        <span className="text-xs text-muted-foreground">{sub}</span>
+        <div className="mt-6 grid gap-2" style={{ gridTemplateColumns: `repeat(${slots.length}, minmax(0, 1fr))` }}>
+          {slots.map((s, i) => (
+            <span
+              key={i}
+              className={cn(
+                "relative flex h-[190px] flex-col items-center justify-between rounded-lg border-2 py-2.5",
+                s.tone === "off" && "border-transparent bg-[var(--chip-bg)]",
+              )}
+              style={s.tone === "off" ? undefined : { borderColor: SHELF_TONE[s.tone] }}
+            >
+              <i className="ml-2.5 size-2 self-start rounded-full" style={{ background: SHELF_TONE[s.tone] }} />
+              <span className="rotate-180 text-[11px] font-medium whitespace-nowrap [writing-mode:vertical-rl]">{s.label}</span>
+              <span className="text-[10px] text-muted-foreground">{i + 1}</span>
+            </span>
+          ))}
+        </div>
+      </section>
+      <p className="mx-auto mt-10 w-fit rounded-xl border border-[#085eff] bg-[var(--glass-card)] px-14 py-2.5 text-sm backdrop-blur-[12px]">
+        {note}
+      </p>
+    </div>
+  )
+}

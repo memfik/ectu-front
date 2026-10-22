@@ -73,7 +73,8 @@ export function equipmentKind(o: {
   schemaLabel?: [string, LucideIcon]
   /** Подпись схемы ёмкости и вкладки («Ёмкость интерфейсов») */
   capTitle: string
-  capTab: string
+  /** Вкладка ёмкости; без неё — нет вкладки (DWDM) */
+  capTab?: string
   cap: (x: GenRow) => CapRow[]
   stats: (c: LineCtx) => LineStat[]
   summary: (c: LineCtx) => LineSum[]
@@ -110,7 +111,7 @@ export function equipmentKind(o: {
     stats: o.stats,
     summary: o.summary,
     tabs: (c) => [
-      { k: "cap", t: o.capTab, icon: Gauge, node: <CapTable icon={Gauge} title={o.capTab} rows={o.cap(c.x)} /> },
+      ...(o.capTab ? [{ k: "cap", t: o.capTab, icon: Gauge, node: <CapTable icon={Gauge} title={o.capTab} rows={o.cap(c.x)} /> }] : []),
       ...(o.extra?.(c) ?? []),
       { k: "mol", t: "МОЛ и ответственные", icon: UserCog, n: 2, node: <MolPane x={c.x} /> },
     ],

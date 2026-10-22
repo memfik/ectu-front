@@ -1,14 +1,12 @@
 "use client"
 
 import { Activity, Layers, Rows3, Server } from "lucide-react"
-import { Chassis, type Slot } from "@/components/passport/chassis"
-import { glass } from "@/components/passport/ui"
+import { Chassis, Shelf, type Slot } from "@/components/passport/chassis"
 import { LinePassport } from "@/sections/lines/passport"
 import { capBar, equipmentKind, type CapRow } from "@/sections/lines/equipment"
 import { EditableTable } from "@/sections/lines/tabs"
 import { BRANCHES } from "@/sections/nodes/data"
 import type { GenRow } from "@/sections/make"
-import { cn } from "@/lib/utils"
 import { list, spec } from "./config"
 
 /*
@@ -68,40 +66,6 @@ const BOARDS = [
   { slot: "13", board: "GXCSA (кросс)", port: "—", sn: "030HJT15F3" },
 ]
 
-function Shelf({ x }: { x: GenRow }) {
-  return (
-    <div className="absolute inset-x-0 top-[120px] px-[3%] max-[1279px]:top-0">
-      <section className={cn(glass, "p-7")}>
-        <b className="block text-base font-semibold">
-          {String(x.f.model)} M12 · {x.nodeCode}
-        </b>
-        <span className="text-xs text-muted-foreground">Полка 1 · 15 слотов · кольцо Астана-Север</span>
-        <div className="mt-6 grid grid-cols-[repeat(15,minmax(0,1fr))] gap-2">
-          {SHELF.map((b, i) => {
-            const blue = /^SL|GXC/.test(b)
-            return (
-              <span
-                key={i}
-                className={cn(
-                  "relative flex h-[190px] flex-col items-center justify-between rounded-lg border-2 py-2.5",
-                  !b ? "border-transparent bg-[var(--chip-bg)]" : blue ? "border-[#4f8dff]" : "border-[#2bd463]",
-                )}
-              >
-                <i className={cn("size-2 self-start ml-2.5 rounded-full", !b ? "bg-[#3a3f4b]" : blue ? "bg-[#4f8dff]" : "bg-[#2bd463]")} />
-                <span className="text-[11px] font-medium whitespace-nowrap [writing-mode:vertical-rl] rotate-180">{b}</span>
-                <span className="text-[10px] text-muted-foreground">{i + 1}</span>
-              </span>
-            )
-          })}
-        </div>
-      </section>
-      <p className="mx-auto mt-10 w-fit rounded-xl border border-[#085eff] bg-[var(--glass-card)] px-14 py-2.5 text-sm backdrop-blur-[12px]">
-        STM-16 → SDH ast011 · STM-16 → SDH alm-магистраль
-      </p>
-    </div>
-  )
-}
-
 const SDH = equipmentKind({
   section: "sdh",
   spec,
@@ -121,7 +85,14 @@ const SDH = equipmentKind({
       ]}
     />
   ),
-  schema: (c) => <Shelf x={c.x} />,
+  schema: (c) => (
+    <Shelf
+      title={`${c.x.f.model} M12 · ${c.x.nodeCode}`}
+      sub="Полка 1 · 15 слотов · кольцо Астана-Север"
+      slots={SHELF.map((b) => ({ label: b, tone: !b ? "off" : /^SL|GXC/.test(b) ? "blue" : "ok" }))}
+      note="STM-16 → SDH ast011 · STM-16 → SDH alm-магистраль"
+    />
+  ),
   schemaLabel: ["Полка", Layers],
   capTitle: "Ёмкость SDH · М. / З.",
   capTab: "Ёмкость",
