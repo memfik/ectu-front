@@ -173,7 +173,12 @@ function addLayers(m: MlMap, latest: RefObject<Latest>) {
   if (ring) {
     m.addSource("ring", { type: "geojson", data: circle(ring.ll, ring.m) })
     m.addLayer({ id: "ring-fill", type: "fill", source: "ring", paint: { "fill-color": "#085eff", "fill-opacity": 0.1 } })
-    m.addLayer({ id: "ring-line", type: "line", source: "ring", paint: { "line-color": "#4f8dff", "line-width": 1.5, "line-dasharray": [3, 3] } })
+    m.addLayer({
+      id: "ring-line",
+      type: "line",
+      source: "ring",
+      paint: { "line-color": "#4f8dff", "line-width": 1.5, "line-dasharray": [3, 3] },
+    })
   }
   m.addSource("nodes", {
     type: "geojson",

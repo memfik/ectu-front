@@ -65,7 +65,7 @@ const PointsMap = dynamic(() => import("@/components/map/points-map").then((m) =
 /* ---------- t01 · ВОЛС трассы ---------- */
 
 /** Вкладка «ВОЛС трассы» (экран t01): выбранная трасса, сетка волокон, все трассы узла. */
-export function FibersTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
+export function FibersTab({ node: x, d, onLink }: { node: NodeRow; d: NodeDetail; onLink: () => void }) {
   const [sel, setSel] = useState(d.fibers[0]?.id)
   const [q, setQ] = useState("")
   const f = d.fibers.find((l) => l.id === sel)
@@ -74,7 +74,7 @@ export function FibersTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
   if (!f)
     return (
       <Empty icon={Cable} title="К узлу не привязаны ВОЛС" text="Узел подключён по радиоканалу или трасса ещё не внесена.">
-        <button type="button" className={btn({ primary: true })} onClick={() => toast("Привязка трассы — после подключения API")}>
+        <button type="button" className={btn({ primary: true })} onClick={onLink}>
           <Plus />
           Привязать трассу
         </button>
@@ -181,7 +181,7 @@ export function FibersTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
         action={
           <span className="flex gap-2.5">
             <SearchBox value={q} onChange={setQ} placeholder="Поиск трасс…" />
-            <button type="button" className={btn({ primary: true })} onClick={() => toast("Привязка трассы — после подключения API")}>
+            <button type="button" className={btn({ primary: true })} onClick={onLink}>
               <Plus />
               Привязать трассу
             </button>
@@ -280,7 +280,7 @@ const PORT: Record<PortState, string> = {
 }
 
 /** Вкладка «Оборудование» (экран t02): группы, карточка устройства с портами, комплектация, МОЛ. */
-export function EquipmentTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
+export function EquipmentTab({ node: x, d, onManage }: { node: NodeRow; d: NodeDetail; onManage: () => void }) {
   const first = GROUPS.find((g) => d.equipment.some((e) => e.group === g.k))?.k ?? "spd"
   const [group, setGroup] = useState<Equipment["group"]>(first)
   const items = d.equipment.filter((e) => e.group === group)
@@ -403,18 +403,17 @@ export function EquipmentTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
             </Card>
             <Card icon={UserCog} title="МОЛ и ответственный">
               <div className="flex items-center gap-3 border-b border-border pb-3">
-                <span className="grid size-10 place-items-center rounded-full bg-[var(--chip-bg)] text-muted-foreground">?</span>
+                {d.mol ? (
+                  <Avatar initials={d.mol.initials} color={d.mol.color} />
+                ) : (
+                  <span className="grid size-10 place-items-center rounded-full bg-[var(--chip-bg)] text-muted-foreground">?</span>
+                )}
                 <span className="flex-1">
-                  <b className="block text-sm font-semibold">МОЛ не указан</b>
-                  <span className="text-xs text-muted-foreground">Нужно для инвентаризации</span>
+                  <b className="block text-sm font-semibold">{d.mol?.name ?? "МОЛ не указан"}</b>
+                  <span className="text-xs text-muted-foreground">{d.mol ? "Материально ответственное лицо" : "Нужно для инвентаризации"}</span>
                 </span>
-                <button
-                  type="button"
-                  className={circ}
-                  aria-label="Указать МОЛ"
-                  onClick={() => toast("Назначение МОЛ — после подключения API")}
-                >
-                  <Plus />
+                <button type="button" className={circ} aria-label="Указать МОЛ" onClick={onManage}>
+                  {d.mol ? <Pencil /> : <Plus />}
                 </button>
               </div>
               <div className="flex items-center gap-3 pt-3">
@@ -785,30 +784,46 @@ export function ClientsTab({ node: x, d }: { node: NodeRow; d: NodeDetail }) {
 const SOURCE = { hr: ["HR-синхронизация", "info"], import: ["Импорт", "muted"], manual: ["Вручную", "muted"] } as const
 
 /** Вкладка «Ответственные» (экран t05): МОЛ, карточки ответственных, история назначений. */
-export function PeopleTab({ d }: { d: NodeDetail }) {
-  // TODO: назначение МОЛ и ответственных — API (HR-справочник сотрудников)
-  const manage = () => toast("Назначение ответственных — после подключения API")
+export function PeopleTab({ d, onManage }: { d: NodeDetail; onManage: () => void }) {
+  const manage = onManage
   return (
     <div className="flex flex-col gap-[18px]">
       <div className="grid grid-cols-3 gap-[18px] max-[1279px]:grid-cols-1">
         <Card
           icon={UserCog}
           title="МОЛ"
-          action={<span className="rounded-full bg-[var(--chip-bg)] px-2.5 py-1 text-xs font-semibold">Не указано</span>}
+          action={
+            <span className="rounded-full bg-[var(--chip-bg)] px-2.5 py-1 text-xs font-semibold">{d.mol ? "Назначено" : "Не указано"}</span>
+          }
         >
-          <div className="flex flex-col items-center pb-2 text-center">
-            <span className="grid size-[150px] place-items-center rounded-full border border-dashed border-[rgba(8,94,255,0.25)]">
-              <span className="grid size-[84px] place-items-center rounded-full border border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.16)] text-[var(--link)]">
-                <UserRound className="size-8" strokeWidth={1.5} />
+          {d.mol ? (
+            <div className="flex flex-col items-center pb-2 text-center">
+              <Avatar initials={d.mol.initials} color={d.mol.color} className="mt-4 size-[84px] text-2xl" />
+              <b className="mt-4 text-[17px] font-semibold">{d.mol.name}</b>
+              <p className="mt-1 text-[13.5px] text-muted-foreground">
+                {d.mol.role}
+                {d.mol.inv && ` · ${d.mol.inv}`}
+              </p>
+              <button type="button" className={cn(btn(), "mt-4")} onClick={manage}>
+                <Pencil />
+                Сменить МОЛ
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center pb-2 text-center">
+              <span className="grid size-[150px] place-items-center rounded-full border border-dashed border-[rgba(8,94,255,0.25)]">
+                <span className="grid size-[84px] place-items-center rounded-full border border-[rgba(8,94,255,0.45)] bg-[rgba(8,94,255,0.16)] text-[var(--link)]">
+                  <UserRound className="size-8" strokeWidth={1.5} />
+                </span>
               </span>
-            </span>
-            <b className="mt-4 text-[17px] font-semibold">Материально ответственное лицо не назначено</b>
-            <p className="mt-1.5 text-[13.5px] text-muted-foreground">Укажите сотрудника, за которым числится оборудование узла.</p>
-            <button type="button" className={cn(btn({ primary: true }), "mt-4")} onClick={manage}>
-              <Plus />
-              Назначить МОЛ
-            </button>
-          </div>
+              <b className="mt-4 text-[17px] font-semibold">Материально ответственное лицо не назначено</b>
+              <p className="mt-1.5 text-[13.5px] text-muted-foreground">Укажите сотрудника, за которым числится оборудование узла.</p>
+              <button type="button" className={cn(btn({ primary: true }), "mt-4")} onClick={manage}>
+                <Plus />
+                Назначить МОЛ
+              </button>
+            </div>
+          )}
         </Card>
         {d.people.map((p, i) => (
           <section key={p.initials} className={cn(glass, "p-[22px]")}>
@@ -899,15 +914,14 @@ export function PeopleTab({ d }: { d: NodeDetail }) {
 const EXT_LABEL = { pdf: ["PDF", "#ff5257"], xlsx: ["XLS", "#2bd463"], docx: ["DOC", "#4f8dff"], dwg: ["DWG", "#ffc24a"] } as const
 
 /** Вкладка «Документация» (экран t06): поиск и тип файла, колонки по разделам с превью, загрузка перетаскиванием. */
-export function DocsTab({ d }: { d: NodeDetail }) {
+export function DocsTab({ d, onUpload }: { d: NodeDetail; onUpload: (kind?: string, files?: File[]) => void }) {
   const [q, setQ] = useState("")
   const [ext, setExt] = useState<"all" | "pdf" | "xlsx">("all")
   const [paper, setPaper] = useState(() => Object.fromEntries(d.docGroups.map((g) => [g.kind, g.paper])))
   const [open, setOpen] = useState<Record<string, boolean>>({})
   const docs = d.docs.filter((f) => (ext === "all" || f.ext === ext) && f.name.toLowerCase().includes(q.trim().toLowerCase()))
-  // TODO: загрузка, просмотр и скачивание файлов — API (S3 / файловое хранилище)
-  const upload = (files?: FileList | null) =>
-    toast(files?.length ? `Файлов: ${files.length} — загрузка после подключения API` : "Загрузка — после подключения API")
+  // TODO: просмотр и скачивание файлов — API (файловое хранилище)
+  const upload = (files?: FileList | null, kind?: string) => onUpload(kind, files ? [...files] : undefined)
 
   return (
     <div className="flex flex-col gap-[18px]">
@@ -939,11 +953,10 @@ export function DocsTab({ d }: { d: NodeDetail }) {
           <Download />
           Скачать всё (ZIP)
         </button>
-        <label className={cn(btn({ primary: true }), "cursor-pointer")}>
+        <button type="button" className={btn({ primary: true })} onClick={() => upload()}>
           <Upload />
           Загрузить
-          <input type="file" multiple hidden onChange={(e) => upload(e.target.files)} />
-        </label>
+        </button>
       </div>
 
       <div className="grid grid-cols-3 items-start gap-[18px] max-[1279px]:grid-cols-1">
@@ -959,10 +972,9 @@ export function DocsTab({ d }: { d: NodeDetail }) {
                 <b className="flex-1 text-[15px] font-semibold">
                   {g.kind} <em className="font-normal text-muted-foreground not-italic">{items.length}</em>
                 </b>
-                <label className={cn(circ, "cursor-pointer")} aria-label="Добавить файл">
+                <button type="button" className={circ} aria-label="Добавить файл" onClick={() => upload(undefined, g.kind)}>
                   <Plus />
-                  <input type="file" multiple hidden onChange={(e) => upload(e.target.files)} />
-                </label>
+                </button>
               </header>
               <button
                 type="button"
@@ -1030,13 +1042,13 @@ export function DocsTab({ d }: { d: NodeDetail }) {
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault()
-                    upload(e.dataTransfer.files)
+                    upload(e.dataTransfer.files, g.kind)
                   }}
                   className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border text-[13px] text-muted-foreground"
                 >
                   <Upload className="size-4" />
                   Перетащите файлы или <b className="font-semibold text-[var(--link)]">выберите</b>
-                  <input type="file" multiple hidden onChange={(e) => upload(e.target.files)} />
+                  <input type="file" multiple hidden onChange={(e) => upload(e.target.files, g.kind)} />
                 </label>
               </div>
             </section>

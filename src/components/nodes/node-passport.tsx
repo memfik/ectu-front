@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
@@ -32,12 +32,13 @@ import { FormDrawer } from "@/components/list/form-drawer"
 import { btn, checkBox, circ, Pill, Tag } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import { nodesList } from "@/config/lists/nodes"
-import { nodeDetail } from "@/data/node-detail"
 import { BRANCHES, STATUS_LABEL, type NodeRow } from "@/data/nodes"
 import { useRows } from "@/lib/list/store"
+import { useNodeDetail } from "@/lib/nodes/detail-store"
 import type { Tone } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { Avatar, glass, Kv } from "@/components/passport/ui"
+import { LinkFiberDialog, LocationDialog, PeopleDrawer, UploadDialog } from "./node-dialogs"
 import { NodeOverview } from "./node-overview"
 import { ClientsTab, CommentsTab, DocsTab, EquipmentTab, FibersTab, HistoryTab, IdTab, PeopleTab } from "./node-tabs"
 
@@ -61,7 +62,9 @@ export function NodePassport({ id }: { id: number }) {
   const [edit, setEdit] = useState(false)
   const [del, setDel] = useState(false)
   const [showNodes, setShowNodes] = useState(true)
-  const d = useMemo(() => (x ? nodeDetail(x) : null), [x])
+  // Окна паспорта: местоположение (np-01), ВОЛС (np-02), документы (np-03), ответственные (np-04)
+  const [dlg, setDlg] = useState<{ k: "location" | "fiber" | "people" } | { k: "upload"; kind?: string; files?: File[] } | null>(null)
+  const d = useNodeDetail(x)
   // Верх целиком (сцена и колонки) — только на «Обзоре», на остальных вкладках — одна шапка
   const full = tab === "overview"
 
@@ -351,6 +354,9 @@ export function NodePassport({ id }: { id: number }) {
                       <span className="block text-[13px] text-muted-foreground">Расположение</span>
                       <b className="block truncate text-sm font-semibold">{x.address}</b>
                     </span>
+                    <button type="button" className={circ} title="Изменить местоположение" onClick={() => setDlg({ k: "location" })}>
+                      <Pencil />
+                    </button>
                     <button type="button" className={circ} title="Открыть на карте" onClick={() => setStage("map")}>
                       <ArrowUpRight />
                     </button>
@@ -452,17 +458,17 @@ export function NodePassport({ id }: { id: number }) {
         {tab === "overview" ? (
           <NodeOverview d={d} onTab={setTab} />
         ) : tab === "fibers" ? (
-          <FibersTab node={x} d={d} />
+          <FibersTab node={x} d={d} onLink={() => setDlg({ k: "fiber" })} />
         ) : tab === "equipment" ? (
-          <EquipmentTab node={x} d={d} />
+          <EquipmentTab node={x} d={d} onManage={() => setDlg({ k: "people" })} />
         ) : tab === "id" ? (
           <IdTab d={d} />
         ) : tab === "clients" ? (
           <ClientsTab node={x} d={d} />
         ) : tab === "people" ? (
-          <PeopleTab d={d} />
+          <PeopleTab d={d} onManage={() => setDlg({ k: "people" })} />
         ) : tab === "docs" ? (
-          <DocsTab d={d} />
+          <DocsTab d={d} onUpload={(kind, files) => setDlg({ k: "upload", kind, files })} />
         ) : tab === "comments" ? (
           <CommentsTab d={d} />
         ) : tab === "history" ? (
@@ -472,6 +478,10 @@ export function NodePassport({ id }: { id: number }) {
         )}
       </div>
 
+      {dlg?.k === "location" && <LocationDialog node={x} d={d} onClose={() => setDlg(null)} />}
+      {dlg?.k === "fiber" && <LinkFiberDialog node={x} d={d} onClose={() => setDlg(null)} />}
+      {dlg?.k === "upload" && <UploadDialog node={x} d={d} kind={dlg.kind} files={dlg.files} onClose={() => setDlg(null)} />}
+      {dlg?.k === "people" && <PeopleDrawer node={x} d={d} onClose={() => setDlg(null)} />}
       {edit && <FormDrawer cfg={nodesList} id={x.id} onClose={() => setEdit(false)} onDelete={() => (setEdit(false), setDel(true))} />}
       {del && <DeleteDialog cfg={nodesList} rows={[x]} onClose={() => setDel(false)} onDone={() => router.push("/nodes")} />}
     </div>

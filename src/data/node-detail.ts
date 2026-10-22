@@ -84,8 +84,25 @@ export type HistoryItem = {
 }
 export type Media = { src: string; video?: string; title: string; date: string }
 
+/** Покрытие АМС / БС: секторы антенн. */
+export type Coverage = { sectors: number; width: number; km: number; azimuths: number[] }
+
+/** Сотрудник из HR-справочника (поиск при назначении). */
+export const STAFF: Person[] = [
+  { initials: "БД", name: "Борис Б. Дегтярь", role: "Инженер ЦТ", color: "linear-gradient(135deg,#0ea5e9,#0369a1)", synced: true },
+  { initials: "НО", name: "Нурдаулет С. Осербай", role: "Ведущий инженер ГЭ", color: "linear-gradient(135deg,#a855f7,#6d28d9)", synced: true },
+  { initials: "АК", name: "Айгерим Т. Кенжебаева", role: "Кладовщик ЦТ", color: "linear-gradient(135deg,#f59e0b,#b45309)", synced: true, inv: "INV-004812" },
+  { initials: "ЕС", name: "Ербол М. Садыков", role: "Начальник ГЭ", color: "linear-gradient(135deg,#22c55e,#15803d)", synced: true, inv: "INV-003305" },
+  { initials: "ДЖ", name: "Дана Р. Жумабаева", role: "Инженер СПД", color: "linear-gradient(135deg,#ec4899,#be185d)", synced: true, inv: "INV-005561" },
+]
+
 export type NodeDetail = {
   coords: string
+  coverage: Coverage
+  /** Трассы рядом, которые можно привязать к узлу */
+  fiberCandidates: { id: number; num: string; to: string; km: number; way: string; total: number }[]
+  /** Материально ответственное лицо */
+  mol: Person | null
   scene: { label: string; title: string; x: number; y: number; bar?: number }[]
   capacity: { ports: [number, number]; fibers: [number, number] }
   fibers: FiberLine[]
@@ -129,6 +146,13 @@ export function nodeDetail(x: NodeRow): NodeDetail {
   const media = Array.from({ length: 14 }, (_, i) => MEDIA[i % MEDIA.length])
   return {
     coords: `${x.ll[0].toFixed(6)}, ${x.ll[1].toFixed(6)}`,
+    coverage: { sectors: 3, width: 65, km: 2.5, azimuths: [0, 120, 240] },
+    fiberCandidates: [
+      { id: 52, num: "52", to: "ast011.02.AS", km: 1.9, way: "подвес на опорах", total: 24 },
+      { id: 61, num: "61", to: "КСО АТС-14", km: 2.8, way: "кабельная канализация", total: 48 },
+      { id: 49, num: "49", to: "УС «РТПЦ»", km: 1.4, way: "кабельная канализация", total: 32 },
+    ],
+    mol: null,
     scene: [
       { label: "Антенно-мачтовое сооружение", title: "АМС · 40 м · МАР-40", x: 64, y: 12 },
       { label: "Контейнер связи", title: `${x.object} · ${x.ownership === "own" ? "Собственный" : "Аренда"}`, x: 6, y: 40 },

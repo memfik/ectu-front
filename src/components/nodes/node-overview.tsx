@@ -250,7 +250,11 @@ export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) =
                   className="absolute top-1 -left-[27px] size-3 rounded-full border-2 bg-[var(--glass-card-solid)]"
                   style={{ borderColor: h.kind === "file" ? "var(--status-ok)" : "#4f8dff" }}
                 />
-                <b className="block text-sm font-semibold">{h.from !== undefined ? `${h.what.replace(/^Изменён(о поле)? /, "").replace(/^./, (c) => c.toUpperCase())}: ${h.from} → ${h.to}` : h.what}</b>
+                <b className="block text-sm font-semibold">
+                  {h.from !== undefined
+                    ? `${h.what.replace(/^Изменён(о поле)? /, "").replace(/^./, (c) => c.toUpperCase())}: ${h.from} → ${h.to}`
+                    : h.what}
+                </b>
                 <span className="text-xs text-muted-foreground">
                   {h.who} · {h.when}
                 </span>
