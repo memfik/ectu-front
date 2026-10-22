@@ -30,6 +30,10 @@ export type NodeRow = {
   clients: number
   onMap: boolean
   hasDocs: boolean
+  /** Область (по населённому пункту). */
+  region: string
+  /** Тип объекта размещения. */
+  objectType: string
   /** Координаты [широта, долгота]. */
   ll: [number, number]
 }
@@ -114,7 +118,7 @@ export const BRANCHES: { v: string; label: string; latin: string; cities: [strin
 
 export const STATUS_LABEL: Record<NodeStatus, string> = { work: "В работе", rebuild: "Реконструкция", off: "Выведен" }
 
-const SEED: Omit<NodeRow, "id" | "ops" | "equipment" | "idChannels" | "clients" | "onMap" | "hasDocs" | "ll">[] = [
+const SEED: Omit<NodeRow, "id" | "ops" | "equipment" | "idChannels" | "clients" | "onMap" | "hasDocs" | "ll" | "region" | "objectType">[] = [
   {
     code: "url002.01.UF",
     object: "УС «Уральск Центральный»",
@@ -237,6 +241,25 @@ const SEED: Omit<NodeRow, "id" | "ops" | "equipment" | "idChannels" | "clients" 
   },
 ]
 
+export const REGION: Record<string, string> = {
+  Астана: "г. Астана", Актобе: "Актюбинская обл.", Кобда: "Актюбинская обл.", Хромтау: "Актюбинская обл.",
+  Павлодар: "Павлодарская обл.", Экибастуз: "Павлодарская обл.", Атырау: "Атырауская обл.", Кульсары: "Атырауская обл.",
+  Актау: "Мангистауская обл.", Жанаозен: "Мангистауская обл.", Уральск: "ЗКО", Аксай: "ЗКО",
+  Алматы: "г. Алматы", Талдыкорган: "Алматинская обл.", Конаев: "Алматинская обл.", Шымкент: "г. Шымкент",
+  Туркестан: "Туркестанская обл.", Караганда: "Карагандинская обл.", Темиртау: "Карагандинская обл.",
+}
+export const OBJECT_TYPES = ["Узел связи (УС)", "КСО / АТС", "Базовая станция", "Контейнер", "Шкаф уличный", "Арендуемое помещение"]
+
+/** Тип объекта по названию. */
+const objectType = (object: string, ownership: NodeRow["ownership"]) =>
+  object.startsWith("УС") ? OBJECT_TYPES[0]
+  : /КСО|АТС/.test(object) ? OBJECT_TYPES[1]
+  : object.startsWith("БС") ? OBJECT_TYPES[2]
+  : object.startsWith("Контейнер") ? OBJECT_TYPES[3]
+  : object.startsWith("Шкаф") ? OBJECT_TYPES[4]
+  : ownership === "rent" ? OBJECT_TYPES[5]
+  : OBJECT_TYPES[0]
+
 /** Центры городов — точки узлов разбрасываются вокруг. */
 const CITY_LL: Record<string, [number, number]> = {
   Астана: [51.1282, 71.4304],
@@ -303,6 +326,8 @@ export function nodeRows(): NodeRow[] {
     onMap: true,
     hasDocs: false,
     ll: near(x.city, r, 0.03),
+    region: REGION[x.city],
+    objectType: objectType(x.object, x.ownership),
   }))
 
   // Пропорции из KPI макета: 1 312 в работе, 48 на реконструкции, 27 выведено; ГМС 612, ГРС 498, ГАС 201, МС 76
@@ -328,6 +353,7 @@ export function nodeRows(): NodeRow[] {
     const total = pick([8, 16, 24, 32, 48, 64])
     const street = `${pick(STREETS)}, ${1 + Math.floor(r() * 180)}`
     const object = r() > 0.6 ? `${pick(OBJECTS)} ${street.split(",")[0].replace(/^(ул\.|пр\.|мкр\.) /, "")}` : street
+    const ownership = r() > 0.3 ? "own" : "rent"
     rows.push({
       id: i + 1,
       code: `${code}${String(seq[code]).padStart(3, "0")}.0${1 + Math.floor(r() * 3)}.${b.latin}`,
@@ -336,7 +362,7 @@ export function nodeRows(): NodeRow[] {
       branch: b.v,
       city,
       network,
-      ownership: r() > 0.3 ? "own" : "rent",
+      ownership,
       tech,
       fibers: tech[0] === "РРЛ" ? null : [Math.floor(r() * total * 0.9) + 1, total],
       status,
@@ -347,6 +373,8 @@ export function nodeRows(): NodeRow[] {
       onMap: r() > 0.07,
       hasDocs: false,
       ll: near(city, r),
+      region: REGION[city],
+      objectType: objectType(object, ownership),
     })
   }
   cache = rows

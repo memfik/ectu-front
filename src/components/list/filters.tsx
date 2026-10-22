@@ -91,7 +91,7 @@ export function ActiveChips<T extends Row>({ cfg, q, setQ }: { cfg: ListConfig<T
           key={f.k}
           className="flex h-[30px] items-center gap-1.5 rounded-full border border-[rgba(8,94,255,0.3)] bg-[rgba(8,94,255,0.1)] pr-2 pl-3 text-[12.5px] whitespace-nowrap text-[var(--link)]"
         >
-          {f.t}: {q.f[f.k].map((v) => short(f, v)).join(", ")}
+          {f.ui === "flag" ? f.t : `${f.t}: ${q.f[f.k].map((v) => short(f, v)).join(", ")}`}
           <button type="button" aria-label={`Убрать фильтр «${f.t}»`} onClick={() => setQ({ ...q, f: { ...q.f, [f.k]: [] } })}>
             <X className="size-3.5" />
           </button>

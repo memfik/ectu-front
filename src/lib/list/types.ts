@@ -37,6 +37,13 @@ export type Filter<T> = {
   short?: (v: string) => string
   /** Только в «Ещё фильтры», не кнопкой в панели. */
   more?: boolean
+  /**
+   * Вид в шторке «Фильтры»: `tags` — плашки с «Добавить…», `multi` — выпадающий список с флажками (по умолчанию),
+   * `flag` — флажок в блоке «Дополнительно» (значение "1").
+   */
+  ui?: "tags" | "multi" | "flag"
+  /** В шторке: подпись, когда ничего не выбрано («Все регионы», «Любая»). */
+  any?: string
 }
 
 export type Kpi = {
@@ -100,6 +107,8 @@ export type ListConfig<T extends Row> = {
   sort: [string, 1 | -1]
   preview: (x: T) => Preview
   card: (x: T) => Card
+  /** «Показать 1 110 узлов» — родительный падеж мн. ч. и склонения: [1, 2–4, 5+]. */
+  unit: [string, string, string]
   /** Точка для вида «Карта»; без него вида «Карта» нет. */
   map?: (x: T) => { ll: [number, number]; title: string; sub: string; tone: Tone; note: string } | null
 }

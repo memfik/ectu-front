@@ -8,6 +8,7 @@ import { LISTS } from "@/config/lists"
 import { applyQuery, emptyQuery, exportCsv, fmt, type Query } from "@/lib/list/query"
 import type { HeroButton, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
+import { FilterDrawer } from "./filter-drawer"
 import { ActiveChips, FilterChip } from "./filters"
 import { MapView } from "./map-view"
 import { Bar, btn, Check, circ, Pill, Tag } from "./ui"
@@ -26,6 +27,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   const [q, setQState] = useState<Query>(() => emptyQuery(cfg))
   const [page, setPage] = useState(0)
   const [mode, setModeState] = useState<Mode>("table")
+  const [more, setMore] = useState(false)
   const [size, setSize] = useState(SIZE.table)
   const [checked, setChecked] = useState<Set<number>>(new Set())
   const [active, setActive] = useState<number | null>(rows[0]?.id ?? null)
@@ -65,6 +67,9 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
     setPage(0)
   }
 
+  // Фильтры без своей кнопки в панели, которые сейчас включены
+  const hidden = cfg.filters.filter((f) => f.more && q.f[f.k]?.length).length
+
   const toolbar = (
     <div className="mx-1.5 mb-2 flex flex-wrap items-center gap-2.5 max-sm:gap-2">
       <label className="flex h-11 min-w-[200px] flex-[1_1_220px] items-center gap-2.5 rounded-full border border-border bg-[var(--chip-bg)] px-4 max-sm:h-10 max-sm:flex-[1_1_100%]">
@@ -86,14 +91,10 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
         .map((f) => (
           <FilterChip key={f.k} filter={f} rows={rows} value={q.f[f.k] ?? []} onChange={(v) => setQ({ ...q, f: { ...q.f, [f.k]: v } })} />
         ))}
-      {/* TODO: шторка «Ещё фильтры» — экран n-03 */}
-      <button
-        type="button"
-        className={cn(btn(), "font-normal text-[var(--nav-text)] max-sm:h-10")}
-        onClick={() => toast("«Ещё фильтры» — следующим экраном")}
-      >
+      <button type="button" className={cn(btn(), "font-normal text-[var(--nav-text)] max-sm:h-10")} onClick={() => setMore(true)}>
         <Filter />
         Ещё фильтры
+        {hidden > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#085eff] px-1.5 text-[11px] font-bold text-white">{hidden}</span>}
       </button>
       <button
         type="button"
@@ -137,6 +138,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
 
   return (
     <div className="relative isolate">
+      <FilterDrawer cfg={cfg} rows={rows} q={q} open={more} onOpenChange={setMore} onApply={setQ} />
       <Hero cfg={cfg} total={rows.length} onAction={action} />
 
       <div className="relative z-[1] -mt-[148px] grid grid-cols-6 gap-3.5 px-(--page-gutter) max-[1500px]:grid-cols-3 max-sm:grid-cols-2 max-sm:gap-2.5 max-[1279px]:mt-4">

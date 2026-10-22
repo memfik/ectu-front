@@ -1,6 +1,6 @@
 import { ChartColumn, Download, Plus, RadioTower, Upload } from "lucide-react"
 import { Bar, Pill, Tag } from "@/components/list/ui"
-import { BRANCHES, nodeRows, STATUS_LABEL, type NodeRow } from "@/data/nodes"
+import { BRANCHES, nodeRows, OBJECT_TYPES, REGION, STATUS_LABEL, type NodeRow } from "@/data/nodes"
 import { fmt, plural } from "@/lib/list/query"
 import type { ListConfig, Tone } from "@/lib/list/types"
 
@@ -46,19 +46,31 @@ export const nodesList: ListConfig<NodeRow> = {
       { t: "Без документов", color: "#085eff", value: fmt(noDocs), note: `${pct(noDocs, n)}%`, pct: pct(noDocs, n) },
     ]
   },
+  unit: ["узел", "узла", "узлов"],
   filters: [
     {
       k: "branch",
       t: "Филиал",
       all: "Все филиалы",
+      ui: "tags",
       get: (x) => x.branch,
       opts: BRANCHES.map((b) => ({ v: b.v, label: b.label })),
       short: (v) => v,
     },
-    { k: "network", t: "Тип сети", get: (x) => x.network, opts: ["ГМС", "ГРС", "ГАС", "МС"].map((v) => ({ v, label: v })) },
+    {
+      k: "region",
+      t: "Регион",
+      any: "Все регионы",
+      more: true,
+      get: (x) => x.region,
+      opts: [...new Set(Object.values(REGION))].sort().map((v) => ({ v, label: v })),
+    },
+    { k: "objectType", t: "Объект", any: "Все объекты", more: true, get: (x) => x.objectType, opts: OBJECT_TYPES.map((v) => ({ v, label: v })) },
+    { k: "network", t: "Тип сети", any: "Любой", get: (x) => x.network, opts: ["ГМС", "ГРС", "ГАС", "МС"].map((v) => ({ v, label: v })) },
     {
       k: "ownership",
       t: "Форма владения",
+      any: "Любая",
       get: (x) => x.ownership,
       opts: [
         { v: "own", label: "Собственный" },
@@ -68,10 +80,13 @@ export const nodesList: ListConfig<NodeRow> = {
     {
       k: "status",
       t: "Статус",
+      any: "Любой",
       get: (x) => x.status,
       opts: (["work", "rebuild", "off"] as const).map((v) => ({ v, label: STATUS_LABEL[v] })),
     },
-    { k: "tech", t: "Технология", get: (x) => x.tech, opts: ["FTTH", "FTTB", "xDSL", "РРЛ"].map((v) => ({ v, label: v })), more: true },
+    { k: "tech", t: "Технология", any: "Любая", more: true, get: (x) => x.tech, opts: ["FTTH", "FTTB", "xDSL", "РРЛ"].map((v) => ({ v, label: v })) },
+    { k: "onMap", t: "Занесена на карту", ui: "flag", more: true, get: (x) => (x.onMap ? "1" : "0"), opts: [{ v: "1", label: "Да" }] },
+    { k: "noDocs", t: "Без документов", ui: "flag", more: true, get: (x) => (x.hasDocs ? "0" : "1"), opts: [{ v: "1", label: "Да" }] },
   ],
   sort: ["", 1],
   cols: [
