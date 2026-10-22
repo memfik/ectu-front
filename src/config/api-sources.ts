@@ -13,7 +13,8 @@ import type { ApiSource } from "@/lib/list/types"
 type Raw = Record<string, unknown>
 
 /** Значение по пути «node.nodes_name_id». */
-export const get = (o: Raw, path: string): unknown => path.split(".").reduce<unknown>((a, k) => (a && typeof a === "object" ? (a as Raw)[k] : undefined), o)
+export const get = (o: Raw, path: string): unknown =>
+  path.split(".").reduce<unknown>((a, k) => (a && typeof a === "object" ? (a as Raw)[k] : undefined), o)
 const s = (o: Raw, path: string, def = "—") => {
   const v = get(o, path)
   return v === null || v === undefined || v === "" ? def : String(v)
@@ -48,8 +49,22 @@ export const nodesApi: ApiSource<NodeRow> = {
   base: "/api/nodes",
   idParam: "node_id",
   trashKey: "nodes",
-  sort: { code: "nodes_name_id", branch: "filial_id", city: "ys_jm_locality", network: "network_type", ownership: "ownership_form", status: "status" },
-  filter: { branch: "filial", region: "ys_jm_locality", objectType: "object_name", network: "network_type", ownership: "ownership_form", status: "status" },
+  sort: {
+    code: "nodes_name_id",
+    branch: "filial_id",
+    city: "ys_jm_locality",
+    network: "network_type",
+    ownership: "ownership_form",
+    status: "status",
+  },
+  filter: {
+    branch: "filial",
+    region: "ys_jm_locality",
+    objectType: "object_name",
+    network: "network_type",
+    ownership: "ownership_form",
+    status: "status",
+  },
   map: (o) => {
     const ll = coords(o)
     const tech = (get(o, "connection_technologies") as Raw[] | undefined)?.map((t) => s(t, "technology")) ?? []
@@ -188,7 +203,14 @@ function genApi(g: Gen): ApiSource<GenRow> {
     trashKey: g.trashKey,
     readOnly: g.readOnly,
     sortDir: g.sortDir,
-    sort: { branch: "filial_id", ...Object.fromEntries(Object.entries(g.fields).filter(([, v]) => typeof v === "string").map(([k, v]) => [k, (v as string).split(".")[0]])) },
+    sort: {
+      branch: "filial_id",
+      ...Object.fromEntries(
+        Object.entries(g.fields)
+          .filter(([, v]) => typeof v === "string")
+          .map(([k, v]) => [k, (v as string).split(".")[0]]),
+      ),
+    },
     filter: { branch: "filial", ...g.filter },
     map: (o) => {
       const f: Record<string, string | number> = {}
@@ -211,7 +233,11 @@ function genApi(g: Gen): ApiSource<GenRow> {
     payload: (x) => ({
       filial_id: filialId(x.branch),
       node_id: x.nodeId || undefined,
-      ...Object.fromEntries(Object.entries(g.fields).filter(([, p]) => typeof p === "string" && !p.includes(".")).map(([k, p]) => [p as string, x.f[k]])),
+      ...Object.fromEntries(
+        Object.entries(g.fields)
+          .filter(([, p]) => typeof p === "string" && !p.includes("."))
+          .map(([k, p]) => [p as string, x.f[k]]),
+      ),
     }),
   }
 }
@@ -234,8 +260,29 @@ export const GEN_SOURCES: Record<string, ApiSource<GenRow>> = {
     },
     filter: { network: "network_type", owner: "cable_owner", cable: "cable_type" },
   }),
-  "cable-lines": genApi({ base: "/api/kls", trashKey: "kls", fields: { name: "track_name", route: (o) => `${s(o, "start_point")} → ${s(o, "end_point")}`, len: "track_length", pairs: "total_copper_pairs", owner: "cable_owner" } }),
-  "cable-ducts": genApi({ base: "/api/kk", trashKey: "kk", fields: { name: "section_name", wells: "well_count", len: "length", channels: "channel_count", puncture: "puncture", desc: "description" } }),
+  "cable-lines": genApi({
+    base: "/api/kls",
+    trashKey: "kls",
+    fields: {
+      name: "track_name",
+      route: (o) => `${s(o, "start_point")} → ${s(o, "end_point")}`,
+      len: "track_length",
+      pairs: "total_copper_pairs",
+      owner: "cable_owner",
+    },
+  }),
+  "cable-ducts": genApi({
+    base: "/api/kk",
+    trashKey: "kk",
+    fields: {
+      name: "section_name",
+      wells: "well_count",
+      len: "length",
+      channels: "channel_count",
+      puncture: "puncture",
+      desc: "description",
+    },
+  }),
   odf: genApi({
     base: "/api/odf",
     trashKey: "odf",
@@ -266,7 +313,14 @@ export const GEN_SOURCES: Record<string, ApiSource<GenRow>> = {
     idParam: "id",
     readOnly: true,
     sortDir: "sort_dir",
-    fields: { company: "customer_name", account: "account_number", contract: "contract_number", segment: "segment", ip: "static_ip", speed: "speed" },
+    fields: {
+      company: "customer_name",
+      account: "account_number",
+      contract: "contract_number",
+      segment: "segment",
+      ip: "static_ip",
+      speed: "speed",
+    },
     status: (o) => (/закр|clos/i.test(s(o, "status", "")) ? "closed" : "active"),
     filter: { segment: "segment", status: "status" },
   }),
@@ -274,7 +328,15 @@ export const GEN_SOURCES: Record<string, ApiSource<GenRow>> = {
     base: "/api/channels",
     idParam: "id",
     trashKey: "channels",
-    fields: { cid: "channel_id", client: "client_provider_name", type: "channel_type.name", speed: "bandwidth", iface: "router", vlan: "vlan", traffic: "traffic_type.name" },
+    fields: {
+      cid: "channel_id",
+      client: "client_provider_name",
+      type: "channel_type.name",
+      speed: "bandwidth",
+      iface: "router",
+      vlan: "vlan",
+      traffic: "traffic_type.name",
+    },
     status: (o) => (/авар|alarm/i.test(s(o, "status", "")) ? "alarm" : /резерв|reserve/i.test(s(o, "status", "")) ? "reserve" : "active"),
     filter: { type: "channel_type_id", traffic: "traffic_type_id" },
   }),
@@ -283,7 +345,15 @@ export const GEN_SOURCES: Record<string, ApiSource<GenRow>> = {
     list: "/list",
     idParam: "id",
     trashKey: "ip_address_plans",
-    fields: { ip: "ip_address", prefix: "prefix", client: "client_name", place: "location", speed: "speed", kcrm: "kcrm_request", eng: "manager_name" },
+    fields: {
+      ip: "ip_address",
+      prefix: "prefix",
+      client: "client_name",
+      place: "location",
+      speed: "speed",
+      kcrm: "kcrm_request",
+      eng: "manager_name",
+    },
     status: (o) => (/тест|test/i.test(s(o, "status", "")) ? "test" : /своб|free/i.test(s(o, "status", "")) ? "free" : "active"),
   }),
   backups: genApi({
@@ -297,7 +367,13 @@ export const GEN_SOURCES: Record<string, ApiSource<GenRow>> = {
   pbx: genApi({
     base: "/api/phone_station",
     trashKey: "phone_stations",
-    fields: { object: "object_name", model: "station_model", capacity: pairOf("used_capacity", "mounted_capacity"), ota: "ota_count", network: "network_type" },
+    fields: {
+      object: "object_name",
+      model: "station_model",
+      capacity: pairOf("used_capacity", "mounted_capacity"),
+      ota: "ota_count",
+      network: "network_type",
+    },
     filter: { network: "network_type", model: "station_model" },
   }),
   "number-capacity": genApi({
@@ -312,13 +388,111 @@ export const GEN_SOURCES: Record<string, ApiSource<GenRow>> = {
       tu: "regulator_order_number_date_issuer",
     },
   }),
-  pdh: genApi({ base: "/api/pdh-equipments", trashKey: "pdh_equipments", node: "node1", fields: { model: "model", e1: pairOf("e1_used", "e1_total"), client: "client", vendor: "vendor", serial: "serial_number" } }),
-  sdh: genApi({ base: "/api/sdh-equipments", trashKey: "sdh_equipments", fields: { model: "sdh_multiplexer_model", stm: pairOf("stm_used", "stm_total"), vc: pairOf("vc12_used", "vc12_total"), vendor: "vendor" } }),
-  dwdm: genApi({ base: "/api/dwdm-equipments", trashKey: "dwdm_equipments", fields: { model: "model", lambda: pairOf("lambda_used", "lambda_total"), dir: "direction" } }),
+  pdh: genApi({
+    base: "/api/pdh-equipments",
+    trashKey: "pdh_equipments",
+    node: "node1",
+    fields: { model: "model", e1: pairOf("e1_used", "e1_total"), client: "client", vendor: "vendor", serial: "serial_number" },
+  }),
+  sdh: genApi({
+    base: "/api/sdh-equipments",
+    trashKey: "sdh_equipments",
+    fields: {
+      model: "sdh_multiplexer_model",
+      stm: pairOf("stm_used", "stm_total"),
+      vc: pairOf("vc12_used", "vc12_total"),
+      vendor: "vendor",
+    },
+  }),
+  dwdm: genApi({
+    base: "/api/dwdm-equipments",
+    trashKey: "dwdm_equipments",
+    fields: { model: "model", lambda: pairOf("lambda_used", "lambda_total"), dir: "direction" },
+  }),
+  "radio-bridges": genApi({
+    base: "/api/radio-equipments",
+    trashKey: "radio_equipments",
+    fields: {
+      route: (o) => `${s(o, "install_point_1")} → ${s(o, "install_point_2")}`,
+      model: "model",
+      bw: "throughput_mbps",
+      network: "network_type",
+      vendor: "vendor",
+      len: "route_length_km",
+    },
+    filter: { network: "network_type", vendor: "vendor", model: "model" },
+  }),
+  ...Object.fromEntries(
+    (
+      [
+        ["bwa-wimax", "/api/bhd-wimax-equipments", "bhd_wimax_equipments"],
+        ["bwa-lte", "/api/bhd-lte-equipments", "bhd_lte_equipments"],
+        ["bwa-wll", "/api/bhd-wll-equipments", "bhd_wll_equipments"],
+      ] as const
+    ).map(([k, base, trash]) => [
+      k,
+      genApi({
+        base,
+        trashKey: trash,
+        fields: {
+          model: "model",
+          vendor: "vendor",
+          sectors: "sector_number",
+          serial: "serial_number",
+          subs: pairOf("subscribers", "licenses"),
+          freq: "frequency",
+          place: "installation_address",
+          network: "network_type",
+        },
+        filter: { vendor: "vendor", network: "network_type", model: "model" },
+      }),
+    ]),
+  ),
+  "trunk-bs": genApi({
+    base: "/api/bc",
+    trashKey: "bc",
+    fields: { model: "type_model", terminals: "terminal_count", state: "status", place: "installation_place" },
+    status: (o) => (/демонт/i.test(s(o, "status", "")) ? "off" : /резерв/i.test(s(o, "status", "")) ? "reserve" : "work"),
+    filter: { state: "status" },
+  }),
+  vsat: genApi({
+    base: "/api/triple_s",
+    trashKey: "tripleS",
+    fields: { name: "name", client: "client", type: "terminal_type", antenna: "antenna_size", topology: "topology" },
+    filter: { client: "client" },
+  }),
+  oneweb: genApi({
+    base: "/api/oneweb",
+    trashKey: "one_web",
+    fields: {
+      station: "station_name",
+      terminal: "terminal_type",
+      client: "client",
+      category: "category",
+      oblast: "oblast",
+      ip: "ip_address",
+    },
+    status: (o) =>
+      /тест|test/i.test(s(o, "station_status", "")) ? "test" : /откл|off|inactive/i.test(s(o, "station_status", "")) ? "off" : "work",
+    filter: { oblast: "oblast", category: "category" },
+  }),
+  ups: genApi({
+    base: "/api/ibp",
+    trashKey: "ibp_equipments",
+    fields: { model: "ups_model", power: "power_kva", battery: "battery_replacement_date", cls: "classification", serial: "serial_number" },
+    filter: { cls: "classification", model: "ups_model" },
+  }),
   rrl: genApi({
     base: "/api/rrl-equipments",
     trashKey: "rrl_equipments",
-    fields: { route: (o) => `${s(o, "install_point_1")} — ${s(o, "install_point_2")}`, model: "model", bw: "throughput_mbps", len: "route_length_km", vendor: "vendor", freq: "frequency" },
+    fields: {
+      route: (o) => `${s(o, "install_point_1")} — ${s(o, "install_point_2")}`,
+      model: "model",
+      bw: "throughput_mbps",
+      len: "route_length_km",
+      vendor: "vendor",
+      freq: "frequency",
+    },
     filter: { vendor: "vendor", model: "model" },
   }),
 }
