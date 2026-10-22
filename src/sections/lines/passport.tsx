@@ -110,7 +110,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
   const tabs: { k: string; t: string; icon: typeof LayoutGrid; n?: number }[] = [
     { k: "overview", t: "Обзор", icon: LayoutGrid },
     ...own,
-    { k: "docs", t: "Документация", icon: FileText, n: d.docs.length },
+    { k: "docs", t: k.docsTab ?? "Документация", icon: FileText, n: d.docs.length },
     { k: "history", t: "История", icon: History, n: d.history.length },
   ]
 

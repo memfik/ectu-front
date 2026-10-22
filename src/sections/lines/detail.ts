@@ -94,6 +94,8 @@ export type LineKind = {
   busyB?: boolean
   /** Тип прокладки у участков — только у ВОЛС */
   laying?: boolean
+  /** Подпись вкладки документов (у АМС — «Разрешительные документы») */
+  docsTab?: string
   /** Плашка рядом со статусом в шапке */
   pill: (x: GenRow) => string
   stats: (c: LineCtx) => LineStat[]
