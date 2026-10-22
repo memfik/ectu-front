@@ -39,6 +39,7 @@ import type { Tone } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { Avatar, glass, Kv } from "@/components/passport/ui"
 import { LinkFiberDialog, LocationDialog, PeopleDrawer, UploadDialog } from "./node-dialogs"
+import { Gallery } from "@/components/passport/gallery"
 import { NodeOverview } from "./node-overview"
 import { ClientsTab, CommentsTab, DocsTab, EquipmentTab, FibersTab, HistoryTab, IdTab, PeopleTab } from "./node-tabs"
 
@@ -62,6 +63,7 @@ export function NodePassport({ id }: { id: number }) {
   const [edit, setEdit] = useState(false)
   const [del, setDel] = useState(false)
   const [showNodes, setShowNodes] = useState(true)
+  const [gallery, setGallery] = useState<number | null>(null)
   // Окна паспорта: местоположение (np-01), ВОЛС (np-02), документы (np-03), ответственные (np-04)
   const [dlg, setDlg] = useState<{ k: "location" | "fiber" | "people" } | { k: "upload"; kind?: string; files?: File[] } | null>(null)
   const d = useNodeDetail(x)
@@ -272,8 +274,7 @@ export function NodePassport({ id }: { id: number }) {
               {stage === "photo" && (
                 <div className="absolute inset-x-0 bottom-20 flex flex-col items-center gap-4">
                   <div className="flex items-center gap-4">
-                    {/* TODO: галерея (g01, g02) */}
-                    <button type="button" className={btn({ primary: true })} onClick={() => toast("Галерея — экран g01")}>
+                    <button type="button" className={btn({ primary: true })} onClick={() => setGallery(0)}>
                       <Maximize2 />
                       Открыть галерею
                     </button>
@@ -281,8 +282,11 @@ export function NodePassport({ id }: { id: number }) {
                   </div>
                   <div className="flex gap-2.5">
                     {d.media.slice(0, 6).map((m, i) => (
-                      <span
+                      <button
+                        type="button"
                         key={i}
+                        onClick={() => setGallery(i)}
+                        aria-label={m.title}
                         className={cn(
                           "relative h-[62px] w-[86px] rounded-xl border-2 border-transparent bg-cover bg-center",
                           i === 0 && "border-[#085eff]",
@@ -294,11 +298,15 @@ export function NodePassport({ id }: { id: number }) {
                             ▶ {m.video}
                           </span>
                         )}
-                      </span>
+                      </button>
                     ))}
-                    <span className="grid h-[62px] w-[86px] place-items-center rounded-xl border border-border bg-[var(--glass-card)] text-sm font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setGallery(6)}
+                      className="grid h-[62px] w-[86px] place-items-center rounded-xl border border-border bg-[var(--glass-card)] text-sm font-semibold"
+                    >
                       +{d.media.length - 6}
-                    </span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -456,7 +464,7 @@ export function NodePassport({ id }: { id: number }) {
 
       <div className="mt-[18px] px-(--page-gutter)">
         {tab === "overview" ? (
-          <NodeOverview d={d} onTab={setTab} />
+          <NodeOverview d={d} onTab={setTab} onGallery={(i = 0) => setGallery(i)} />
         ) : tab === "fibers" ? (
           <FibersTab node={x} d={d} onLink={() => setDlg({ k: "fiber" })} />
         ) : tab === "equipment" ? (
@@ -478,6 +486,15 @@ export function NodePassport({ id }: { id: number }) {
         )}
       </div>
 
+      {gallery !== null && (
+        <Gallery
+          title={`Фото и видео · ${x.code}`}
+          sub={`${x.object} · ${x.address}`}
+          media={d.media}
+          start={gallery}
+          onClose={() => setGallery(null)}
+        />
+      )}
       {dlg?.k === "location" && <LocationDialog node={x} d={d} onClose={() => setDlg(null)} />}
       {dlg?.k === "fiber" && <LinkFiberDialog node={x} d={d} onClose={() => setDlg(null)} />}
       {dlg?.k === "upload" && <UploadDialog node={x} d={d} kind={dlg.kind} files={dlg.files} onClose={() => setDlg(null)} />}

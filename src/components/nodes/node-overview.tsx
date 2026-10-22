@@ -26,7 +26,7 @@ import { Avatar, Card, Legend, SegBar } from "@/components/passport/ui"
 import type { TabKey } from "./node-passport"
 
 /** Вкладка «Обзор» паспорта (экран p01, нижняя часть): сводки по вкладкам, фото, документы, люди, комментарии, история. */
-export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) => void }) {
+export function NodeOverview({ d, onTab, onGallery }: { d: NodeDetail; onTab: (t: TabKey) => void; onGallery: (i?: number) => void }) {
   const go = (t: TabKey) => (
     <button type="button" className={circ} onClick={() => onTab(t)} aria-label="Открыть вкладку">
       <ArrowUpRight />
@@ -119,8 +119,7 @@ export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) =
           title="Фото и видео"
           count={d.media.length}
           action={
-            // TODO: галерея (g01, g02)
-            <button type="button" className={btn({ sm: true })} onClick={() => toast("Галерея — экран g01")}>
+            <button type="button" className={btn({ sm: true })} onClick={() => onGallery()}>
               <Maximize2 />
               Открыть галерею
             </button>
@@ -128,7 +127,9 @@ export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) =
         >
           <div className="grid h-[248px] grid-cols-[1fr_1fr_1fr] grid-rows-2 gap-2">
             {d.media.slice(0, 5).map((m, i) => (
-              <span
+              <button
+                type="button"
+                onClick={() => onGallery(i)}
                 key={i}
                 className={cn("relative rounded-[14px] bg-cover bg-center", i === 0 && "col-span-2")}
                 style={{ backgroundImage: `url(${m.src})` }}
@@ -144,7 +145,7 @@ export function NodeOverview({ d, onTab }: { d: NodeDetail; onTab: (t: TabKey) =
                     +{d.media.length - 5}
                   </span>
                 )}
-              </span>
+              </button>
             ))}
           </div>
         </Card>

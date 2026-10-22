@@ -410,7 +410,9 @@ export function EquipmentTab({ node: x, d, onManage }: { node: NodeRow; d: NodeD
                 )}
                 <span className="flex-1">
                   <b className="block text-sm font-semibold">{d.mol?.name ?? "МОЛ не указан"}</b>
-                  <span className="text-xs text-muted-foreground">{d.mol ? "Материально ответственное лицо" : "Нужно для инвентаризации"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {d.mol ? "Материально ответственное лицо" : "Нужно для инвентаризации"}
+                  </span>
                 </span>
                 <button type="button" className={circ} aria-label="Указать МОЛ" onClick={onManage}>
                   {d.mol ? <Pencil /> : <Plus />}

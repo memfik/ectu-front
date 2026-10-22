@@ -58,7 +58,10 @@ export function Kv({ rows }: { rows: { t: string; v: React.ReactNode }[] }) {
 
 export function Avatar({ initials, color, className }: { initials: string; color: string; className?: string }) {
   return (
-    <span className={cn("grid size-10 flex-none place-items-center rounded-full text-[13px] font-bold text-white", className)} style={{ background: color }}>
+    <span
+      className={cn("grid size-10 flex-none place-items-center rounded-full text-[13px] font-bold text-white", className)}
+      style={{ background: color }}
+    >
       {initials}
     </span>
   )
@@ -69,7 +72,10 @@ export function SegBar({ parts }: { parts: { v: number; color: string }[] }) {
   const total = parts.reduce((a, p) => a + p.v, 0) || 1
   return (
     <span className="flex h-2 gap-[3px] overflow-hidden rounded-full">
-      {parts.map((p, i) => p.v > 0 && <i key={i} className="block h-full rounded-full" style={{ width: `${(p.v / total) * 100}%`, background: p.color }} />)}
+      {parts.map(
+        (p, i) =>
+          p.v > 0 && <i key={i} className="block h-full rounded-full" style={{ width: `${(p.v / total) * 100}%`, background: p.color }} />,
+      )}
     </span>
   )
 }

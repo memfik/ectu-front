@@ -82,7 +82,19 @@ export type HistoryItem = {
   to?: string
   note?: string
 }
-export type Media = { src: string; video?: string; title: string; date: string }
+export type Media = {
+  src: string
+  /** Длительность видео «0:42»; без неё — фото */
+  video?: string
+  title: string
+  date: string
+  /** «4032×3024 · 3.1 МБ» или «1080p» */
+  info: string
+  author: string
+  geo: string
+  tags: string[]
+  text: string
+}
 
 /** Покрытие АМС / БС: секторы антенн. */
 export type Coverage = { sectors: number; width: number; km: number; azimuths: number[] }
@@ -130,20 +142,36 @@ const P = {
   ag: { initials: "АГ", name: "Артем С. Галустьян", role: "ApiServDE", color: "linear-gradient(135deg,#085eff,#001a9f)" },
 } satisfies Record<string, Person>
 
+const m = (src: string, title: string, date: string, author: string, tags: string[], text: string, extra: Partial<Media> = {}): Media => ({
+  src,
+  title,
+  date,
+  author,
+  tags,
+  text,
+  info: "4032×3024 · 3.1 МБ",
+  geo: "51.1669, 71.4361",
+  ...extra,
+})
+
+/** Галерея узла: 12 фото и 2 видео (как в макете g01, g02). */
 const MEDIA: Media[] = [
-  { src: "/nodes/g-1.jpg", title: "АМС, вид снизу", date: "06.10.2026" },
-  { src: "/nodes/g-2.jpg", title: "Антенны БС", date: "06.10.2026" },
-  { src: "/nodes/g-3.jpg", title: "Кросс ODF", date: "14.01.2026" },
-  { src: "/nodes/g-5.jpg", title: "АМС на закате", date: "14.01.2026" },
-  { src: "/nodes/g-4.jpg", video: "0:42", title: "Обход стойки", date: "03.12.2025" },
-  { src: "/nodes/g-6.jpg", title: "АМС ночью", date: "03.12.2025" },
+  m("/nodes/g-1.jpg", "АМС — вид снизу", "06.10.2026, 11:32", "Нурдаулет С. Осербай", ["АМС", "Мачта"], "Опоры и РРЛ-антенны с южной стороны."),
+  m("/nodes/g-2.jpg", "АМС ast009 — общий вид", "06.10.2026, 11:40", "Нурдаулет С. Осербай", ["АМС", "Мачта", "Фасад"], "Общий вид антенно-мачтового сооружения с северной стороны. 4 сектора, РРЛ-антенна на 30 м."),
+  m("/nodes/g-3.jpg", "Кросс ODF.mp4", "14.01.2026, 10:05", "Борис Б. Дегтярь", ["ODF", "Кросс"], "Перекоммутация патч-кордов на ODF-1.", { video: "1:15", info: "1080p" }),
+  m("/nodes/g-5.jpg", "АМС на закате", "14.01.2026, 17:48", "Борис Б. Дегтярь", ["АМС"], "Вид на мачту с подъездной дороги."),
+  m("/nodes/g-4.jpg", "Обход стойки СПД.mp4", "14.01.2026, 10:12", "Борис Б. Дегтярь", ["Оборудование", "СПД", "Стойка"], "Видеообход стойки после замены SFP-модуля на порту 0/25.", { video: "0:42", info: "1080p" }),
+  m("/nodes/g-6.jpg", "Светоограждение ночью", "03.12.2025, 21:15", "Нурдаулет С. Осербай", ["АМС", "Светоограждение"], "Проверка заградительных огней."),
+  ...[1, 2, 3, 5, 6, 1, 2, 5].map((n, i) =>
+    m(`/nodes/g-${n}.jpg`, `Фото объекта ${i + 7}`, "03.12.2025, 12:00", i % 2 ? "Борис Б. Дегтярь" : "Нурдаулет С. Осербай", ["Объект"], "Фото с обхода узла.")
+  ),
 ]
 
 export function nodeDetail(x: NodeRow): NodeDetail {
   const r = (k: number) => ((x.id * 9301 + k * 49297) % 233280) / 233280
   const total = x.fibers?.[1] ?? 0
   const used = x.fibers?.[0] ?? 0
-  const media = Array.from({ length: 14 }, (_, i) => MEDIA[i % MEDIA.length])
+  const media = MEDIA
   return {
     coords: `${x.ll[0].toFixed(6)}, ${x.ll[1].toFixed(6)}`,
     coverage: { sectors: 3, width: 65, km: 2.5, azimuths: [0, 120, 240] },
