@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import { SpdPassport } from "@/components/equipment/spd-passport"
+import { SpdPassport } from "@/sections/spd/passport"
 
 export const metadata: Metadata = { title: "Паспорт коммутатора — ЕСТУ" }
 

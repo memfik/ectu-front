@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { MapPage } from "@/components/map/map-page"
+import { MapPage } from "@/sections/map/map-page"
 
 export const metadata = { title: "Карта сети — ЕСТУ" }
 

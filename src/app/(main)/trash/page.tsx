@@ -1,4 +1,4 @@
-import { TrashPage } from "@/components/services/trash-page"
+import { TrashPage } from "@/sections/trash/trash-page"
 
 export default function Page() {
   return <TrashPage />
