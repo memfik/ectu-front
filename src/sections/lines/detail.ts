@@ -72,7 +72,13 @@ export type LineKind = {
   /** Колодцы — квадраты, муфты и боксы — круги */
   square?: boolean
   color: string
-  scene: string
+  /** Картинка 3D-сцены из макета; без неё — своя сцена `sceneNode` (передняя панель ODF) */
+  scene?: string
+  sceneNode?: (c: LineCtx) => React.ReactNode
+  /** Своя схема вместо трассы А — Б (схема портов ODF) */
+  schemaNode?: (c: LineCtx) => React.ReactNode
+  /** Подписи и значки первых двух кнопок сцены (по умолчанию «3D», «Схема») */
+  stageLabels?: [[string, LucideIcon], [string, LucideIcon]]
   /** Длины на схеме: км (линии) или м (канализация) */
   meters?: boolean
   /** Подпись под участком на схеме (по умолчанию — тип прокладки) */

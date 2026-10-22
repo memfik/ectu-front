@@ -205,7 +205,8 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
             </Card>
 
             <div className="relative min-h-[640px] max-[1279px]:min-h-[420px]">
-              {stage === "schema" && <Schema c={c} />}
+              {stage === "scene" && k.sceneNode?.(c)}
+              {stage === "schema" && (k.schemaNode ? k.schemaNode(c) : <Schema c={c} />)}
               {stage === "photo" && (
                 <div className="absolute inset-x-0 bottom-20 flex flex-col items-center gap-4">
                   <button type="button" className={btn({ primary: true })} onClick={() => setGallery(0)}>
@@ -229,7 +230,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
                   </div>
                 </div>
               )}
-              <StageSwitch value={stage} onChange={setStage} />
+              <StageSwitch value={stage} onChange={setStage} labels={k.stageLabels} />
             </div>
 
             <div className="flex flex-col gap-[18px]">
@@ -389,10 +390,21 @@ function Summary({
   )
 }
 
-function StageSwitch({ value, onChange }: { value: Stage; onChange: (s: Stage) => void }) {
+function StageSwitch({
+  value,
+  onChange,
+  labels = [
+    ["3D", Box],
+    ["Схема", Layers],
+  ],
+}: {
+  value: Stage
+  onChange: (s: Stage) => void
+  labels?: LineKind["stageLabels"]
+}) {
   const items = [
-    ["scene", "3D", Box],
-    ["schema", "Схема", Layers],
+    ["scene", ...labels[0]],
+    ["schema", ...labels[1]],
     ["map", "Карта", MapIcon],
     ["photo", "Фото", ImageIcon],
   ] as const
@@ -591,7 +603,7 @@ function Backdrop({ stage, d, k }: { stage: Stage; d: LineDetail; k: LineKind })
       ) : (
         <>
           <div className="absolute inset-0 bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)] bg-[size:48px_48px] opacity-40" />
-          {stage === "scene" && (
+          {stage === "scene" && k.scene && (
             <div
               className="absolute top-[150px] left-1/2 h-[726px] w-[1100px] -translate-x-1/2 bg-contain bg-center bg-no-repeat max-[1279px]:hidden"
               style={{ backgroundImage: `url(${k.scene})` }}

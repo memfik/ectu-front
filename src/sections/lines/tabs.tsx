@@ -371,7 +371,7 @@ export function LineHistoryTab({ d }: { d: LineDetail }) {
 
 /* ---------- kk-t1 / kk-t2 · Колодцы, каналы ---------- */
 
-export type Col = { k: string; t: string; req?: boolean; opts?: string[] }
+export type Col = { k: string; t: string; req?: boolean; opts?: string[]; show?: (v: string) => React.ReactNode }
 type Row = Record<string, string> & { id: string }
 
 /**
@@ -411,7 +411,7 @@ export function EditableTable({
         rows={rows.map((r) => ({
           key: r.id,
           cells: [
-            ...cols.map((c) => r[c.k] || "—"),
+            ...cols.map((c) => (c.show ? c.show(r[c.k]) : r[c.k] || "—")),
             <span key="a" className="flex justify-end gap-1.5">
               <button type="button" className={circ} aria-label="Изменить" onClick={() => setEdit(r)}>
                 <Pencil />

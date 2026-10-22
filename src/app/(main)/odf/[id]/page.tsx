@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import { EntityPassport } from "@/components/passport/entity-passport"
+import { OdfPassport } from "@/sections/odf/passport"
 
 export const metadata: Metadata = { title: "ODF · паспорт — ЕСТУ" }
 
@@ -17,5 +17,5 @@ export default function Page({ params }: Props) {
 
 async function Content({ params }: Pick<Props, "params">) {
   const { id } = await params
-  return <EntityPassport section="odf" id={+id} />
+  return <OdfPassport id={+id} />
 }
