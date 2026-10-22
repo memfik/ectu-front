@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import { EntityPassport } from "@/components/passport/entity-passport"
+import { SdhPassport } from "@/sections/sdh/passport"
 
 export const metadata: Metadata = { title: "SDH · паспорт — ЕСТУ" }
 
@@ -17,5 +17,5 @@ export default function Page({ params }: Props) {
 
 async function Content({ params }: Pick<Props, "params">) {
   const { id } = await params
-  return <EntityPassport section="sdh" id={+id} />
+  return <SdhPassport id={+id} />
 }

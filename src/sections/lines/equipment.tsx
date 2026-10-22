@@ -68,6 +68,9 @@ export function equipmentKind(o: {
   title?: (x: GenRow) => string
   pill: (x: GenRow) => string
   panel: (c: LineCtx) => React.ReactNode
+  /** Своя схема вместо полос ёмкости (полка SDH, спектр DWDM) и подпись её кнопки */
+  schema?: (c: LineCtx) => React.ReactNode
+  schemaLabel?: [string, LucideIcon]
   /** Подпись схемы ёмкости и вкладки («Ёмкость интерфейсов») */
   capTitle: string
   capTab: string
@@ -89,17 +92,16 @@ export function equipmentKind(o: {
     point: (i) => `Плата ${i + 1}`,
     color: "#4f8dff",
     sceneNode: o.panel,
-    schemaNode: (c) => (
-      <CapacityBars
-        title={o.capTitle}
-        rows={o.cap(c.x).map((r) => ({ t: r.t, a: r.z, b: r.m }))}
-        note="М. — монтировано · З. — задействовано"
-      />
-    ),
-    stageLabels: [
-      ["Панель", Server],
-      ["Схема", Gauge],
-    ],
+    schemaNode:
+      o.schema ??
+      ((c) => (
+        <CapacityBars
+          title={o.capTitle}
+          rows={o.cap(c.x).map((r) => ({ t: r.t, a: r.z, b: r.m }))}
+          note="М. — монтировано · З. — задействовано"
+        />
+      )),
+    stageLabels: [["Панель", Server], o.schemaLabel ?? ["Схема", Gauge]],
     strand: { tab: "", stat: "", a: ["", "#4f8dff"], b: ["", "#ffc53d"] },
     strip: "bars",
     stripTitle: () => "",
