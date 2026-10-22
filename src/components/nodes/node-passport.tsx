@@ -33,6 +33,7 @@ import { btn, checkBox, circ, Pill, Tag } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import { nodesList } from "@/config/lists/nodes"
 import { BRANCHES, STATUS_LABEL, type NodeRow } from "@/data/nodes"
+import { isRemote, useRemoteRecord } from "@/lib/list/remote"
 import { useRows } from "@/lib/list/store"
 import { useNodeDetail } from "@/lib/nodes/detail-store"
 import type { Tone } from "@/lib/list/types"
@@ -57,7 +58,7 @@ export type TabKey = "overview" | "fibers" | "equipment" | "id" | "clients" | "p
 export function NodePassport({ id }: { id: number }) {
   const router = useRouter()
   const rows = useRows(nodesList)
-  const x = rows.find((r) => r.id === id)
+  const { row: x, loading } = useRemoteRecord(nodesList, id, rows.find((r) => r.id === id))
   const [stage, setStage] = useState<Stage>("scene")
   const [tab, setTab] = useState<TabKey>("overview")
   const [edit, setEdit] = useState(false)
@@ -70,6 +71,8 @@ export function NodePassport({ id }: { id: number }) {
   // Верх целиком (сцена и колонки) — только на «Обзоре», на остальных вкладках — одна шапка
   const full = tab === "overview"
 
+  if (loading)
+    return <div className="px-(--page-gutter) py-24 text-center text-muted-foreground">Загрузка паспорта…</div>
   if (!x || !d)
     return (
       <div className="px-(--page-gutter) py-24 text-center">
@@ -92,7 +95,8 @@ export function NodePassport({ id }: { id: number }) {
     { k: "comments", t: "Комментарий", icon: MessageSquare, n: d.comments.length },
     { k: "history", t: "История", icon: History, n: d.history.length },
   ]
-  const near = rows
+  // TODO(API): узлы рядом — /api/map/search/nodes; в режиме API пока только сам узел
+  const near = (isRemote(nodesList) ? [x] : rows)
     .filter((r) => r.city === x.city && r.onMap)
     .map((r) => ({ id: r.id, ll: r.ll, title: r.code, sub: r.object, tone: TONE[r.status] }))
 

@@ -6,7 +6,7 @@ import { Dialog } from "radix-ui"
 import { ChevronDown, ChevronRight, House, LogOut, Moon, Search, X } from "lucide-react"
 import { NAV_GROUPS, groupOf } from "@/config/nav"
 import { useThemeTransition } from "@/hooks/use-theme-transition"
-import { CURRENT_USER } from "@/lib/current-user"
+import { useUser } from "@/lib/api/session"
 import { cn } from "@/lib/utils"
 import { Avatar } from "./header-popovers"
 import { FeatureCard, ItemBadges, Thumb } from "./mega-menu"
@@ -30,6 +30,7 @@ export function MobileNav({
   const current = path ? groupOf(path.split("/")[1] ?? "")?.key : undefined
   const [expanded, setExpanded] = useState<string | null>(null)
   const { toggleTheme } = useThemeTransition()
+  const user = useUser()
   const close = () => onOpenChange(false)
   const shown = expanded ?? current ?? null
 
@@ -62,9 +63,9 @@ export function MobileNav({
               >
                 <Avatar className="size-11" />
                 <div className="min-w-0">
-                  <b className="block text-[15px]">{CURRENT_USER.name}</b>
+                  <b className="block text-[15px]">{user.name}</b>
                   <span className="text-[12.5px] text-muted-foreground">
-                    {CURRENT_USER.login} · {CURRENT_USER.branch}
+                    {user.login} · {user.branch}
                   </span>
                 </div>
                 <ChevronRight className="ml-auto size-[18px] text-muted-foreground" />
@@ -178,7 +179,7 @@ export function MobileNav({
                   <Thumb icon={Moon} />
                   Сменить тему
                 </button>
-                <Link href="/login" onClick={close} className="flex items-center gap-3 rounded-xl px-2 py-3 text-[15px] text-[#ff5257]">
+                <Link href="/login?logout=1" onClick={close} className="flex items-center gap-3 rounded-xl px-2 py-3 text-[15px] text-[#ff5257]">
                   <Thumb icon={LogOut} className="border-[rgba(255,82,87,0.2)] bg-[rgba(255,82,87,0.1)] text-[#ff5257]" />
                   Выйти
                 </Link>

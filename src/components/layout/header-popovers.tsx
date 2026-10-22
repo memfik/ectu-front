@@ -31,7 +31,7 @@ import {
 } from "lucide-react"
 import { ALL_SECTIONS } from "@/config/nav"
 import { useThemeTransition } from "@/hooks/use-theme-transition"
-import { CURRENT_USER } from "@/lib/current-user"
+import { useUser } from "@/lib/api/session"
 import { cn } from "@/lib/utils"
 import { Select } from "@/components/list/form-controls"
 import { GroupTitle } from "./mega-menu"
@@ -478,6 +478,7 @@ export function SettingsPopover({ trigger }: { trigger: React.ReactNode }) {
 /* ---------- Профиль ---------- */
 
 export function Avatar({ className }: { className?: string }) {
+  const user = useUser()
   return (
     <span
       className={cn(
@@ -485,7 +486,7 @@ export function Avatar({ className }: { className?: string }) {
         className,
       )}
     >
-      {CURRENT_USER.initial}
+      {user.initial}
     </span>
   )
 }
@@ -531,7 +532,7 @@ function ProfileRow({
 
 /** TODO: счётчики избранного и заявок из API; выход — завершение сеанса. */
 export function UserPopover({ trigger }: { trigger: React.ReactNode }) {
-  const u = CURRENT_USER
+  const u = useUser()
   return (
     <HeaderPopover trigger={trigger} className="w-[340px]">
       <div className="flex flex-col items-center gap-1.5 bg-[radial-gradient(300px_140px_at_50%_0%,rgba(8,94,255,0.3),transparent_70%)] px-5 pt-[22px] pb-4 text-center">
@@ -565,7 +566,7 @@ export function UserPopover({ trigger }: { trigger: React.ReactNode }) {
         <ProfileRow href="/help" icon={LifeBuoy} title="Помощь и инструкции" />
         <ProfileRow href="/help#whats-new" icon={Megaphone} title="Что нового в v6.1" isNew />
         <div className="mx-2 my-1.5 h-px bg-[var(--dd-line)]" />
-        <ProfileRow href="/login" icon={LogOut} title="Выйти" danger />
+        <ProfileRow href="/login?logout=1" icon={LogOut} title="Выйти" danger />
       </div>
     </HeaderPopover>
   )

@@ -6,7 +6,7 @@ import { Bell, ChevronDown, House, Menu, Search, Settings } from "lucide-react"
 import { NAV_GROUPS, groupItems } from "@/config/nav"
 import { GlassButton } from "@/components/ui/opaline/glass-button"
 import { LiquidGlass } from "@/components/ui/opaline/liquid-glass"
-import { CURRENT_USER } from "@/lib/current-user"
+import { useUser } from "@/lib/api/session"
 import { cn } from "@/lib/utils"
 import { CommandMenu } from "./command-menu"
 import { Avatar, NotificationsPopover, SettingsPopover, UserPopover, usePrefsOnHtml } from "./header-popovers"
@@ -26,6 +26,7 @@ export function Header() {
   const [search, setSearch] = useState(false)
   const [mobile, setMobile] = useState(false)
   usePrefsOnHtml()
+  const user = useUser()
 
   useEffect(() => {
     if (!menu) return
@@ -127,7 +128,7 @@ export function Header() {
 
           <UserPopover
             trigger={
-              <GlassButton aria-label={`Профиль: ${CURRENT_USER.name}`} title={CURRENT_USER.name} className={cn(round, "p-1")}>
+              <GlassButton aria-label={`Профиль: ${user.name}`} title={user.name} className={cn(round, "p-1")}>
                 <Avatar className="max-sm:size-8" />
               </GlassButton>
             }

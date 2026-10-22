@@ -6,6 +6,7 @@ import { CircleAlert, Trash2 } from "lucide-react"
 import { toast } from "@/components/shared/toast"
 import { CURRENT_USER } from "@/lib/current-user"
 import { fmt, plural } from "@/lib/list/query"
+import { isRemote, removeRemote } from "@/lib/list/remote"
 import { rowsStore } from "@/lib/list/store"
 import { trash } from "@/lib/list/trash"
 import type { ListConfig, Row } from "@/lib/list/types"
@@ -34,8 +35,21 @@ export function DeleteDialog<T extends Row>({
   const n = rows.length
   const Icon = cfg.icon
 
-  const remove = () => {
+  const [busy, setBusy] = useState(false)
+  const remove = async () => {
     const ids = rows.map((x) => x.id)
+    if (isRemote(cfg)) {
+      setBusy(true)
+      try {
+        await removeRemote(cfg, ids, reason)
+      } catch (e) {
+        setBusy(false)
+        return toast(`Не удалено: ${e instanceof Error ? e.message : "ошибка API"}`)
+      }
+      toast(`Удалено ${fmt(n)} ${plural(n, cfg.noun)} · в Корзине`)
+      onDone?.()
+      return onClose()
+    }
     const undo = rowsStore.remove(cfg, ids)
     trash.add(
       rows.map((x) => ({
@@ -124,7 +138,7 @@ export function DeleteDialog<T extends Row>({
             <Dialog.Close className={btn()}>Отмена</Dialog.Close>
             <button
               type="button"
-              disabled={!reason}
+              disabled={!reason || busy}
               onClick={remove}
               className={cn(
                 btn(),

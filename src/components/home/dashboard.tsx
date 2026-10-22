@@ -40,7 +40,7 @@ import { btn, circ, Pill } from "@/components/list/ui"
 import { Avatar, Card, glass } from "@/components/passport/ui"
 import { BRANCHES, nodeRows } from "@/data/nodes"
 import { spdRows } from "@/data/spd"
-import { CURRENT_USER } from "@/lib/current-user"
+import { useUser } from "@/lib/api/session"
 import { fmt } from "@/lib/list/query"
 import { cn } from "@/lib/utils"
 
@@ -135,6 +135,7 @@ const REQUESTS: [string, string, string, "warn" | "info" | "ok" | "muted"][] = [
 ]
 
 export function Dashboard() {
+  const user = useUser()
   const nodes = nodeRows()
   const sw = spdRows("switch")
   const rt = spdRows("router")
@@ -184,7 +185,7 @@ export function Dashboard() {
           {now ? `${today} · Астана ${time}` : "\u00a0"}
         </p>
         <h1 className="mt-2 text-[56px] leading-[1.05] font-semibold tracking-[-1.4px] max-sm:text-[34px]">
-          {now ? greet(now.getHours()) : "Здравствуйте"}, {CURRENT_USER.name.split(" ")[0]}
+          {now ? greet(now.getHours()) : "Здравствуйте"}, {user.name.split(" ")[0]}
         </h1>
         <p className="mt-3 max-w-[640px] text-[15px] text-[var(--nav-text)]">
           За сутки: 2 новых узла, 3 заявки на подключение и 1 ошибка импорта. В сети {fmt(work)} узлов работают штатно.

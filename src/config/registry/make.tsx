@@ -4,6 +4,7 @@ import { Bar, Pill, Tag } from "@/components/list/ui"
 import { BRANCHES, nodeRows, type NodeRow } from "@/data/nodes"
 import { fmt } from "@/lib/list/query"
 import type { Column, Field, Filter, Kpi, ListConfig, Tone } from "@/lib/list/types"
+import { GEN_SOURCES } from "@/config/api-sources"
 
 /*
  * Конструктор раздела по описанию (макеты 07…25): пример данных, список, фильтры, форма, отчёт и паспорт
@@ -335,6 +336,7 @@ export function makeList(spec: Spec): ListConfig<GenRow> {
       }),
       fields,
     },
+    api: GEN_SOURCES[spec.key],
     report: {
       cols: [
         { k: "branch", t: "Филиал", value: (x) => x.branch },

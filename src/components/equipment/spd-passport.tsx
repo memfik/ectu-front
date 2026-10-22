@@ -45,6 +45,7 @@ import { routersList, switchesList } from "@/config/lists/spd"
 import { nodeRows } from "@/data/nodes"
 import { branchFull, type SpdRow } from "@/data/spd"
 import { spdDetail, type Port, type SpdDetail } from "@/data/spd-detail"
+import { useRemoteRecord } from "@/lib/list/remote"
 import { useRows } from "@/lib/list/store"
 import type { Tone } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
@@ -59,9 +60,11 @@ const STATUS: Record<SpdRow["status"], [string, Tone]> = { work: ["В работ
 export function SpdPassport({ kind, id }: { kind: SpdRow["kind"]; id: number }) {
   const cfg = kind === "switch" ? switchesList : routersList
   const router = useRouter()
-  const rows = useRows(cfg)
-  const x = rows.find((r) => r.id === id)
-  const [d, setD] = useState<SpdDetail | null>(() => (x ? spdDetail(x) : null))
+  const local = useRows(cfg).find((r) => r.id === id)
+  const { row: x, loading } = useRemoteRecord(cfg, id, local)
+  // Содержимое вкладок — пример по записи (TODO(API): порты, ёмкость, под-оборудование, МОЛ, перемещения)
+  const [edits, setD] = useState<SpdDetail | null>(null)
+  const d = edits ?? (x ? spdDetail(x) : null)
   const [stage, setStage] = useState<Stage>("3d")
   const [tab, setTab] = useState<TabKey>("overview")
   const [edit, setEdit] = useState(false)
@@ -70,6 +73,8 @@ export function SpdPassport({ kind, id }: { kind: SpdRow["kind"]; id: number }) 
   const [gallery, setGallery] = useState<number | null>(null)
   const [port, setPort] = useState<Port | "new" | null>(null)
 
+  if (loading)
+    return <div className="px-(--page-gutter) py-24 text-center text-muted-foreground">Загрузка паспорта…</div>
   if (!x || !d)
     return (
       <div className="px-(--page-gutter) py-24 text-center">
@@ -86,7 +91,7 @@ export function SpdPassport({ kind, id }: { kind: SpdRow["kind"]; id: number }) 
   const sfp = d.ports.filter((p) => p.sfp && p.oper === "up").length
   const free = d.ports.length - used - down
   const full = tab === "overview"
-  const update = (fn: (d: SpdDetail) => SpdDetail) => setD((s) => (s ? fn(s) : s))
+  const update = (fn: (d: SpdDetail) => SpdDetail) => setD((s) => fn(s ?? d))
   const tabs: { k: SpdTab; t: string; icon: LucideIcon; n?: number }[] = [
     { k: "overview", t: "Обзор", icon: LayoutGrid },
     { k: "ports", t: "Порты", icon: Server, n: d.ports.length },

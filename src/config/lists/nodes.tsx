@@ -1,6 +1,7 @@
 import { ChartColumn, Download, Plus, RadioTower, Upload } from "lucide-react"
 import { Bar, Pill, Tag } from "@/components/list/ui"
 import { BRANCHES, nodeRows, opsLabel, OBJECT_TYPES, REGION, STATUS_LABEL, type NodeRow } from "@/data/nodes"
+import { nodesApi } from "@/config/api-sources"
 import { fmt, plural } from "@/lib/list/query"
 import type { ListConfig, Tone } from "@/lib/list/types"
 
@@ -162,6 +163,7 @@ export const nodesList: ListConfig<NodeRow> = {
     bar: { t: "Волокна", v: x.fibers ? `${x.fibers[0]}/${x.fibers[1]}` : "0/—", pct: x.fibers ? pct(x.fibers[0], x.fibers[1]) : 0 },
     open: "Паспорт",
   }),
+  api: nodesApi,
   report: {
     date: (x) => x.updated,
     cols: [

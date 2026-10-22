@@ -7,6 +7,7 @@ import { ArrowRight, Filter, Layers, LayoutGrid, List, Map as MapIcon, Pencil, Q
 import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/config/lists"
 import { useRows } from "@/lib/list/store"
+import { isRemote, useFilterOptions, useRemoteList } from "@/lib/list/remote"
 import { applyQuery, emptyQuery, fmt, type Query } from "@/lib/list/query"
 import type { HeroButton, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
@@ -30,9 +31,19 @@ export function ListPage({ list: key }: { list: string }) {
   return <ListView cfg={LISTS[key]} />
 }
 
-function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
+/** Пустой источник: в режиме API примерные данные раздела не собираются. */
+const NO_ROWS = { key: "__none", rows: () => [] } as unknown as ListConfig<Row>
+
+function ListView<T extends Row>({ cfg: base }: { cfg: ListConfig<T> }) {
   const router = useRouter()
-  const rows = useRows(cfg)
+  const remote = isRemote(base)
+  const local = useRows(remote ? (NO_ROWS as unknown as ListConfig<T>) : base)
+  // Варианты фильтров из /filter-params (в API значения не совпадают с примерами)
+  const remoteOpts = useFilterOptions(base, remote)
+  const cfg = useMemo(
+    () => (remote ? { ...base, filters: base.filters.map((f) => (remoteOpts[f.k] ? { ...f, opts: remoteOpts[f.k] } : f)) } : base),
+    [base, remote, remoteOpts]
+  )
   const [q, setQState] = useState<Query>(() => emptyQuery(cfg))
   const [page, setPage] = useState(0)
   const [mode, setModeState] = useState<Mode>("table")
@@ -45,7 +56,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   const [qr, setQr] = useState<T | null>(null)
   const [size, setSize] = useState(SIZE.table)
   const [checked, setChecked] = useState<Set<number>>(new Set())
-  const [active, setActive] = useState<number | null>(rows[0]?.id ?? null)
+  const [active, setActive] = useState<number | null>(local[0]?.id ?? null)
 
   const setQ = (next: Query) => {
     setQState(next)
@@ -53,13 +64,22 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   }
   // Отбор — отложенно: ввод в поиске не ждёт пересчёта всех строк
   const deferred = useDeferredValue(q)
-  const list = useMemo(() => applyQuery(cfg, rows, deferred), [cfg, rows, deferred])
-  const kpis = useMemo(() => cfg.kpis(rows), [cfg, rows])
+  // В API отбор, сортировка и страницы — на сервере (/filter); локально — по примерам
+  const srv = useRemoteList(cfg, remote, deferred, page, size)
+  const localList = useMemo(() => (remote ? [] : applyQuery(cfg, local, deferred)), [cfg, local, deferred, remote])
+  const rows = remote ? srv.rows : local
+  const list = remote ? srv.rows : localList
+  const total = remote ? srv.total : localList.length
+  const kpis = useMemo(() => {
+    if (!remote) return cfg.kpis(local)
+    // TODO(API): сводка раздела (/summary) — форма ответа неизвестна; пока только «Всего»
+    return cfg.kpis([]).map((k, i) => (i === 0 ? { ...k, value: fmt(srv.total), note: "в API", pct: 100 } : { ...k, value: "—", note: "", pct: 0 }))
+  }, [cfg, local, remote, srv.total])
 
-  const pages = Math.max(1, Math.ceil(list.length / size))
+  const pages = Math.max(1, Math.ceil(total / size))
   const pg = Math.min(page, pages - 1)
-  const view = list.slice(pg * size, pg * size + size)
-  const current = rows.find((x) => x.id === active)
+  const view = remote ? srv.rows : list.slice(pg * size, pg * size + size)
+  const current = rows.find((x) => x.id === active) ?? (remote ? srv.rows[0] : undefined)
 
   const toggle = (id: number) => {
     const s = new Set(checked)
@@ -134,7 +154,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   )
   const pager = (
     <Pager
-      total={list.length}
+      total={total}
       page={pg}
       pages={pages}
       size={size}
@@ -159,6 +179,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
           key={form.id ?? "new"}
           cfg={cfg}
           id={form.id}
+          row={form.id === null ? undefined : rows.find((x) => x.id === form.id)}
           onClose={() => setForm(null)}
           onDelete={(x) => {
             setForm(null)
@@ -166,7 +187,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
           }}
         />
       )}
-      <Hero cfg={cfg} total={rows.length} onAction={action} />
+      <Hero cfg={cfg} total={remote ? srv.total : local.length} onAction={action} />
 
       <div className="relative z-[1] -mt-[148px] grid grid-cols-6 gap-3.5 px-(--page-gutter) max-[1500px]:grid-cols-3 max-sm:grid-cols-2 max-sm:gap-2.5 max-[1279px]:mt-4">
         {kpis.map((k) => (
@@ -289,7 +310,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
                   {!view.length && (
                     <tr>
                       <td colSpan={cfg.cols.length + 3} className="py-12 text-center text-muted-foreground">
-                        Ничего не найдено — измените поиск или фильтры
+                        {srv.loading ? "Загрузка…" : srv.error ? `Ошибка API: ${srv.error}` : "Ничего не найдено — измените поиск или фильтры"}
                       </td>
                     </tr>
                   )}

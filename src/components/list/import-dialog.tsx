@@ -7,6 +7,7 @@ import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/config/lists"
 import { checkImport, downloadErrors, downloadTemplate, readTable, type ImportCheck } from "@/lib/list/import"
 import { fmt, plural } from "@/lib/list/query"
+import { isRemote, saveRemote } from "@/lib/list/remote"
 import { rowsStore } from "@/lib/list/store"
 import type { ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
@@ -57,8 +58,18 @@ export function ImportDialog<T extends Row>({
       setBusy(false)
     }
   }
-  const load = () => {
+  const load = async () => {
     if (!check) return
+    if (isRemote(cfg)) {
+      // TODO(API): пакетный /api/import (формат не описан) — пока построчно через /create и /update
+      setBusy(true)
+      let ok = 0
+      for (const x of check.update) await saveRemote(cfg, x, false).then(() => ok++, () => {})
+      for (const x of check.create) await saveRemote(cfg, x, true).then(() => ok++, () => {})
+      setBusy(false)
+      toast(`Загружено ${fmt(ok)} из ${fmt(check.create.length + check.update.length)}`)
+      return onClose()
+    }
     for (const x of [...check.update, ...check.create]) rowsStore.save(cfg, x)
     const n = check.create.length + check.update.length
     toast(`Загружено ${fmt(n)} ${plural(n, ["строка", "строки", "строк"])}`)

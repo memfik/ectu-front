@@ -32,6 +32,7 @@ import { specOf } from "@/config/registry/specs"
 import { BRANCHES, nodeRows } from "@/data/nodes"
 import type { Doc, Media } from "@/data/node-detail"
 import { CURRENT_USER } from "@/lib/current-user"
+import { useRemoteRecord } from "@/lib/list/remote"
 import { useRows } from "@/lib/list/store"
 import type { ListConfig } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
@@ -54,8 +55,8 @@ export function EntityPassport({ section, id }: { section: string; id: number })
   const spec = specOf(section)!
   const cfg = LISTS[section] as ListConfig<GenRow>
   const router = useRouter()
-  const rows = useRows(cfg)
-  const x = rows.find((r) => r.id === id)
+  const local = useRows(cfg).find((r) => r.id === id)
+  const { row: x, loading } = useRemoteRecord(cfg, id, local)
   const [tab, setTab] = useState<Tab>("overview")
   const [stage, setStage] = useState<"photo" | "map">("photo")
   const [edit, setEdit] = useState(false)
@@ -63,6 +64,8 @@ export function EntityPassport({ section, id }: { section: string; id: number })
   const [qr, setQr] = useState(false)
   const [gallery, setGallery] = useState<number | null>(null)
 
+  if (loading)
+    return <div className="px-(--page-gutter) py-24 text-center text-muted-foreground">Загрузка паспорта…</div>
   if (!x)
     return (
       <div className="px-(--page-gutter) py-24 text-center">

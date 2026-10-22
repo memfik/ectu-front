@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { RotateCcw, Search, Trash2 } from "lucide-react"
 import { Input, Select } from "@/components/list/form-controls"
 import { btn, checkBox, Pill } from "@/components/list/ui"
@@ -8,6 +8,8 @@ import { glass } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/config/lists"
 import { BRANCHES } from "@/data/nodes"
+import { api, apiOn, type Page } from "@/lib/api/client"
+import { invalidate } from "@/lib/list/remote"
 import { rowsStore } from "@/lib/list/store"
 import { trash, useTrash, type TrashItem } from "@/lib/list/trash"
 import { cn } from "@/lib/utils"
@@ -66,15 +68,54 @@ const day = (s: string) => {
   return new Date(y, m - 1, d).getTime()
 }
 
+type RemoteTrash = TrashItem & { model?: string }
+
+/** В режиме API: GET /api/trash (поля как в TrashHome.vue), POST /api/trash/restore { model, ids }. */
+function useRemoteTrash(on: boolean) {
+  const [state, set] = useState<{ v: number; rows: RemoteTrash[] }>({ v: -1, rows: [] })
+  const [v, bump] = useState(0)
+  useEffect(() => {
+    if (!on) return
+    api
+      .get<Page<Record<string, unknown>>>("/api/trash", { per_page: 100 })
+      .then((d) =>
+        set({
+          v,
+          rows: (d.data ?? []).map((r) => ({
+            section: String(r.model ?? ""),
+            model: String(r.model_class ?? r.model ?? ""),
+            sectionTitle: String(r.label ?? r.model ?? "—"),
+            id: Number(r.id),
+            name: String(r.name ?? r.title ?? r.nodes_name_id ?? r.id),
+            branch: String((r.filial as { short_name?: string })?.short_name ?? r.filial ?? "—"),
+            by: String(r.deleted_by_name ?? r.deleted_by ?? "—"),
+            reason: String(r.delete_reason ?? "—"),
+            at: String(r.deleted_at ?? "").slice(0, 10).split("-").reverse().join("."),
+          })),
+        })
+      )
+      .catch(() => set({ v, rows: [] }))
+  }, [on, v])
+  const restore = async (items: RemoteTrash[]) => {
+    for (const x of items) await api.post("/api/trash/restore", { model: x.model, ids: [x.id] })
+    invalidate()
+    bump((n) => n + 1)
+  }
+  return { rows: state.rows, loading: on && state.v !== v, restore }
+}
+
 export function TrashPage() {
-  const live = useTrash()
+  const remote = apiOn()
+  const srv = useRemoteTrash(remote)
+  const local = useTrash()
+  const live = remote ? srv.rows : local
   const [hidden, setHidden] = useState<string[]>([])
   const [q, setQ] = useState("")
   const [branch, setBranch] = useState("")
   const [type, setType] = useState("")
   const [sel, setSel] = useState<string[]>([])
   const key = (x: TrashItem) => `${x.section}:${x.id}`
-  const all = useMemo(() => [...live, ...SEED].filter((x) => !hidden.includes(key(x))), [live, hidden])
+  const all = useMemo(() => (remote ? live : [...live, ...SEED]).filter((x) => !hidden.includes(key(x))), [live, hidden, remote])
   // «Сегодня» — по самой свежей записи, чтобы не зависеть от часов сервера при отрисовке
   const today = Math.max(...all.map((x) => day(x.at)), day("07.10.2026"))
   const left = (x: TrashItem) => 30 - Math.round((today - day(x.at)) / 864e5)
@@ -86,7 +127,16 @@ export function TrashPage() {
   )
   const types = [...new Set(all.map((x) => x.sectionTitle))]
 
-  const restore = (items: TrashItem[]) => {
+  const restore = async (items: TrashItem[]) => {
+    if (remote) {
+      try {
+        await srv.restore(items)
+        setSel([])
+        return toast(`Восстановлено: ${items.length}`)
+      } catch (e) {
+        return toast(`Не восстановлено: ${e instanceof Error ? e.message : "ошибка API"}`)
+      }
+    }
     for (const x of items) {
       if (x.row && LISTS[x.section]) rowsStore.save(LISTS[x.section], x.row as { id: number })
       if (live.includes(x)) trash.drop(x.section, [x.id])

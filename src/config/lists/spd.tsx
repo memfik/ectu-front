@@ -6,6 +6,7 @@ import { fmt } from "@/lib/list/query"
 import type { LucideIcon } from "lucide-react"
 import type { Column, Field, ListConfig, Tone } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
+import { spdApi } from "@/config/api-sources"
 
 /*
  * Оборудование СПД: коммутаторы (макет 03) и маршрутизаторы (макет 04) — один конфиг на оба вида.
@@ -441,6 +442,7 @@ export function spdList(kind: SpdRow["kind"]): ListConfig<SpdRow> {
       }),
       fields: fields(kind),
     },
+    api: spdApi(kind),
     report: {
       date: (x) => x.since,
       cols: [

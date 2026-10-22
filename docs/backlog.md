@@ -100,3 +100,31 @@
 - [ ] 16: канбан с перетаскиванием и созданием — в памяти страницы; нужен API заявок, связь с kCRM, сроки в рабочих днях, карточка заявки (экраны 16-x не перенесены)
 - [ ] 17: шаг «Сопоставление колонок» из макета не сделан — колонки сопоставляются по названию; история импортов — пример
 - [ ] 19: записи, удалённые в текущей вкладке, восстанавливаются по-настоящему; строки макета — пример; «Очистить старше 30 дней» и права доступа — API
+
+## Подключение API (старое API техучёта под новый фронт)
+
+Включение: `NEXT_PUBLIC_API_URL=https://stage-techaccount.jusanmobile.kz:8101` в `.env.local` → вход на `/login`, данные из API; без переменной — примерные данные.
+Сделано по коду `../techaccaunt_front` — **на живом API не проверено** (stage недоступен без VPN). Код: `src/lib/api/*`, `src/lib/list/remote.ts`, `src/config/api-sources.ts`.
+
+Работает через API:
+- [x] Вход `POST /api/login` → token, профиль `/api/users/profile`, филиалы `/api/get-filials`, выход `/api/logout`
+- [x] Списки разделов: `{base}/filter` (page, per_page, search, sort_by, sort_order, фильтры массивами), варианты фильтров `{base}/filter-params` → `params`
+- [x] Паспорт `{base}/pasport?{id}`; создание / правка `{base}/create|update`; удаление с причиной `POST /api/trash/soft-delete/{key}`
+- [x] Корзина `/api/trash`, восстановление `/api/trash/restore { model, ids }`
+- [x] Импорт — построчно через create/update
+
+Не хватает / проверить на живом API:
+- [ ] CORS: фронт ходит с `credentials: include` и Bearer — бэкенд должен разрешить origin нового фронта
+- [ ] Форма ответов не сверена: поля строк взяты из `columnConfigs` старого фронта; координаты ищутся в `latitude/longitude`, `lat/lng`, `coordinates` — уточнить поле
+- [ ] Коммутаторы / маршрутизаторы: как `/api/spd-equipments/filter` отделяет тип — предположен параметр `equipment_type`
+- [ ] Имена параметров фильтров кроме узлов (для оборудования предположены `filial`, `network_type`, `model`, `vendor`)
+- [ ] KPI шапки списков: в API есть `{base}/summary`, `/api/count/statistics`, `/api/map-stats/completeness` — формат не описан, пока показывается только «Всего»
+- [ ] Поля, которых нет в `/filter` и нужны дизайну: волокна узла и трассы (занято/всего), занятость портов СПД (`/{id}/port-capacity`), SmartNET, МОЛ, бэкап, BGP у маршрутизаторов, ёмкость АТС/PDH/SDH/DWDM (`/{id}/capacity`), статусы оборудования
+- [ ] Технологии узла в форме: API ждёт id из `/api/nodes/technologies`, у нас названия; номер узла `/api/get-num`
+- [ ] Вкладки паспортов — пока пример: оборудование узла `/api/nodes/get-equipments`, каналы `/api/nodes/{id}/channels`, файлы `/api/equipments/files/all`, история `/api/history/get`, МОЛ `/api/mol/get-data`, порты `/api/spd-equipments/ports`, под-оборудование `{base}/children`, перемещения `/api/replacements/movement-history`, QR `/api/equipment-qr/{type}/{id}/qrcode`
+- [ ] Карта: `/api/map/data/base|vols|equipments|clients|lines`, поиск `/api/map/search/*`, слои `/api/map-layer-configs` — формат GeoJSON не описан; карта пока на примере
+- [ ] Главная: нет эндпоинта сводки под макет (частично `/api/count/statistics`, `/api/analytics/*`)
+- [ ] Реестр заявок (16) — в API не найден; уведомления, избранное, «сейчас в системе» — нет
+- [ ] Права: `user.permissions` загружаются, но меню и кнопки по правам пока не скрываются (старый фронт — `routePermissions.js`)
+- [ ] Отчёты и сводные файлы на сервере: `/api/download-template`, `{base}/summary`, `/api/analytics/export` — сейчас отчёт собирается в браузере из загруженной страницы
+- [ ] Тексты статусов API (клиенты, каналы, IP-план, бэкапы) переводятся по ключевым словам — сверить со справочниками (`/api/options`)

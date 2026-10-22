@@ -5,6 +5,7 @@ import { Dialog } from "radix-ui"
 import { Check, Info, Pencil, Plus, Trash2, X } from "lucide-react"
 import { toast } from "@/components/shared/toast"
 import { plural } from "@/lib/list/query"
+import { isRemote, saveRemote } from "@/lib/list/remote"
 import { rowsStore } from "@/lib/list/store"
 import type { Field, FieldValue, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
@@ -40,16 +41,19 @@ function writeDraft(key: string, v: Values | null) {
 export function FormDrawer<T extends Row>({
   cfg,
   id,
+  row: given,
   onClose,
   onDelete,
 }: {
   cfg: ListConfig<T>
   id: number | null
+  /** Запись целиком (в режиме API её нет в локальном хранилище) */
+  row?: T
   onClose: () => void
   onDelete?: (row: T) => void
 }) {
   const f = cfg.form
-  const row = id === null ? null : rowsStore.find(cfg, id)
+  const row = id === null ? null : (given ?? rowsStore.find(cfg, id) ?? null)
   const base = useMemo(() => row ?? f.blank(0), [row, f])
   const initial = useMemo(() => Object.fromEntries(f.fields.map((x) => [x.k, x.get(base)])) as Values, [f, base])
   const [values, setValues] = useState<Values>(() => (id === null ? { ...initial, ...readDraft(cfg.key) } : initial))
@@ -71,12 +75,22 @@ export function FormDrawer<T extends Row>({
     setValues(next)
     if (id === null) writeDraft(cfg.key, next)
   }
-  const submit = () => {
+  const [busy, setBusy] = useState(false)
+  const submit = async () => {
     setTried(true)
     if (Object.keys(errors).length) return toast(`Заполните поля: ${Object.keys(errors).length}`)
-    let next = f.fields.reduce((x, fl) => fl.set(x, values[fl.k]), id === null ? f.blank(rowsStore.nextId(cfg)) : base)
+    const remote = isRemote(cfg)
+    let next = f.fields.reduce((x, fl) => fl.set(x, values[fl.k]), id === null ? f.blank(remote ? 0 : rowsStore.nextId(cfg)) : base)
     next = f.touch?.(next) ?? next
-    rowsStore.save(cfg, next)
+    if (remote) {
+      setBusy(true)
+      try {
+        await saveRemote(cfg, next, id === null)
+      } catch (e) {
+        setBusy(false)
+        return toast(`Не сохранено: ${e instanceof Error ? e.message : "ошибка API"}`)
+      }
+    } else rowsStore.save(cfg, next)
     if (id === null) writeDraft(cfg.key, null)
     toast(id === null ? `Создано: ${cfg.name(next)}` : `Сохранено: ${cfg.name(next)}`)
     onClose()
@@ -169,7 +183,7 @@ export function FormDrawer<T extends Row>({
             )}
             <span className="flex-1" />
             <Dialog.Close className={btn()}>Отмена</Dialog.Close>
-            <button type="submit" form="record-form" className={btn({ primary: true })}>
+            <button type="submit" form="record-form" disabled={busy || (isRemote(cfg) && !!cfg.api?.readOnly)} className={btn({ primary: true })}>
               <Check />
               {row ? "Сохранить изменения" : f.create.submit}
             </button>

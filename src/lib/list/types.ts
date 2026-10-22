@@ -128,6 +128,33 @@ export type FormConfig<T> = {
 /** Колонка отчёта (экран n-08): `off` — не отмечена по умолчанию. */
 export type ReportCol<T> = { k: string; t: string; value: (x: T) => string | number; off?: boolean }
 
+/**
+ * Источник данных в API техучёта (как BaseApiService в techaccaunt_front): `${base}/filter`, `/pasport`, `/create`, `/update`,
+ * `/filter-params`; удаление — POST /api/trash/soft-delete/{trashKey}. Включается, когда задан NEXT_PUBLIC_API_URL.
+ */
+export type ApiSource<T extends Row> = {
+  base: string
+  /** Путь списка внутри base, по умолчанию "/filter" */
+  list?: string
+  /** Параметр id в /pasport ("node_id", "equipment_id", "vols_id"…) */
+  idParam: string
+  trashKey?: string
+  /** Сырая запись API → запись раздела */
+  map: (raw: Record<string, unknown>) => T
+  /** Колонка → sort_by */
+  sort?: Record<string, string>
+  /** Фильтр → параметр запроса; branch переводится в id филиала */
+  filter?: Record<string, string>
+  /** Постоянные параметры (тип оборудования) */
+  fixed?: Record<string, unknown>
+  /** Имя параметра направления сортировки (onyma-clients ждёт sort_dir) */
+  sortDir?: string
+  /** Запись → тело /create и /update */
+  payload?: (x: T) => Record<string, unknown>
+  /** Нет создания / правки / удаления */
+  readOnly?: boolean
+}
+
 export type ListConfig<T extends Row> = {
   key: string
   title: string
@@ -153,6 +180,8 @@ export type ListConfig<T extends Row> = {
   /** «Показать 1 110 узлов» — родительный падеж мн. ч. и склонения: [1, 2–4, 5+]. */
   unit: [string, string, string]
   form: FormConfig<T>
+  /** Источник в API (без него раздел всегда на примерных данных) */
+  api?: ApiSource<T>
   /** «Удалить 2 узла связи?» — формы слова для 1, 2–4, 5+. */
   noun: [string, string, string]
   /** Удаление с причиной (экран n-09): что станет со связанными записями и быстрые причины. */
