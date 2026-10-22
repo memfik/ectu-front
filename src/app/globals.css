@@ -362,6 +362,9 @@
   --nav-hover: rgba(15, 23, 42, 0.06);
   --link: #085eff;
   --lock: #b45309;
+  /* Карточка-стекло (.glass): фон, непрозрачный вариант — для градиента под фото */
+  --glass-card: #ffffff;
+  --glass-card-solid: #ffffff;
 }
 .dark {
   --dd-bg: rgb(20, 22, 27);
@@ -384,6 +387,8 @@
   --nav-hover: rgba(255, 255, 255, 0.1);
   --link: #9db8ff;
   --lock: #ffc24a;
+  --glass-card: rgba(20, 22, 27, 0.72);
+  --glass-card-solid: rgb(24, 26, 32);
 }
 /* Тёмная: мягкое синее свечение сверху страницы, как в макете. */
 .dark body {
