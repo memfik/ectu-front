@@ -6,12 +6,13 @@ import { ArrowRight, ChevronDown, Filter, Layers, LayoutGrid, List, Map as MapIc
 import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/config/lists"
 import { useRows } from "@/lib/list/store"
-import { applyQuery, emptyQuery, exportCsv, fmt, type Query } from "@/lib/list/query"
+import { applyQuery, emptyQuery, fmt, type Query } from "@/lib/list/query"
 import type { HeroButton, ListConfig, Row } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { FilterDrawer } from "./filter-drawer"
 import { FormDrawer } from "./form-drawer"
 import { ImportDialog } from "./import-dialog"
+import { ReportDialog } from "./report-dialog"
 import { ActiveChips, FilterChip } from "./filters"
 import { MapView } from "./map-view"
 import { Bar, btn, Check, circ, Pill, Tag } from "./ui"
@@ -34,6 +35,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   // Шторка формы: { id: null } — новая запись
   const [form, setForm] = useState<{ id: number | null } | null>(null)
   const [importing, setImporting] = useState(false)
+  const [report, setReport] = useState(false)
   const [size, setSize] = useState(SIZE.table)
   const [checked, setChecked] = useState<Set<number>>(new Set())
   const [active, setActive] = useState<number | null>(rows[0]?.id ?? null)
@@ -60,10 +62,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   }
   const allOnPage = view.length > 0 && view.every((x) => checked.has(x.id))
   const action = (b: HeroButton) => {
-    if (b.onClick === "export") {
-      exportCsv(cfg, checked.size ? rows.filter((x) => checked.has(x.id)) : list)
-      return toast(`Выгружено ${fmt(checked.size || list.length)} записей (CSV)`)
-    }
+    if (b.onClick === "export") return setReport(true)
     if (b.onClick === "create") return setForm({ id: null })
     if (b.onClick === "import") return setImporting(true)
     toast(`«${b.label}» — следующим экраном`)
@@ -147,6 +146,7 @@ function ListView<T extends Row>({ cfg }: { cfg: ListConfig<T> }) {
   return (
     <div className="relative isolate">
       <FilterDrawer cfg={cfg} rows={rows} q={q} open={more} onOpenChange={setMore} onApply={setQ} />
+      {report && <ReportDialog cfg={cfg} rows={rows} q={q} onClose={() => setReport(false)} />}
       {importing && <ImportDialog cfg={cfg} onClose={() => setImporting(false)} />}
       {form && <FormDrawer key={form.id ?? "new"} cfg={cfg} id={form.id} onClose={() => setForm(null)} />}
       <Hero cfg={cfg} total={rows.length} onAction={action} />

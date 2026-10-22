@@ -121,6 +121,9 @@ export type FormConfig<T> = {
   touch?: (x: T) => T
 }
 
+/** Колонка отчёта (экран n-08): `off` — не отмечена по умолчанию. */
+export type ReportCol<T> = { k: string; t: string; value: (x: T) => string | number; off?: boolean }
+
 export type ListConfig<T extends Row> = {
   key: string
   title: string
@@ -146,6 +149,11 @@ export type ListConfig<T extends Row> = {
   /** «Показать 1 110 узлов» — родительный падеж мн. ч. и склонения: [1, 2–4, 5+]. */
   unit: [string, string, string]
   form: FormConfig<T>
+  report: {
+    cols: ReportCol<T>[]
+    /** Дата записи для «Периода», ДД.ММ.ГГГГ. */
+    date?: (x: T) => string
+  }
   /** Точка для вида «Карта»; без него вида «Карта» нет. */
   map?: (x: T) => { ll: [number, number]; title: string; sub: string; tone: Tone; note: string } | null
 }

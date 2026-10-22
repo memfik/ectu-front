@@ -155,6 +155,23 @@ export const nodesList: ListConfig<NodeRow> = {
     bar: { t: "Волокна", v: x.fibers ? `${x.fibers[0]}/${x.fibers[1]}` : "0/—", pct: x.fibers ? pct(x.fibers[0], x.fibers[1]) : 0 },
     open: "Паспорт",
   }),
+  report: {
+    date: (x) => x.updated,
+    cols: [
+      { k: "branch", t: "Филиал", value: (x) => x.branch },
+      { k: "num", t: "Порядковый №", value: (x) => x.num },
+      { k: "code", t: "ID узла связи", value: (x) => x.code },
+      { k: "city", t: "Населённый пункт", value: (x) => x.city },
+      { k: "address", t: "Адрес", value: (x) => x.address },
+      { k: "object", t: "Объект", value: (x) => x.object },
+      { k: "network", t: "Тип сети", value: (x) => x.network },
+      { k: "ownership", t: "Форма владения", value: (x) => OWN[x.ownership] },
+      { k: "opsGroup", t: "Группа эксплуатации", value: (x) => x.opsGroup },
+      { k: "opsKm", t: "Удалённость от ГЭ", value: (x) => x.opsKm },
+      { k: "tech", t: "Технологии", value: (x) => [...new Set([...x.techNode, ...x.tech])].join(", "), off: true },
+      { k: "comment", t: "Комментарий", value: (x) => x.comment, off: true },
+    ],
+  },
   form: {
     create: {
       title: "Новый узел связи",
