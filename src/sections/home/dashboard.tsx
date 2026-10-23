@@ -197,7 +197,7 @@ export function Dashboard() {
         </p>
         <div className="mt-6 flex flex-wrap gap-2.5">
           {/* TODO: ⌘N — создание узла из любой страницы */}
-          <Link href="/nodes?create=1" className={btn({ primary: true })}>
+          <Link href="/nodes/new" className={btn({ primary: true })}>
             <Plus />
             Создать узел
           </Link>

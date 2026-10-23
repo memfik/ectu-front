@@ -28,14 +28,15 @@ const SIZES: Record<Mode, number[]> = { table: [10, 20, 50, 100], cards: [8, 16,
 const SIZE: Record<Mode, number> = { table: 20, cards: 8, map: 20 }
 
 /** Шаблон «Список» (макет 02, экран «Список узлов»): шапка с KPI, панель фильтров, таблица, превью справа. */
-export function ListPage({ list: key }: { list: string }) {
-  return <ListView cfg={LISTS[key]} />
+/** `create` — сразу открыть шторку новой записи (маршрут /nodes/new, «Создать узел» на главной и в меню). */
+export function ListPage({ list: key, create }: { list: string; create?: boolean }) {
+  return <ListView cfg={LISTS[key]} create={create} />
 }
 
 /** Пустой источник: в режиме API примерные данные раздела не собираются. */
 const NO_ROWS = { key: "__none", rows: () => [] } as unknown as ListConfig<Row>
 
-function ListView<T extends Row>({ cfg: base }: { cfg: ListConfig<T> }) {
+function ListView<T extends Row>({ cfg: base, create }: { cfg: ListConfig<T>; create?: boolean }) {
   const router = useRouter()
   const remote = isRemote(base)
   const local = useRows(remote ? (NO_ROWS as unknown as ListConfig<T>) : base)
@@ -50,7 +51,7 @@ function ListView<T extends Row>({ cfg: base }: { cfg: ListConfig<T> }) {
   const [mode, setModeState] = useState<Mode>("table")
   const [more, setMore] = useState(false)
   // Шторка формы: { id: null } — новая запись
-  const [form, setForm] = useState<{ id: number | null } | null>(null)
+  const [form, setForm] = useState<{ id: number | null } | null>(create ? { id: null } : null)
   const [importing, setImporting] = useState(false)
   const [report, setReport] = useState(false)
   const [del, setDel] = useState<T[] | null>(null)
