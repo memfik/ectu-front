@@ -43,6 +43,7 @@ export type Gen = {
   base: string
   list?: string
   idParam?: string
+  record?: { path: string; key?: string }
   trashKey?: string
   readOnly?: boolean
   sortDir?: string
@@ -61,6 +62,7 @@ export function genApi(g: Gen): ApiSource<GenRow> {
     base: g.base,
     list: g.list,
     idParam: g.idParam ?? "equipment_id",
+    record: g.record,
     trashKey: g.trashKey,
     readOnly: g.readOnly,
     sortDir: g.sortDir,

@@ -105,8 +105,11 @@ export function useRemoteRecord<T extends Row>(cfg: ListConfig<T>, id: number, l
   useEffect(() => {
     if (!on) return
     api
-      .get<Record<string, unknown>>(`${cfg.api!.base}/pasport`, { [cfg.api!.idParam]: id })
-      .then((raw) => set({ key, row: cfg.api!.map((raw.data as Record<string, unknown>) ?? raw) }))
+      .get<Record<string, unknown>>(`${cfg.api!.base}${cfg.api!.record?.path ?? "/pasport"}`, { [cfg.api!.idParam]: id })
+      .then((raw) => {
+        const k = cfg.api!.record?.key
+        set({ key, row: cfg.api!.map(((k ? raw[k] : raw.data) as Record<string, unknown>) ?? raw) })
+      })
       .catch((e: Error) => set({ key, error: e.message }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, on])

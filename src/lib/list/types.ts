@@ -138,6 +138,8 @@ export type ApiSource<T extends Row> = {
   list?: string
   /** Параметр id в /pasport ("node_id", "equipment_id", "vols_id"…) */
   idParam: string
+  /** Своя запись вместо `/pasport` и ключ записи в ответе (ЗИП: `/details` → `replacement`) */
+  record?: { path: string; key?: string }
   trashKey?: string
   /** Сырая запись API → запись раздела */
   map: (raw: Record<string, unknown>) => T
