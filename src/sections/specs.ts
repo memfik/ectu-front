@@ -26,8 +26,9 @@ import { spec as ups } from "@/sections/ups/config"
 import { spec as gen } from "@/sections/gen/config"
 import { spec as spareParts } from "@/sections/spare-parts/config"
 import { spec as landPlots } from "@/sections/land-plots/config"
+import { spec as onewebForm } from "@/sections/oneweb-form/config"
 
-/** Разделы на общем шаблоне (макеты 07–37): у каждого своя папка src/sections/<раздел>/. */
+/** Разделы на общем шаблоне (макеты 07–37, 42): у каждого своя папка src/sections/<раздел>/. */
 export const SPECS: Spec[] = [
   fiberLines,
   cableLines,
@@ -56,6 +57,7 @@ export const SPECS: Spec[] = [
   gen,
   spareParts,
   landPlots,
+  onewebForm,
 ]
 
 export const specOf = (key: string) => SPECS.find((s) => s.key === key)
