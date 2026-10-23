@@ -8,19 +8,23 @@ import {
   ArrowRight,
   Building2,
   Cable,
+  Check,
   Clock,
+  Cctv,
   Download,
   Globe,
   House,
   Layers,
   Map as MapIcon,
   Minus,
+  Pencil,
   Plus,
   RadioTower,
   Ruler,
   Satellite,
   Search,
   Server,
+  Undo2,
   Users,
   X,
 } from "lucide-react"
@@ -29,6 +33,8 @@ import { btn, checkBox, circ, Pill } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import { BRANCHES, nodeRows, STATUS_LABEL, type NodeRow } from "@/sections/nodes/data"
 import { spdRows } from "@/sections/spd/data"
+import { CameraDialog } from "@/sections/cameras/camera-dialog"
+import { cameras, PUBLIC_CAMS, type Camera } from "@/sections/cameras/data"
 import { fmt } from "@/lib/list/query"
 import { cn } from "@/lib/utils"
 import type { Basemap, NetLine, NetPoint, View } from "@/components/map/network-map"
@@ -59,6 +65,14 @@ const TECH: Group[] = [
     layers: [
       { k: "vols", t: "ВОЛС", color: "#4f8dff", line: true, on: true },
       { k: "trunk", t: "ВОЛС магистральные", color: "#ffc24a", line: true, on: true },
+    ],
+  },
+  {
+    t: "Видеонаблюдение",
+    icon: Cctv,
+    layers: [
+      { k: "cam", t: "Камеры на узлах", color: "#ff5257", on: false },
+      { k: "pub", t: "Публичные веб-камеры", color: "#22d3ee", on: false },
     ],
   },
   {
@@ -126,9 +140,10 @@ export function MapPage() {
   const nodes = useMemo(() => nodeRows().filter((n) => n.onMap), [])
   const startNode = nodes.find((n) => n.code === params.get("node"))
   const [mode, setMode] = useState<"tech" | "comm">(params.get("layer") === "clients" ? "comm" : "tech")
-  const [layers, setLayers] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries([...TECH, ...COMM].flatMap((g) => g.layers.map((l) => [l.k, l.on]))),
-  )
+  const [layers, setLayers] = useState<Record<string, boolean>>(() => ({
+    ...Object.fromEntries([...TECH, ...COMM].flatMap((g) => g.layers.map((l) => [l.k, l.on]))),
+    ...(params.get("layer") === "cameras" ? { cam: true } : {}),
+  }))
   const [branch, setBranch] = useState(startNode?.branch ?? "")
   const [basemap, setBasemap] = useState<Basemap>("city")
   const [sel, setSel] = useState<string | null>(startNode ? `n${startNode.id}` : null)
@@ -138,11 +153,17 @@ export function MapPage() {
   const [view, setView] = useState<View>({ lat: 51.16, lng: 71.43, zoom: 11, inView: {} })
   const [q, setQ] = useState("")
   const [ruler, setRuler] = useState<[number, number][] | null>(null)
+  // map-13: режим редактора — новая трасса по кликам, сохранённые трассы добавляются к слою ВОЛС
+  const [draw, setDraw] = useState<[number, number][] | null>(null)
+  const [drawKind, setDrawKind] = useState<"vols" | "trunk">("vols")
+  const [drawn, setDrawn] = useState<NetLine[]>([])
+  const [cam, setCam] = useState<Camera | null>(null)
   const groups = mode === "tech" ? TECH : COMM
   const fly = (ll: [number, number], zoom: number) => setFocus((f) => ({ ll, zoom, n: (f?.n ?? 0) + 1 }))
 
   const inBranch = useMemo(() => nodes.filter((n) => !branch || n.branch === branch), [nodes, branch])
-  const lines = useMemo(() => buildLines(inBranch), [inBranch])
+  const lines = useMemo(() => [...buildLines(inBranch), ...drawn], [inBranch, drawn])
+  const cams = useMemo(() => cameras().filter((c) => !branch || c.branch === branch), [branch])
   const counts = useMemo(() => {
     const c: Record<string, number> = {}
     for (const n of inBranch) c[n.network] = (c[n.network] ?? 0) + 1
@@ -151,11 +172,13 @@ export function MapPage() {
     c.spd = spdRows("switch").length + spdRows("router").length
     c.ams = inBranch.filter((n) => n.network === "МС" || n.id % 4 === 0).length
     c.nodes = inBranch.length
+    c.cam = cams.length
+    c.pub = PUBLIC_CAMS.length
     c.client = Math.round(inBranch.length * 2.9)
     c.processed = Math.round(inBranch.length * 4.8)
     c.none = Math.round(inBranch.length * 23.3)
     return c
-  }, [inBranch, lines])
+  }, [inBranch, lines, cams])
 
   const points = useMemo<NetPoint[]>(() => {
     const on = (k: string) => layers[k]
@@ -202,6 +225,8 @@ export function MapPage() {
             title: `АМС ${n.code.split(".")[0]}`,
           }),
         )
+    if (on("cam")) cams.forEach((c) => out.push({ id: `k${c.id}`, ll: c.ll, layer: "cam", color: c.online ? "#ff5257" : "#8c919b", title: c.id }))
+    if (on("pub")) PUBLIC_CAMS.forEach((c) => out.push({ id: `k${c.id}`, ll: c.ll, layer: "pub", color: "#22d3ee", title: c.title }))
     if (on("spd"))
       [...spdRows("switch"), ...spdRows("router")]
         .filter((x) => !branch || x.branch === branch)
@@ -209,7 +234,8 @@ export function MapPage() {
           out.push({ id: `s${x.kind}${x.id}`, ll: [x.ll[0] - 0.0005, x.ll[1] - 0.0007], layer: "spd", color: "#085eff", title: x.host }),
         )
     return out
-  }, [mode, layers, inBranch, branch])
+  }, [mode, layers, inBranch, branch, cams])
+  const draft: NetLine[] = draw && draw.length > 1 ? [{ id: "draft", coords: draw, layer: "draft", color: "#2bd463", width: 3 }] : []
   const shownLines = useMemo(() => (mode === "tech" ? lines.filter((l) => layers[l.layer]) : []), [mode, lines, layers])
 
   const found = q.trim()
@@ -226,13 +252,18 @@ export function MapPage() {
     <div className="fixed inset-0 z-0">
       <NetworkMap
         points={points}
-        lines={shownLines}
+        lines={[...shownLines, ...draft]}
         basemap={basemap}
         selected={sel}
         focus={focus}
-        onSelect={(id) => !ruler && setSel(id)}
+        onSelect={(id) => {
+          if (ruler || draw) return
+          const k = id?.startsWith("k") ? [...cams, ...PUBLIC_CAMS].find((c) => `k${c.id}` === id) : undefined
+          if (k) return setCam(k)
+          setSel(id)
+        }}
         onView={setView}
-        onMapClick={(ll) => ruler && setRuler([...ruler, ll])}
+        onMapClick={(ll) => (draw ? setDraw([...draw, ll]) : ruler && setRuler([...ruler, ll]))}
         className="absolute inset-0"
       />
 
@@ -389,6 +420,18 @@ export function MapPage() {
           >
             <Ruler className="size-[18px]" />
           </button>
+          <button
+            type="button"
+            title="Редактор трасс"
+            aria-pressed={!!draw}
+            onClick={() => {
+              setRuler(null)
+              setDraw(draw ? null : node ? [node.ll] : [])
+            }}
+            className={cn("grid size-11 place-items-center rounded-xl hover:bg-[var(--nav-hover)]", draw && "bg-[#085eff] text-white hover:bg-[#085eff]")}
+          >
+            <Pencil className="size-[18px]" />
+          </button>
           {/* TODO: выгрузка видимой области (map-12) — на сервере */}
           <button
             type="button"
@@ -466,6 +509,53 @@ export function MapPage() {
         </div>
       )}
 
+      {draw && (
+        <div className={cn(glassBox, "absolute top-[166px] left-1/2 z-[3] flex -translate-x-1/2 flex-wrap items-center gap-3 rounded-2xl border-[#2bd463]/40 px-3 py-2 text-[13px]")}>
+          <span className="rounded-full bg-[rgba(43,212,99,0.14)] px-2.5 py-1 text-[11px] text-[var(--status-ok)]">● Режим редактора</span>
+          <b className="font-semibold">Новая {drawKind === "trunk" ? "магистральная" : "ВОЛС"} трасса</b>
+          <span className="text-muted-foreground">
+            {node ? `от ${node.code} · ` : ""}
+            {draw.length} {draw.length === 1 ? "точка" : draw.length < 5 ? "точки" : "точек"} ·{" "}
+            {(() => {
+              const km = draw.slice(1).reduce((a, p, i) => a + dist(draw[i], p), 0)
+              return km < 1 ? `${Math.round(km * 1000)} м` : `${km.toFixed(2).replace(".", ",")} км`
+            })()}
+          </span>
+          <Select
+            value={drawKind}
+            opts={[
+              { v: "vols", label: "Тип: ВОЛС" },
+              { v: "trunk", label: "Тип: магистраль" },
+            ]}
+            onChange={(v) => setDrawKind(v as "vols" | "trunk")}
+            className="h-9 w-[170px] rounded-full"
+          />
+          <button type="button" className={btn({ sm: true })} onClick={() => setDraw(draw.slice(0, -1))} disabled={!draw.length}>
+            <Undo2 />
+            Отменить
+          </button>
+          <button
+            type="button"
+            className={btn({ sm: true, primary: true })}
+            disabled={draw.length < 2}
+            onClick={() => {
+              // TODO(API): сохранить геометрию трассы (создание ВОЛС с координатами участков)
+              setDrawn([
+                ...drawn,
+                { id: `d${drawn.length}`, coords: draw, layer: drawKind, color: drawKind === "trunk" ? "#ffc24a" : "#4f8dff", width: drawKind === "trunk" ? 2.4 : 1.6 },
+              ])
+              setDraw(null)
+              toast("Трасса сохранена на карте — запись ВОЛС создайте в разделе «ВОЛС»")
+            }}
+          >
+            <Check />
+            Сохранить трассу
+          </button>
+          <span className="w-full text-[11.5px] text-muted-foreground">Клик по карте — следующая точка · «Отменить» убирает последнюю</span>
+        </div>
+      )}
+      {cam && <CameraDialog cam={cam} onClose={() => setCam(null)} />}
+
       {/* подложки */}
       <div className={cn(glassBox, "absolute bottom-[58px] left-1/2 z-[2] flex -translate-x-1/2 gap-1 rounded-full p-1 max-sm:bottom-3")}>
         {(
@@ -507,6 +597,11 @@ export function MapPage() {
             ? `${fmt(["ГРС", "ГМС", "МС", "ГАС"].reduce((a, k) => a + (view.inView[k] ?? 0), 0))} узлов · ${fmt(view.inView.vols ?? 0)} ВОЛС · ${fmt(view.inView.ams ?? 0)} АМС в видимой области`
             : `${fmt((view.inView.client ?? 0) + (view.inView.processed ?? 0) + (view.inView.none ?? 0))} клиентов в видимой области`}
         </span>
+        {mode === "tech" && layers.cam && (
+          <Link href="/cameras" className={cn(glassBox, "rounded-xl px-3 py-1.5 hover:text-foreground")}>
+            {fmt(cams.filter((c) => c.online).length)} камеры online · {fmt(cams.filter((c) => !c.online).length)} offline
+          </Link>
+        )}
       </div>
       <span
         className={cn(

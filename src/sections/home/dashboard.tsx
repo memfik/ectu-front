@@ -635,7 +635,7 @@ export function Dashboard() {
               }
               action={
                 // TODO: видеостена и потоки камер (cam-03) — источник видео
-                <Link href="/map?layer=cameras" className={btn({ sm: true })}>
+                <Link href="/cameras" className={btn({ sm: true })}>
                   <LayoutGrid />
                   Видеостена
                 </Link>
