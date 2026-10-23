@@ -51,6 +51,7 @@ import type { Tone } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { CapacityTab, ChildrenTab, MolTab, MovesTab, PortDialog, PortsTab, ServiceTab } from "./tabs"
 import { RecordNotFound } from "@/components/shared/states"
+import { Equipment3D } from "@/components/three/equipment-3d"
 
 type Stage = "3d" | "panel" | "rack" | "photo"
 export type SpdTab = "overview" | "ports" | "capacity" | "children" | "mol" | "docs" | "service" | "moves"
@@ -210,10 +211,8 @@ export function SpdPassport({ kind, id }: { kind: SpdRow["kind"]; id: number }) 
             <div className="relative min-h-[660px] max-[1279px]:min-h-[480px]">
               {stage === "3d" && (
                 <div className="absolute inset-x-0 top-0 bottom-16">
-                  <div
-                    className="absolute inset-0 bg-contain bg-center bg-no-repeat"
-                    style={{ backgroundImage: "url(/equipment/rack-scene.png)" }}
-                  />
+                  {/* 3D: стойки с выделенным устройством — models.ts из прототипа «3D-интерактив» */}
+                  <Equipment3D model={x.kind === "router" ? "router" : "switch"} zoom={0.75} className="absolute inset-0" />
                 </div>
               )}
               {stage === "panel" && <FrontPanel x={x} d={d} onPort={setPort} />}

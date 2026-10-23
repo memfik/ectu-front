@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react"
 import {
   AudioWaveform,
   BatteryCharging,
+  Box,
   Cable,
   ChartPie,
   ClipboardList,
@@ -178,6 +179,7 @@ export const NAV_GROUPS: NavGroup[] = [
           items: [s("42", "oneweb-form", "Форма учёта OneWeb", Monitor, { hint: "1 204 станции" })],
         },
         { title: "Склад", items: [s("35", "spare-parts", "ЗИП", Package, { hint: "Запасные части" })] },
+        { title: "3D", items: [a("3D-каталог оборудования", "/equipment-3d", Box, "Модели по типу корпуса")] },
       ],
     ],
     feature: {

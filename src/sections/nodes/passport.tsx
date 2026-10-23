@@ -44,6 +44,7 @@ import { Gallery } from "@/components/passport/gallery"
 import { NodeOverview } from "./overview"
 import { ClientsTab, CommentsTab, DocsTab, EquipmentTab, FibersTab, HistoryTab, IdTab, PeopleTab } from "./tabs"
 import { RecordNotFound } from "@/components/shared/states"
+import { Equipment3D } from "@/components/three/equipment-3d"
 
 const PointsMap = dynamic(() => import("@/components/map/points-map").then((m) => m.PointsMap), {
   ssr: false,
@@ -572,10 +573,10 @@ function Backdrop({
     <div aria-hidden className="absolute inset-0">
       <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_55%_45%,rgba(8,94,255,0.16),transparent_70%)]" />
       {stage === "scene" ? (
-        <div
-          className="absolute top-[150px] left-1/2 h-[726px] w-[1100px] -translate-x-1/2 bg-contain bg-center bg-no-repeat max-[1279px]:hidden"
-          style={{ backgroundImage: "url(/nodes/scene.png)" }}
-        />
+        // 3D-модель узла (контейнер, АМС, ВОЛС) — models.ts из прототипа «3D-интерактив»
+        <div className="pointer-events-auto absolute top-[150px] left-1/2 h-[726px] w-[1100px] -translate-x-1/2 max-[1279px]:hidden">
+          <Equipment3D model="node" zoom={0.8} autoRotate={false} className="absolute inset-0" />
+        </div>
       ) : (
         <>
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url(/nodes/g-1.jpg)" }} />
