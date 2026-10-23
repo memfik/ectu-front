@@ -158,3 +158,7 @@
 - [ ] ЗИП (35): список `/api/replacements/filter`, паспорт `/details?id` → `replacement` (поля МОЛ, документа замены, места установки — имена предположены, сверить); движение — `/api/replacements/movement-history` не подключено (пример); снятый модуль, «Путь» — примеры; 3D склада — картинка из макета; категории — `/api/replacements/category`; отчёт `/api/replacements/export-zip`
 - [ ] Земельные участки (37): `/api/land-plots` (id-параметр `id`, поля из `columnConfigs.land_plots`; привязка — узел или ВОЛС `node_or_bols`); контур и размеры участка на схеме, правоустанавливающие документы (5 / 7) — примеры; 3D — картинка из макета
 - [ ] Форма учёта OneWeb (42): эндпоинт станций мониторинга не найден (в старом фронте `OneWebMonitorList.vue` — колонки `station_name`, `serial_number`, `imei`, `ip_address`, `latitude`, `longitude`, паспорт `/api/oneweb/pasport`) — пока примерные данные; связность, трафик и простои — пример
+
+## 36 Сводные файлы · 38 Аналитика · 43 Ядро сети
+
+- [ ] 36: цифры сводных файлов и общего отчёта — из макета (`src/sections/summary-files/data.ts`); нужно `{base}/summary`, `/api/count/statistics`; Excel собирается в браузере, PDF — печать; для разделов без своей формы в макете (PDH, РРЛ, OneWeb, ЗИП, клиенты…) — записи примера по филиалам
