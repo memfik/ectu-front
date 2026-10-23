@@ -162,3 +162,5 @@
 ## 36 Сводные файлы · 38 Аналитика · 43 Ядро сети
 
 - [ ] 36: цифры сводных файлов и общего отчёта — из макета (`src/sections/summary-files/data.ts`); нужно `{base}/summary`, `/api/count/statistics`; Excel собирается в браузере, PDF — печать; для разделов без своей формы в макете (PDH, РРЛ, OneWeb, ЗИП, клиенты…) — записи примера по филиалам
+- [ ] 38 Аналитика: с API поля — `/api/analytics/field-stats { type, filial_id }` (id филиала взят по порядку `BRANCHES` — сверить с `/api/analytics/filials`); проценты разделов слева и по филиалам считаются по примерным данным; экспорт `/api/analytics/export`, `/api/analytics/ls-structures/export`, сводка ВОЛС `/api/analytics/vols-summary` не подключены
+- [ ] 38 Мониторинг OneWeb (`/oneweb-monitoring`): KPI, трафик по дням, простои, станции и их простои — цифры макета; API `/api/oneweb/traffic-summary`, `/traffic-history`, отчёты `/api/oneweb/lte-signal-report/export`, `/stress-tests/export`; период, «Скачать отчёт», «Отчёт по станции» — заглушки; доступ только admin не проверяется
