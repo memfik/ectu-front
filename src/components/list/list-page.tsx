@@ -3,7 +3,8 @@
 import { useDeferredValue, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Filter, Layers, LayoutGrid, List, Map as MapIcon, Pencil, QrCode, Search, Trash2, X } from "lucide-react"
+import { ArrowRight, Filter, Layers, LayoutGrid, List, Map as MapIcon, Pencil, Plus, QrCode, Search, SearchX, Trash2, X } from "lucide-react"
+import { StateScreen } from "@/components/shared/state-screen"
 import { toast } from "@/components/shared/toast"
 import { LISTS } from "@/sections"
 import { useRows } from "@/lib/list/store"
@@ -87,6 +88,26 @@ function ListView<T extends Row>({ cfg: base }: { cfg: ListConfig<T> }) {
     else s.add(id)
     setChecked(s)
   }
+  // st-empty: ничего не найдено — сбросить фильтры или создать запись
+  const empty = (
+    <StateScreen
+      icon={SearchX}
+      title="Ничего не найдено"
+      text={`${q.q.trim() ? `По запросу «${q.q.trim()}»` : "С текущими фильтрами"} записей нет. Попробуйте изменить запрос или сбросить фильтры.`}
+      className="py-12"
+    >
+      <button type="button" className={btn()} onClick={() => setQ(emptyQuery(cfg))}>
+        <X />
+        Сбросить фильтры
+      </button>
+      {!cfg.api?.readOnly && cfg.buttons.some((b) => b.onClick === "create") && (
+        <button type="button" className={btn({ primary: true })} onClick={() => setForm({ id: null })}>
+          <Plus />
+          Создать
+        </button>
+      )}
+    </StateScreen>
+  )
   const allOnPage = view.length > 0 && view.every((x) => checked.has(x.id))
   const action = (b: HeroButton) => {
     if (b.onClick === "export") return setReport(true)
@@ -223,6 +244,7 @@ function ListView<T extends Row>({ cfg: base }: { cfg: ListConfig<T> }) {
             <ActiveChips cfg={cfg} q={q} setQ={setQ} />
           </section>
           <Cards
+            empty={empty}
             cfg={cfg}
             rows={view}
             checked={checked}
@@ -309,8 +331,8 @@ function ListView<T extends Row>({ cfg: base }: { cfg: ListConfig<T> }) {
                   })}
                   {!view.length && (
                     <tr>
-                      <td colSpan={cfg.cols.length + 3} className="py-12 text-center text-muted-foreground">
-                        {srv.loading ? "Загрузка…" : srv.error ? `Ошибка API: ${srv.error}` : "Ничего не найдено — измените поиск или фильтры"}
+                      <td colSpan={cfg.cols.length + 3} className="py-2 text-center text-muted-foreground">
+                        {srv.loading ? "Загрузка…" : srv.error ? `Ошибка API: ${srv.error}` : empty}
                       </td>
                     </tr>
                   )}
@@ -469,6 +491,7 @@ function RowActions({ onQr, onEdit, onDelete }: { onQr?: () => void; onEdit: () 
 
 /** Вид «Карточки» (экран n-01): фото со статусом, название, теги, полоса, действия и «Паспорт». */
 function Cards<T extends Row>({
+  empty,
   cfg,
   rows,
   checked,
@@ -477,6 +500,7 @@ function Cards<T extends Row>({
   onQr,
   onDelete,
 }: {
+  empty: React.ReactNode
   cfg: ListConfig<T>
   rows: T[]
   checked: Set<number>
@@ -485,7 +509,7 @@ function Cards<T extends Row>({
   onQr: (x: T) => void
   onDelete: (x: T) => void
 }) {
-  if (!rows.length) return <div className="py-16 text-center text-muted-foreground">Ничего не найдено — измените поиск или фильтры</div>
+  if (!rows.length) return empty
   return (
     <div className="mt-[18px] grid grid-cols-4 gap-4 max-[1500px]:grid-cols-3 max-[1100px]:grid-cols-2 max-sm:grid-cols-1">
       {rows.map((x) => {

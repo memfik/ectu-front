@@ -43,6 +43,7 @@ import { LinkFiberDialog, LocationDialog, PeopleDrawer, UploadDialog } from "./d
 import { Gallery } from "@/components/passport/gallery"
 import { NodeOverview } from "./overview"
 import { ClientsTab, CommentsTab, DocsTab, EquipmentTab, FibersTab, HistoryTab, IdTab, PeopleTab } from "./tabs"
+import { RecordNotFound } from "@/components/shared/states"
 
 const PointsMap = dynamic(() => import("@/components/map/points-map").then((m) => m.PointsMap), {
   ssr: false,
@@ -77,14 +78,7 @@ export function NodePassport({ id }: { id: number }) {
 
   if (loading) return <div className="px-(--page-gutter) py-24 text-center text-muted-foreground">Загрузка паспорта…</div>
   if (!x || !d)
-    return (
-      <div className="px-(--page-gutter) py-24 text-center">
-        <p className="text-lg font-semibold">Узел не найден</p>
-        <Link href="/nodes" className={cn(btn(), "mt-4")}>
-          <ChevronLeft />К списку узлов
-        </Link>
-      </div>
-    )
+    return <RecordNotFound title="Узел не найден" href="/nodes" back="К списку узлов" />
 
   const branch = BRANCHES.find((b) => b.v === x.branch)
   const tabs: { k: TabKey; t: string; icon: typeof Cable; n?: number }[] = [

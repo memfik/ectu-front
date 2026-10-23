@@ -3,7 +3,7 @@
 import { useRef, useState } from "react"
 import { Dialog } from "radix-ui"
 import { ArrowRight, Check, CircleAlert, CircleCheck, Download, FileUp, ListChecks, Upload, X } from "lucide-react"
-import { toast } from "@/components/shared/toast"
+import { notify, toast } from "@/components/shared/toast"
 import { LISTS } from "@/sections"
 import { checkImport, downloadErrors, downloadTemplate, readTable, type ImportCheck } from "@/lib/list/import"
 import { fmt, plural } from "@/lib/list/query"
@@ -63,16 +63,17 @@ export function ImportDialog<T extends Row>({
     if (isRemote(cfg)) {
       // TODO(API): пакетный /api/import (формат не описан) — пока построчно через /create и /update
       setBusy(true)
+      notify("info", "Импорт запущен", `${fmt(check.create.length + check.update.length)} строк · уведомим по готовности`)
       let ok = 0
       for (const x of check.update) await saveRemote(cfg, x, false).then(() => ok++, () => {})
       for (const x of check.create) await saveRemote(cfg, x, true).then(() => ok++, () => {})
       setBusy(false)
-      toast(`Загружено ${fmt(ok)} из ${fmt(check.create.length + check.update.length)}`)
+      notify(ok ? "ok" : "error", "Импорт завершён", `Загружено ${fmt(ok)} из ${fmt(check.create.length + check.update.length)}`)
       return onClose()
     }
     for (const x of [...check.update, ...check.create]) rowsStore.save(cfg, x)
     const n = check.create.length + check.update.length
-    toast(`Загружено ${fmt(n)} ${plural(n, ["строка", "строки", "строк"])}`)
+    notify("ok", "Импорт завершён", `Загружено ${fmt(n)} ${plural(n, ["строка", "строки", "строк"])}`)
     onClose()
   }
 

@@ -50,6 +50,7 @@ import { useRows } from "@/lib/list/store"
 import type { Tone } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { CapacityTab, ChildrenTab, MolTab, MovesTab, PortDialog, PortsTab, ServiceTab } from "./tabs"
+import { RecordNotFound } from "@/components/shared/states"
 
 type Stage = "3d" | "panel" | "rack" | "photo"
 export type SpdTab = "overview" | "ports" | "capacity" | "children" | "mol" | "docs" | "service" | "moves"
@@ -75,14 +76,7 @@ export function SpdPassport({ kind, id }: { kind: SpdRow["kind"]; id: number }) 
 
   if (loading) return <div className="px-(--page-gutter) py-24 text-center text-muted-foreground">Загрузка паспорта…</div>
   if (!x || !d)
-    return (
-      <div className="px-(--page-gutter) py-24 text-center">
-        <p className="text-lg font-semibold">Оборудование не найдено</p>
-        <Link href={`/${cfg.key}`} className={cn(btn(), "mt-4")}>
-          <ChevronLeft />К списку
-        </Link>
-      </div>
-    )
+    return <RecordNotFound title="Оборудование не найдено" href={`/${cfg.key}`} back="К списку" />
 
   const node = nodeRows().find((n) => n.id === x.nodeId)
   const used = d.ports.filter((p) => p.oper === "up").length

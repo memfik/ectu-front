@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useSyncExternalStore } from "react"
+import { CircleAlert, CircleCheck, Info, X } from "lucide-react"
 
 /* Тост внизу по центру, как в макетах: текст + «Отменить». Один на приложение — новый заменяет старый. */
 
@@ -57,6 +58,70 @@ export function Toaster() {
           Отменить
         </button>
       )}
+    </div>
+  )
+}
+
+/* Уведомления справа внизу (макет 39, st-toasts): успех / ошибка / сведения, заголовок и подпись, стопкой. */
+
+type Kind = "ok" | "error" | "info"
+type Note = { id: number; kind: Kind; title: string; sub?: string }
+let notes: Note[] = []
+const noteListeners = new Set<() => void>()
+const emitNotes = () => noteListeners.forEach((l) => l())
+const dropNote = (id: number) => {
+  notes = notes.filter((n) => n.id !== id)
+  emitNotes()
+}
+
+export function notify(kind: Kind, title: string, sub?: string) {
+  const id = Date.now() + Math.random()
+  notes = [...notes.slice(-2), { id, kind, title, sub }]
+  emitNotes()
+  setTimeout(() => dropNote(id), 6000)
+}
+
+const KIND: Record<Kind, [typeof CircleCheck, string]> = {
+  ok: [CircleCheck, "text-[var(--status-ok)]"],
+  error: [CircleAlert, "text-[#ff5257]"],
+  info: [Info, "text-[#4f8dff]"],
+}
+
+export function Notifications() {
+  const list = useSyncExternalStore(
+    (l) => {
+      noteListeners.add(l)
+      return () => noteListeners.delete(l)
+    },
+    () => notes,
+    () => notes
+  )
+  return (
+    <div className="fixed right-7 bottom-7 z-[131] flex flex-col-reverse items-end gap-2.5 max-sm:right-3 max-sm:left-3">
+      {list.map((n) => {
+        const [Icon, c] = KIND[n.kind]
+        return (
+          <div
+            key={n.id}
+            role={n.kind === "error" ? "alert" : "status"}
+            className="flex w-[340px] max-w-full animate-in items-center gap-3 rounded-2xl border border-border bg-[var(--dd-bg)] py-3 pr-3 pl-4 shadow-[var(--dd-shadow)] fade-in slide-in-from-bottom-2"
+          >
+            <Icon className={`size-[18px] flex-none ${c}`} />
+            <span className="min-w-0 flex-1">
+              <b className="block text-[13.5px] font-semibold">{n.title}</b>
+              {n.sub && <span className="block truncate text-[12px] text-muted-foreground">{n.sub}</span>}
+            </span>
+            <button
+              type="button"
+              aria-label="Закрыть"
+              onClick={() => dropNote(n.id)}
+              className="grid size-8 flex-none place-items-center rounded-full bg-[var(--chip-bg)] text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }

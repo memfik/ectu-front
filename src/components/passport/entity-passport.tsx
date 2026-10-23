@@ -38,6 +38,7 @@ import type { ListConfig } from "@/lib/list/types"
 import { cn } from "@/lib/utils"
 import { Gallery } from "./gallery"
 import { Avatar, Card, glass, Kv, SegBar } from "./ui"
+import { RecordNotFound } from "@/components/shared/states"
 
 const PointsMap = dynamic(() => import("@/components/map/points-map").then((m) => m.PointsMap), {
   ssr: false,
@@ -67,14 +68,7 @@ export function EntityPassport({ section, id }: { section: string; id: number })
   if (loading)
     return <div className="px-(--page-gutter) py-24 text-center text-muted-foreground">Загрузка паспорта…</div>
   if (!x)
-    return (
-      <div className="px-(--page-gutter) py-24 text-center">
-        <p className="text-lg font-semibold">Запись не найдена</p>
-        <Link href={`/${section}`} className={cn(btn(), "mt-4")}>
-          <ChevronLeft />К списку
-        </Link>
-      </div>
-    )
+    return <RecordNotFound title="Запись не найдена" href={`/${section}`} back="К списку" />
 
   const node = nodeRows().find((n) => n.id === x.nodeId)
   const status = cfg.card(x).status

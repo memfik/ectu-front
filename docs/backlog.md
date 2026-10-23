@@ -165,3 +165,10 @@
 - [ ] 38 Аналитика: с API поля — `/api/analytics/field-stats { type, filial_id }` (id филиала взят по порядку `BRANCHES` — сверить с `/api/analytics/filials`); проценты разделов слева и по филиалам считаются по примерным данным; экспорт `/api/analytics/export`, `/api/analytics/ls-structures/export`, сводка ВОЛС `/api/analytics/vols-summary` не подключены
 - [ ] 38 Мониторинг OneWeb (`/oneweb-monitoring`): KPI, трафик по дням, простои, станции и их простои — цифры макета; API `/api/oneweb/traffic-summary`, `/traffic-history`, отчёты `/api/oneweb/lte-signal-report/export`, `/stress-tests/export`; период, «Скачать отчёт», «Отчёт по станции» — заглушки; доступ только admin не проверяется
 - [ ] 43 Ядро сети (`/core`): схемы `config/core_map.php` и эндпоинтов Orion `/api/monitoring/orion/core/*` в локальном `../kticket-back` нет — узлы, каналы, загрузка, аварии, интерфейсы по городам взяты из макета (`src/sections/core/data.ts`); раскладка сохраняется в localStorage (нужен `core_map_positions`, общая для всех); графики трафика — синтетическая суточная кривая; «Открыть в Orion», «Создать заявку», «Все аварии», произвольный период — заглушки; опрос раз в 30 сек не сделан
+
+## 39 Состояния
+
+- [ ] 403: `RoleGate` по `user.roles` на IP-плане, клиентах Onyma (admin, ip_manager) и мониторинге OneWeb (admin); остальные права (`user.permissions`, `routePermissions.js`) не проверяются; «Запросить доступ» — заглушка
+- [ ] 503: `app/(main)/error.tsx` — любая ошибка страницы; отдельного ответа «техработы до 19:00» от API нет
+- [ ] Офлайн: экран поверх страницы по `navigator.onLine`; очереди несохранённых изменений нет
+- [ ] Уведомления-тосты справа (`notify`) — сохранение формы и импорт; остальные сообщения — прежний тост по центру

@@ -37,6 +37,7 @@ import { useRows } from "@/lib/list/store"
 import { cn } from "@/lib/utils"
 import { kmStr, lineDetail, type LineCtx, type LineDetail, type LineKind, type LineStat, type Segment } from "./detail"
 import { LineDocsTab, LineHistoryTab, strandColor } from "./tabs"
+import { RecordNotFound } from "@/components/shared/states"
 
 const NetworkMap = dynamic(() => import("@/components/map/network-map").then((m) => m.NetworkMap), {
   ssr: false,
@@ -66,14 +67,7 @@ export function LinePassport({ k, id }: { k: LineKind; id: number }) {
 
   if (loading) return <div className="px-(--page-gutter) py-24 text-center text-muted-foreground">Загрузка паспорта…</div>
   if (!x || !base)
-    return (
-      <div className="px-(--page-gutter) py-24 text-center">
-        <p className="text-lg font-semibold">Трасса не найдена</p>
-        <Link href={`/${section}`} className={cn(btn(), "mt-4")}>
-          <ChevronLeft />К списку {spec.title}
-        </Link>
-      </div>
-    )
+    return <RecordNotFound title="Запись не найдена" href={`/${section}`} back={`К списку ${spec.title}`} />
 
   const d: LineDetail = { ...base, segments: segments ?? base.segments }
   const status = list.card(x).status

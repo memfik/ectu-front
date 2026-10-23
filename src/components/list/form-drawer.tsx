@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { Dialog } from "radix-ui"
 import { Check, Info, Pencil, Plus, Trash2, X } from "lucide-react"
-import { toast } from "@/components/shared/toast"
+import { notify, toast } from "@/components/shared/toast"
 import { plural } from "@/lib/list/query"
 import { isRemote, saveRemote } from "@/lib/list/remote"
 import { rowsStore } from "@/lib/list/store"
@@ -88,11 +88,11 @@ export function FormDrawer<T extends Row>({
         await saveRemote(cfg, next, id === null)
       } catch (e) {
         setBusy(false)
-        return toast(`Не сохранено: ${e instanceof Error ? e.message : "ошибка API"}`)
+        return notify("error", "Не удалось сохранить", e instanceof Error ? e.message : "Нет связи с сервером · повторите")
       }
     } else rowsStore.save(cfg, next)
     if (id === null) writeDraft(cfg.key, null)
-    toast(id === null ? `Создано: ${cfg.name(next)}` : `Сохранено: ${cfg.name(next)}`)
+    notify("ok", id === null ? "Запись создана" : "Запись сохранена", cfg.name(next))
     onClose()
   }
 
