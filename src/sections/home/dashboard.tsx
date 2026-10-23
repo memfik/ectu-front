@@ -35,6 +35,7 @@ import {
   Users,
   VideoOff,
   type LucideIcon,
+  Settings2,
 } from "lucide-react"
 import { btn, circ, Pill } from "@/components/list/ui"
 import { Avatar, Card, glass } from "@/components/passport/ui"
@@ -43,6 +44,7 @@ import { spdRows } from "@/sections/spd/data"
 import { useUser } from "@/lib/api/session"
 import { fmt } from "@/lib/list/query"
 import { cn } from "@/lib/utils"
+import { AddWidgets, EditBar, ExtraWidget, HomeEdit, W, useHomeLayout } from "./customize"
 
 /*
  * Главная (макет 06, home-01): сводка по сети для пользователя.
@@ -145,6 +147,9 @@ export function Dashboard() {
   const hot = sw.filter((x) => x.portsUsed / x.portsTotal > 0.9).length
   const noMap = nodes.filter((n) => !n.onMap).length
   const [growth, setGrowth] = useState<"nodes" | "eq" | "vols">("nodes")
+  const home = useHomeLayout()
+  const [edit, setEdit] = useState(false)
+  const [adding, setAdding] = useState(false)
   const months = ["ноя", "дек", "янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт"]
   const total = nodes.length
   const growthData = growth === "nodes" ? series(1180, total, 1) : growth === "eq" ? series(5600, 6214, 2) : series(38900, 41820, 3)
@@ -208,426 +213,482 @@ export function Dashboard() {
             <ChartColumn />
             Сводный отчёт
           </Link>
+          <button type="button" className={btn()} onClick={() => setEdit(!edit)}>
+            <Settings2 />
+            Настроить главную
+          </button>
         </div>
       </section>
 
-      <div className="flex flex-col gap-[18px] px-(--page-gutter)">
-        <div className="grid grid-cols-5 gap-[18px] max-[1500px]:grid-cols-3 max-sm:grid-cols-2">
-          {kpis.map(([I, t, v, d, c, data]) => (
-            <div key={t} className={cn(glass, "px-5 pt-[18px] pb-3")}>
-              <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                <I className="size-4" />
-                {t}
-              </span>
-              <b
-                className={cn(
-                  "mt-2 block text-[34px] leading-none font-medium tracking-[-0.02em] tabular-nums",
-                  c === "#ff5257" && "text-[#ff5257]",
-                )}
-              >
-                {v}
-              </b>
-              <span className="mt-1.5 block text-xs" style={{ color: c === "#ff5257" ? "#ff5257" : "var(--status-ok)" }}>
-                {d}
-              </span>
-              <Spark data={data} color={c} />
-            </div>
-          ))}
-        </div>
-
-        <Card
-          icon={LayoutGrid}
-          title="Разделы"
-          action={
-            <Link href="/nodes" className={btn({ sm: true })}>
-              <ArrowRight />
-              Все разделы
-            </Link>
-          }
-        >
-          <div className="grid grid-cols-6 gap-3 max-[1500px]:grid-cols-4 max-sm:grid-cols-2">
-            {SECTIONS.map(([t, href, I, n]) => (
-              <Link
-                key={t}
-                href={href}
-                className="group rounded-2xl border border-border bg-[var(--chip-bg)] p-4 transition-colors hover:border-[#085eff]"
-              >
-                <I className="size-5 text-[var(--link)]" />
-                <b className="mt-6 block text-sm font-semibold">{t}</b>
-                <span className="text-xs text-muted-foreground">{n}</span>
-              </Link>
+      <HomeEdit value={{ edit, hidden: home.layout.hidden, toggle: home.toggle }}>
+        <div className="flex flex-col gap-[18px] px-(--page-gutter)">
+          <div className="grid grid-cols-5 gap-[18px] max-[1500px]:grid-cols-3 max-sm:grid-cols-2">
+            {kpis.map(([I, t, v, d, c, data]) => (
+              <div key={t} className={cn(glass, "px-5 pt-[18px] pb-3")}>
+                <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                  <I className="size-4" />
+                  {t}
+                </span>
+                <b
+                  className={cn(
+                    "mt-2 block text-[34px] leading-none font-medium tracking-[-0.02em] tabular-nums",
+                    c === "#ff5257" && "text-[#ff5257]",
+                  )}
+                >
+                  {v}
+                </b>
+                <span className="mt-1.5 block text-xs" style={{ color: c === "#ff5257" ? "#ff5257" : "var(--status-ok)" }}>
+                  {d}
+                </span>
+                <Spark data={data} color={c} />
+              </div>
             ))}
           </div>
-        </Card>
 
-        <div className="grid grid-cols-[1fr_1fr_0.8fr] gap-[18px] max-[1279px]:grid-cols-1">
-          <Card
-            icon={SquareCheck}
-            title="Мои задачи"
-            count={TASKS.length}
-            action={
-              <Link href="/notifications" className={btn({ sm: true })}>
-                <ArrowRight />
-                Все
-              </Link>
-            }
-          >
-            <div className="flex flex-col gap-2">
-              {TASKS.map((x) => (
-                <Link
-                  key={x.t}
-                  href={x.href}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-[var(--chip-bg)] px-3.5 py-3 hover:border-[#085eff]"
-                >
-                  <span
-                    className="grid size-9 flex-none place-items-center rounded-xl"
-                    style={{ color: x.color, background: `color-mix(in srgb, ${x.color} 14%, transparent)` }}
-                  >
-                    <x.icon className="size-4" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <b className="block truncate text-[13.5px] font-semibold">{x.t}</b>
-                    <span className="block truncate text-xs text-muted-foreground">{x.s}</span>
-                  </span>
-                  {typeof x.action === "string" ? <span className={btn({ sm: true })}>{x.action}</span> : x.action}
+          <W id="sections">
+            <Card
+              icon={LayoutGrid}
+              title="Разделы"
+              action={
+                <Link href="/nodes" className={btn({ sm: true })}>
+                  <ArrowRight />
+                  Все разделы
                 </Link>
-              ))}
-            </div>
-          </Card>
-          <Card icon={CircleAlert} title="Требуют внимания" count={74}>
-            {(
-              [
-                [Server, "Загрузка портов > 90%", "коммутаторы · 9 филиалов", hot, "/switches"],
-                [VideoOff, "Камеры offline", "нет сигнала > 1 ч", 22, "/map"],
-                [DatabaseBackup, "Бэкап конфига с ошибкой", "сегодня 03:00", 16, "/backups"],
-                [FileText, "Узлы без документов", "ни одного файла", nodes.filter((n) => !n.hasDocs).length, "/nodes"],
-                [MapPin, "Не нанесены на карту", "нет координат", noMap, "/nodes"],
-              ] as const
-            ).map(([I, t, s, n, href]) => (
-              <Link key={t} href={href} className="flex items-center gap-3 border-b border-border py-3 last:border-0">
-                <span className="grid size-9 place-items-center rounded-xl bg-[var(--chip-bg)] text-[var(--link)]">
-                  <I className="size-4" />
-                </span>
-                <span className="flex-1">
-                  <b className="block text-[13.5px] font-semibold">{t}</b>
-                  <span className="text-xs text-muted-foreground">{s}</span>
-                </span>
-                <b className="text-lg font-medium tabular-nums">{fmt(n)}</b>
-                <span className={cn(circ, "size-8")}>
-                  <ArrowUpRight />
-                </span>
-              </Link>
-            ))}
-          </Card>
-          <Card icon={Activity} title="Статус узлов">
-            <div className="flex flex-col items-center py-4">
-              <div
-                className="relative size-[170px] rounded-full"
-                style={{
-                  background: `conic-gradient(var(--status-ok) 0 ${pct}%, #ffc24a ${pct}% ${pct + (rebuild / nodes.length) * 100}%, #ff5257 0 100%)`,
-                }}
-              >
-                <div className="absolute inset-[18px] grid place-items-center rounded-full bg-[var(--glass-card-solid)] text-center">
-                  <span>
-                    <b className="block text-[34px] leading-none font-medium">{pct}%</b>
-                    <span className="text-xs text-muted-foreground">в работе</span>
-                  </span>
-                </div>
-              </div>
-              <span className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <span>● В работе {fmt(work)}</span>
-                <span>● Реконстр. {rebuild}</span>
-                <span>● Выведены {off}</span>
-              </span>
-            </div>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-2 gap-[18px] max-[1279px]:grid-cols-1">
-          <Card
-            icon={Activity}
-            title="Рост сети за 12 месяцев"
-            action={
-              <span className="flex gap-1 rounded-full border border-border bg-[var(--chip-bg)] p-1">
-                {(
-                  [
-                    ["nodes", "Узлы"],
-                    ["eq", "Оборудование"],
-                    ["vols", "ВОЛС"],
-                  ] as const
-                ).map(([k, t]) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => setGrowth(k)}
-                    className={cn(
-                      "h-8 rounded-full px-3 text-[13px] text-[var(--nav-text)]",
-                      growth === k && "bg-[#085eff] font-semibold text-white",
-                    )}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </span>
-            }
-          >
-            <LineChart data={growthData} labels={months} unit={growth === "nodes" ? "узлов" : growth === "eq" ? "устройств" : "км"} />
-          </Card>
-          <Card
-            icon={ChartColumn}
-            title="Заполненность данных"
-            action={
-              <Link href="/analytics" className={btn({ sm: true })}>
-                <ArrowRight />
-                Аналитика
-              </Link>
-            }
-          >
-            {(
-              [
-                ["Узлы связи", 99, "#2bd463"],
-                ["СПД коммутаторы", 87, "#4f8dff"],
-                ["СПД маршрутизаторы", 91, "#2bd463"],
-                ["ВОЛС", 76, "#4f8dff"],
-                ["АТС", 68, "#ffc24a"],
-                ["АМС", 82, "#4f8dff"],
-                ["ИБП", 54, "#ffc24a"],
-              ] as const
-            ).map(([t, v, c]) => (
-              <div key={t} className="flex items-center gap-4 py-1.5 text-[13px]">
-                <span className="w-[150px] text-muted-foreground">{t}</span>
-                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--chip-bg)]">
-                  <i className="block h-full rounded-full" style={{ width: `${v}%`, background: c }} />
-                </span>
-                <b className="w-10 text-right font-medium tabular-nums">{v}%</b>
-              </div>
-            ))}
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-[1.3fr_1fr] gap-[18px] max-[1279px]:grid-cols-1">
-          <Card
-            icon={FileChartColumn}
-            title="Филиалы"
-            count={BRANCHES.length}
-            action={
-              <Link href="/map" className={btn({ sm: true })}>
-                <MapIcon />
-                На карте
-              </Link>
-            }
-          >
-            <table className="w-full border-separate border-spacing-y-1.5 text-[13.5px]">
-              <thead>
-                <tr className="text-left text-[12.5px] text-muted-foreground">
-                  {["Филиал", "Город", "Узлов", "В работе", "Камер", ""].map((h) => (
-                    <th key={h} className="px-3 py-1 font-medium">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {branches.map((b) => (
-                  <tr key={b.v}>
-                    {[
-                      <b key="b">{b.v}</b>,
-                      b.cities[0][0],
-                      b.n,
-                      <span key="w" className="flex items-center gap-2">
-                        <span className="h-1 w-16 overflow-hidden rounded-full bg-[var(--chip-bg)]">
-                          <i className="block h-full bg-[var(--status-ok)]" style={{ width: `${b.work}%` }} />
-                        </span>
-                        {b.work}%
-                      </span>,
-                      b.cams,
-                      <Link key="l" href={`/nodes?branch=${b.v}`} className={cn(circ, "size-8")} aria-label={`Узлы ${b.v}`}>
-                        <ArrowUpRight />
-                      </Link>,
-                    ].map((c, i) => (
-                      <td
-                        key={i}
-                        className="bg-[color-mix(in_srgb,var(--foreground)_3%,transparent)] px-3 py-2.5 first:rounded-l-xl last:rounded-r-xl"
-                      >
-                        {c}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-          <div className="flex flex-col gap-[18px]">
-            <Card icon={Bookmark} title="Избранное" count={8}>
-              {/* TODO: избранное пользователя — API профиля */}
-              <div className="grid grid-cols-2 gap-2 max-sm:grid-cols-1">
-                {(
-                  [
-                    [RadioTower, "url002.01.UF", "УС «Уральск Центральный»", "/nodes/1"],
-                    [Network, sw[0].host, sw[0].model, `/switches/${sw[0].id}`],
-                    [Router, rt[0].host, rt[0].model, `/routers/${rt[0].id}`],
-                    [Cable, "ВОЛС №49", "→ УС «РТПЦ»", "/fiber-lines"],
-                    [RadioTower, "alm001.01.YF", "ул. Маметовой 67Б", "/nodes/2"],
-                    [Camera, "CAM-01", "Вход КСО", "/map"],
-                    [Globe, "IP-план АС", "10.40.0.0/16", "/ip-plan"],
-                    [ChartColumn, "Сводный отчёт", "октябрь", "/summary-files"],
-                  ] as const
-                ).map(([I, t, s, href]) => (
+              }
+            >
+              <div className="grid grid-cols-6 gap-3 max-[1500px]:grid-cols-4 max-sm:grid-cols-2">
+                {SECTIONS.map(([t, href, I, n]) => (
                   <Link
                     key={t}
                     href={href}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-[var(--chip-bg)] px-3 py-2.5 hover:border-[#085eff]"
+                    className="group rounded-2xl border border-border bg-[var(--chip-bg)] p-4 transition-colors hover:border-[#085eff]"
                   >
-                    <I className="size-4 flex-none text-[var(--link)]" />
-                    <span className="min-w-0">
-                      <b className="block truncate text-[13px] font-semibold">{t}</b>
-                      <span className="block truncate text-[11.5px] text-muted-foreground">{s}</span>
-                    </span>
+                    <I className="size-5 text-[var(--link)]" />
+                    <b className="mt-6 block text-sm font-semibold">{t}</b>
+                    <span className="text-xs text-muted-foreground">{n}</span>
                   </Link>
                 ))}
               </div>
             </Card>
-            <Card icon={History} title="Недавние изменения">
-              <ol className="relative ml-1.5 border-l border-border pl-5">
-                {[
-                  ["Создан узел ast021.01.AS", "Борис Б. Дегтярь · 2 часа назад", "#4f8dff"],
-                  ["Привязана ВОЛС №52", "Нурдаулет С. Осербай · 4 часа назад", "#2bd463"],
-                  ["Изменён тип сети у url002.01.UF", "Вы · вчера", "#4f8dff"],
-                ].map(([t, s, c]) => (
-                  <li key={t} className="relative pb-3.5 last:pb-0">
-                    <i
-                      className="absolute top-1 -left-[27px] size-3 rounded-full border-2 bg-[var(--glass-card-solid)]"
-                      style={{ borderColor: c }}
-                    />
-                    <b className="block text-[13.5px] font-semibold">{t}</b>
-                    <span className="text-xs text-muted-foreground">{s}</span>
-                  </li>
-                ))}
-              </ol>
-            </Card>
-          </div>
-        </div>
+          </W>
 
-        <div className="grid grid-cols-[1.2fr_1fr_0.8fr] gap-[18px] max-[1279px]:grid-cols-1">
-          <Card
-            icon={MapIcon}
-            title="Мой филиал · АС"
-            action={
-              <Link href="/map" className={btn({ sm: true })}>
-                <ArrowRight />
-                Открыть карту
-              </Link>
-            }
-          >
-            <Link
-              href="/map"
-              className="relative block h-[260px] overflow-hidden rounded-2xl bg-cover bg-center"
-              style={{ backgroundImage: "url(/home/branch-map.jpg)" }}
-            >
-              <span className="absolute bottom-3 left-3 rounded-xl bg-[rgba(10,11,14,0.75)] px-3 py-2 text-white backdrop-blur">
-                <span className="block text-[11px] opacity-70">Филиал Астана</span>
-                <b className="text-sm">{branches.find((b) => b.v === "АС")?.n} узлов · 32 камеры</b>
-              </span>
-            </Link>
-          </Card>
-          <Card
-            icon={ClipboardList}
-            title="Заявки"
-            count={12}
-            action={
-              <Link href="/requests" className={btn({ sm: true })}>
-                <ArrowRight />
-                Реестр
-              </Link>
-            }
-          >
-            {REQUESTS.map(([t, s, st, tone]) => (
-              <Link key={t} href="/requests" className="flex items-center gap-3 border-b border-border py-2.5 last:border-0">
-                <ClipboardList className="size-4 flex-none text-[var(--link)]" />
-                <span className="min-w-0 flex-1">
-                  <b className="block truncate text-[13px] font-semibold">{t}</b>
-                  <span className="block truncate text-xs text-muted-foreground">{s}</span>
-                </span>
-                <Pill tone={tone} className="[&>i]:hidden">
-                  {st}
-                </Pill>
-              </Link>
-            ))}
-          </Card>
-          <Card icon={Users} title="Сейчас в системе" count={14}>
-            {/* TODO: присутствие пользователей — websocket */}
-            <div className="flex">
-              {[
-                ["БД", "#0ea5e9"],
-                ["НО", "#a855f7"],
-                ["ЕС", "#22c55e"],
-                ["АГ", "#085eff"],
-                ["МК", "#ec4899"],
-                ["ДТ", "#f59e0b"],
-              ].map(([i, c]) => (
-                <Avatar
-                  key={i}
-                  initials={i}
-                  color={c}
-                  className="-ml-1.5 size-8 text-[11px] ring-2 ring-[var(--glass-card-solid)] first:ml-0"
-                />
-              ))}
-              <span className="-ml-1.5 grid size-8 place-items-center rounded-full bg-[var(--chip-bg)] text-[11px] ring-2 ring-[var(--glass-card-solid)]">
-                +8
-              </span>
-            </div>
-            <div className="mt-4 flex flex-col gap-3 text-[13px]">
-              <span>
-                <b className="block">Борис Д. редактирует</b>
-                <span className="text-xs text-muted-foreground">ast021.01.AS · сейчас</span>
-              </span>
-              <span>
-                <b className="block">Нурдаулет О. на карте</b>
-                <span className="text-xs text-muted-foreground">ВОЛС №52 · 3 мин</span>
-              </span>
-            </div>
-          </Card>
-        </div>
+          {edit && <EditBar onReset={home.reset} onDone={() => setEdit(false)} />}
 
-        <Card
-          icon={Camera}
-          title={
-            <>
-              Камеры <em className="font-normal text-muted-foreground not-italic">164 online</em>
-            </>
-          }
-          action={
-            // TODO: видеостена и потоки камер (cam-03) — источник видео
-            <Link href="/map?layer=cameras" className={btn({ sm: true })}>
-              <LayoutGrid />
-              Видеостена
-            </Link>
-          }
-        >
-          <div className="grid grid-cols-6 gap-3 max-[1279px]:grid-cols-3 max-sm:grid-cols-2">
-            {[
-              ["CAM-01 · ast009", "/nodes/g-1.jpg"],
-              ["CAM-03 · ast009", "/nodes/g-4.jpg"],
-              ["CAM-05 · ast009", "/nodes/g-2.jpg"],
-              ["CAM-02 · УС-8", "/nodes/g-5.jpg"],
-              ["CAM-11 · КСО-14", "/nodes/g-6.jpg"],
-              ["CAM-04 · ast011", "/nodes/g-3.jpg"],
-            ].map(([t, src]) => (
-              <span
-                key={t}
-                className="relative h-[150px] overflow-hidden rounded-2xl bg-cover bg-center"
-                style={{ backgroundImage: `url(${src})` }}
+          <div className="grid grid-cols-[1fr_1fr_0.8fr] gap-[18px] max-[1279px]:grid-cols-1">
+            <W id="tasks">
+              <Card
+                icon={SquareCheck}
+                title="Мои задачи"
+                count={TASKS.length}
+                action={
+                  <Link href="/notifications" className={btn({ sm: true })}>
+                    <ArrowRight />
+                    Все
+                  </Link>
+                }
               >
-                <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_40%,rgba(0,0,0,0.75))]" />
-                <span className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-full bg-[#ff3b30] px-2 py-0.5 text-[10px] font-bold text-white">
-                  ● LIVE
-                </span>
-                <b className="absolute bottom-2.5 left-3 text-[13px] text-white">{t}</b>
-              </span>
-            ))}
+                <div className="flex flex-col gap-2">
+                  {TASKS.map((x) => (
+                    <Link
+                      key={x.t}
+                      href={x.href}
+                      className="flex items-center gap-3 rounded-2xl border border-border bg-[var(--chip-bg)] px-3.5 py-3 hover:border-[#085eff]"
+                    >
+                      <span
+                        className="grid size-9 flex-none place-items-center rounded-xl"
+                        style={{ color: x.color, background: `color-mix(in srgb, ${x.color} 14%, transparent)` }}
+                      >
+                        <x.icon className="size-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <b className="block truncate text-[13.5px] font-semibold">{x.t}</b>
+                        <span className="block truncate text-xs text-muted-foreground">{x.s}</span>
+                      </span>
+                      {typeof x.action === "string" ? <span className={btn({ sm: true })}>{x.action}</span> : x.action}
+                    </Link>
+                  ))}
+                </div>
+              </Card>
+            </W>
+            <W id="attention">
+              <Card icon={CircleAlert} title="Требуют внимания" count={74}>
+                {(
+                  [
+                    [Server, "Загрузка портов > 90%", "коммутаторы · 9 филиалов", hot, "/switches"],
+                    [VideoOff, "Камеры offline", "нет сигнала > 1 ч", 22, "/map"],
+                    [DatabaseBackup, "Бэкап конфига с ошибкой", "сегодня 03:00", 16, "/backups"],
+                    [FileText, "Узлы без документов", "ни одного файла", nodes.filter((n) => !n.hasDocs).length, "/nodes"],
+                    [MapPin, "Не нанесены на карту", "нет координат", noMap, "/nodes"],
+                  ] as const
+                ).map(([I, t, s, n, href]) => (
+                  <Link key={t} href={href} className="flex items-center gap-3 border-b border-border py-3 last:border-0">
+                    <span className="grid size-9 place-items-center rounded-xl bg-[var(--chip-bg)] text-[var(--link)]">
+                      <I className="size-4" />
+                    </span>
+                    <span className="flex-1">
+                      <b className="block text-[13.5px] font-semibold">{t}</b>
+                      <span className="text-xs text-muted-foreground">{s}</span>
+                    </span>
+                    <b className="text-lg font-medium tabular-nums">{fmt(n)}</b>
+                    <span className={cn(circ, "size-8")}>
+                      <ArrowUpRight />
+                    </span>
+                  </Link>
+                ))}
+              </Card>
+            </W>
+            <W id="status">
+              <Card icon={Activity} title="Статус узлов">
+                <div className="flex flex-col items-center py-4">
+                  <div
+                    className="relative size-[170px] rounded-full"
+                    style={{
+                      background: `conic-gradient(var(--status-ok) 0 ${pct}%, #ffc24a ${pct}% ${pct + (rebuild / nodes.length) * 100}%, #ff5257 0 100%)`,
+                    }}
+                  >
+                    <div className="absolute inset-[18px] grid place-items-center rounded-full bg-[var(--glass-card-solid)] text-center">
+                      <span>
+                        <b className="block text-[34px] leading-none font-medium">{pct}%</b>
+                        <span className="text-xs text-muted-foreground">в работе</span>
+                      </span>
+                    </div>
+                  </div>
+                  <span className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <span>● В работе {fmt(work)}</span>
+                    <span>● Реконстр. {rebuild}</span>
+                    <span>● Выведены {off}</span>
+                  </span>
+                </div>
+              </Card>
+            </W>
           </div>
-        </Card>
-      </div>
+
+          <div className="grid grid-cols-2 gap-[18px] max-[1279px]:grid-cols-1">
+            <W id="growth">
+              <Card
+                icon={Activity}
+                title="Рост сети за 12 месяцев"
+                action={
+                  <span className="flex gap-1 rounded-full border border-border bg-[var(--chip-bg)] p-1">
+                    {(
+                      [
+                        ["nodes", "Узлы"],
+                        ["eq", "Оборудование"],
+                        ["vols", "ВОЛС"],
+                      ] as const
+                    ).map(([k, t]) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setGrowth(k)}
+                        className={cn(
+                          "h-8 rounded-full px-3 text-[13px] text-[var(--nav-text)]",
+                          growth === k && "bg-[#085eff] font-semibold text-white",
+                        )}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </span>
+                }
+              >
+                <LineChart data={growthData} labels={months} unit={growth === "nodes" ? "узлов" : growth === "eq" ? "устройств" : "км"} />
+              </Card>
+            </W>
+            <W id="fill">
+              <Card
+                icon={ChartColumn}
+                title="Заполненность данных"
+                action={
+                  <Link href="/analytics" className={btn({ sm: true })}>
+                    <ArrowRight />
+                    Аналитика
+                  </Link>
+                }
+              >
+                {(
+                  [
+                    ["Узлы связи", 99, "#2bd463"],
+                    ["СПД коммутаторы", 87, "#4f8dff"],
+                    ["СПД маршрутизаторы", 91, "#2bd463"],
+                    ["ВОЛС", 76, "#4f8dff"],
+                    ["АТС", 68, "#ffc24a"],
+                    ["АМС", 82, "#4f8dff"],
+                    ["ИБП", 54, "#ffc24a"],
+                  ] as const
+                ).map(([t, v, c]) => (
+                  <div key={t} className="flex items-center gap-4 py-1.5 text-[13px]">
+                    <span className="w-[150px] text-muted-foreground">{t}</span>
+                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--chip-bg)]">
+                      <i className="block h-full rounded-full" style={{ width: `${v}%`, background: c }} />
+                    </span>
+                    <b className="w-10 text-right font-medium tabular-nums">{v}%</b>
+                  </div>
+                ))}
+              </Card>
+            </W>
+          </div>
+
+          <div className="grid grid-cols-[1.3fr_1fr] gap-[18px] max-[1279px]:grid-cols-1">
+            <W id="branches">
+              <Card
+                icon={FileChartColumn}
+                title="Филиалы"
+                count={BRANCHES.length}
+                action={
+                  <Link href="/map" className={btn({ sm: true })}>
+                    <MapIcon />
+                    На карте
+                  </Link>
+                }
+              >
+                <table className="w-full border-separate border-spacing-y-1.5 text-[13.5px]">
+                  <thead>
+                    <tr className="text-left text-[12.5px] text-muted-foreground">
+                      {["Филиал", "Город", "Узлов", "В работе", "Камер", ""].map((h) => (
+                        <th key={h} className="px-3 py-1 font-medium">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {branches.map((b) => (
+                      <tr key={b.v}>
+                        {[
+                          <b key="b">{b.v}</b>,
+                          b.cities[0][0],
+                          b.n,
+                          <span key="w" className="flex items-center gap-2">
+                            <span className="h-1 w-16 overflow-hidden rounded-full bg-[var(--chip-bg)]">
+                              <i className="block h-full bg-[var(--status-ok)]" style={{ width: `${b.work}%` }} />
+                            </span>
+                            {b.work}%
+                          </span>,
+                          b.cams,
+                          <Link key="l" href={`/nodes?branch=${b.v}`} className={cn(circ, "size-8")} aria-label={`Узлы ${b.v}`}>
+                            <ArrowUpRight />
+                          </Link>,
+                        ].map((c, i) => (
+                          <td
+                            key={i}
+                            className="bg-[color-mix(in_srgb,var(--foreground)_3%,transparent)] px-3 py-2.5 first:rounded-l-xl last:rounded-r-xl"
+                          >
+                            {c}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
+            </W>
+            <div className="flex flex-col gap-[18px]">
+              <W id="favorites">
+                <Card icon={Bookmark} title="Избранное" count={8}>
+                  {/* TODO: избранное пользователя — API профиля */}
+                  <div className="grid grid-cols-2 gap-2 max-sm:grid-cols-1">
+                    {(
+                      [
+                        [RadioTower, "url002.01.UF", "УС «Уральск Центральный»", "/nodes/1"],
+                        [Network, sw[0].host, sw[0].model, `/switches/${sw[0].id}`],
+                        [Router, rt[0].host, rt[0].model, `/routers/${rt[0].id}`],
+                        [Cable, "ВОЛС №49", "→ УС «РТПЦ»", "/fiber-lines"],
+                        [RadioTower, "alm001.01.YF", "ул. Маметовой 67Б", "/nodes/2"],
+                        [Camera, "CAM-01", "Вход КСО", "/map"],
+                        [Globe, "IP-план АС", "10.40.0.0/16", "/ip-plan"],
+                        [ChartColumn, "Сводный отчёт", "октябрь", "/summary-files"],
+                      ] as const
+                    ).map(([I, t, s, href]) => (
+                      <Link
+                        key={t}
+                        href={href}
+                        className="flex items-center gap-3 rounded-xl border border-border bg-[var(--chip-bg)] px-3 py-2.5 hover:border-[#085eff]"
+                      >
+                        <I className="size-4 flex-none text-[var(--link)]" />
+                        <span className="min-w-0">
+                          <b className="block truncate text-[13px] font-semibold">{t}</b>
+                          <span className="block truncate text-[11.5px] text-muted-foreground">{s}</span>
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </Card>
+              </W>
+              <W id="recent">
+                <Card icon={History} title="Недавние изменения">
+                  <ol className="relative ml-1.5 border-l border-border pl-5">
+                    {[
+                      ["Создан узел ast021.01.AS", "Борис Б. Дегтярь · 2 часа назад", "#4f8dff"],
+                      ["Привязана ВОЛС №52", "Нурдаулет С. Осербай · 4 часа назад", "#2bd463"],
+                      ["Изменён тип сети у url002.01.UF", "Вы · вчера", "#4f8dff"],
+                    ].map(([t, s, c]) => (
+                      <li key={t} className="relative pb-3.5 last:pb-0">
+                        <i
+                          className="absolute top-1 -left-[27px] size-3 rounded-full border-2 bg-[var(--glass-card-solid)]"
+                          style={{ borderColor: c }}
+                        />
+                        <b className="block text-[13.5px] font-semibold">{t}</b>
+                        <span className="text-xs text-muted-foreground">{s}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </Card>
+              </W>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-[1.2fr_1fr_0.8fr] gap-[18px] max-[1279px]:grid-cols-1">
+            <W id="mybranch">
+              <Card
+                icon={MapIcon}
+                title="Мой филиал · АС"
+                action={
+                  <Link href="/map" className={btn({ sm: true })}>
+                    <ArrowRight />
+                    Открыть карту
+                  </Link>
+                }
+              >
+                <Link
+                  href="/map"
+                  className="relative block h-[260px] overflow-hidden rounded-2xl bg-cover bg-center"
+                  style={{ backgroundImage: "url(/home/branch-map.jpg)" }}
+                >
+                  <span className="absolute bottom-3 left-3 rounded-xl bg-[rgba(10,11,14,0.75)] px-3 py-2 text-white backdrop-blur">
+                    <span className="block text-[11px] opacity-70">Филиал Астана</span>
+                    <b className="text-sm">{branches.find((b) => b.v === "АС")?.n} узлов · 32 камеры</b>
+                  </span>
+                </Link>
+              </Card>
+            </W>
+            <W id="requests">
+              <Card
+                icon={ClipboardList}
+                title="Заявки"
+                count={12}
+                action={
+                  <Link href="/requests" className={btn({ sm: true })}>
+                    <ArrowRight />
+                    Реестр
+                  </Link>
+                }
+              >
+                {REQUESTS.map(([t, s, st, tone]) => (
+                  <Link key={t} href="/requests" className="flex items-center gap-3 border-b border-border py-2.5 last:border-0">
+                    <ClipboardList className="size-4 flex-none text-[var(--link)]" />
+                    <span className="min-w-0 flex-1">
+                      <b className="block truncate text-[13px] font-semibold">{t}</b>
+                      <span className="block truncate text-xs text-muted-foreground">{s}</span>
+                    </span>
+                    <Pill tone={tone} className="[&>i]:hidden">
+                      {st}
+                    </Pill>
+                  </Link>
+                ))}
+              </Card>
+            </W>
+            <W id="online">
+              <Card icon={Users} title="Сейчас в системе" count={14}>
+                {/* TODO: присутствие пользователей — websocket */}
+                <div className="flex">
+                  {[
+                    ["БД", "#0ea5e9"],
+                    ["НО", "#a855f7"],
+                    ["ЕС", "#22c55e"],
+                    ["АГ", "#085eff"],
+                    ["МК", "#ec4899"],
+                    ["ДТ", "#f59e0b"],
+                  ].map(([i, c]) => (
+                    <Avatar
+                      key={i}
+                      initials={i}
+                      color={c}
+                      className="-ml-1.5 size-8 text-[11px] ring-2 ring-[var(--glass-card-solid)] first:ml-0"
+                    />
+                  ))}
+                  <span className="-ml-1.5 grid size-8 place-items-center rounded-full bg-[var(--chip-bg)] text-[11px] ring-2 ring-[var(--glass-card-solid)]">
+                    +8
+                  </span>
+                </div>
+                <div className="mt-4 flex flex-col gap-3 text-[13px]">
+                  <span>
+                    <b className="block">Борис Д. редактирует</b>
+                    <span className="text-xs text-muted-foreground">ast021.01.AS · сейчас</span>
+                  </span>
+                  <span>
+                    <b className="block">Нурдаулет О. на карте</b>
+                    <span className="text-xs text-muted-foreground">ВОЛС №52 · 3 мин</span>
+                  </span>
+                </div>
+              </Card>
+            </W>
+          </div>
+
+          <W id="cameras">
+            <Card
+              icon={Camera}
+              title={
+                <>
+                  Камеры <em className="font-normal text-muted-foreground not-italic">164 online</em>
+                </>
+              }
+              action={
+                // TODO: видеостена и потоки камер (cam-03) — источник видео
+                <Link href="/map?layer=cameras" className={btn({ sm: true })}>
+                  <LayoutGrid />
+                  Видеостена
+                </Link>
+              }
+            >
+              <div className="grid grid-cols-6 gap-3 max-[1279px]:grid-cols-3 max-sm:grid-cols-2">
+                {[
+                  ["CAM-01 · ast009", "/nodes/g-1.jpg"],
+                  ["CAM-03 · ast009", "/nodes/g-4.jpg"],
+                  ["CAM-05 · ast009", "/nodes/g-2.jpg"],
+                  ["CAM-02 · УС-8", "/nodes/g-5.jpg"],
+                  ["CAM-11 · КСО-14", "/nodes/g-6.jpg"],
+                  ["CAM-04 · ast011", "/nodes/g-3.jpg"],
+                ].map(([t, src]) => (
+                  <span
+                    key={t}
+                    className="relative h-[150px] overflow-hidden rounded-2xl bg-cover bg-center"
+                    style={{ backgroundImage: `url(${src})` }}
+                  >
+                    <span className="absolute inset-0 bg-[linear-gradient(180deg,transparent_40%,rgba(0,0,0,0.75))]" />
+                    <span className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-full bg-[#ff3b30] px-2 py-0.5 text-[10px] font-bold text-white">
+                      ● LIVE
+                    </span>
+                    <b className="absolute bottom-2.5 left-3 text-[13px] text-white">{t}</b>
+                  </span>
+                ))}
+              </div>
+            </Card>
+          </W>
+
+          {home.layout.extra.length > 0 && (
+            <div className="grid grid-cols-4 gap-[18px] max-[1279px]:grid-cols-2 max-sm:grid-cols-1">
+              {home.layout.extra.map((id) => (
+                <W key={id} id={id}>
+                  <ExtraWidget id={id} />
+                </W>
+              ))}
+            </div>
+          )}
+          {edit && (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="flex flex-col items-center gap-1.5 rounded-[26px] border-2 border-dashed border-[#085eff]/40 py-10 text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="size-6" />
+              <b className="text-sm font-semibold">Добавить виджет</b>
+              <span className="text-xs">Карта, камеры, заявки, графики, отчёты…</span>
+            </button>
+          )}
+        </div>
+      </HomeEdit>
+      {adding && <AddWidgets layout={home.layout} onClose={() => setAdding(false)} onApply={home.setExtra} />}
     </div>
   )
 }
