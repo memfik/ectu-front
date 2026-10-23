@@ -19,7 +19,7 @@ const round = "size-[46px] text-foreground max-sm:size-10"
 
 /**
  * Шапка (макет 01): навигация-пилюля с мега-меню, поиск ⌘K, уведомления, быстрые настройки, профиль.
- * < 1240 px — бургер с меню из макета «Телефон/01». Не липкая, как в макете: стекло не пересчитывается при прокрутке.
+ * Навигация по центру между логотипом и кнопками; < 1240 px — бургер с меню из макета «Телефон/01». Не липкая, как в макете: стекло не пересчитывается при прокрутке.
  */
 export function Header() {
   const [menu, setMenu] = useState<{ key: string; rect: DOMRect } | null>(null)
@@ -48,12 +48,12 @@ export function Header() {
 
   return (
     <>
-      <header className="relative z-[60] flex w-full items-center gap-[22px] px-(--page-gutter) pt-4 pb-5 max-sm:gap-2 max-sm:pt-2.5 max-sm:pb-3">
+      <header className="relative z-[60] flex w-full items-center gap-[22px] px-(--page-gutter) min-[1240px]:grid min-[1240px]:grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)] pt-4 pb-5 max-sm:gap-2 max-sm:pt-2.5 max-sm:pb-3">
         <Logo />
 
         <LiquidGlass
           bezel={10}
-          className="ml-[18px] hidden min-w-0 gap-1 overflow-x-auto rounded-full p-[5px] [scrollbar-width:none] min-[1240px]:flex"
+          className="hidden min-w-0 gap-1 overflow-x-auto rounded-full p-[5px] [scrollbar-width:none] min-[1240px]:flex"
         >
           <PathAware
             render={(path) => {
@@ -91,7 +91,7 @@ export function Header() {
           />
         </LiquidGlass>
 
-        <div className="ml-auto flex flex-none items-center gap-2.5 max-sm:gap-2">
+        <div className="ml-auto flex flex-none items-center gap-2.5 justify-self-end max-sm:gap-2">
           <GlassButton
             onClick={openSearch}
             aria-label="Поиск по системе (⌘K)"
