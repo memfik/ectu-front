@@ -36,3 +36,46 @@ export function SideNav({ items, active }: { items: { id: string; t: string; ico
     </nav>
   )
 }
+
+/** Блок с цветной шапкой (настройки, профиль): значок в тоне блока, заголовок, подпись, действие справа. */
+export function ToneBlock({
+  id,
+  icon: Icon,
+  tone,
+  title,
+  sub,
+  action,
+  children,
+  bodyClassName,
+}: {
+  id?: string
+  icon: LucideIcon
+  tone: string
+  title: React.ReactNode
+  sub?: string
+  action?: React.ReactNode
+  children: React.ReactNode
+  bodyClassName?: string
+}) {
+  return (
+    <section
+      id={id}
+      className="scroll-mt-6 overflow-hidden rounded-3xl border border-border bg-[var(--glass-card)] backdrop-blur-[18px]"
+    >
+      <header
+        className="flex items-center gap-3.5 border-b border-border px-6 py-4"
+        style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${tone} 10%, transparent), transparent 55%)` }}
+      >
+        <span className="grid size-10 flex-none place-items-center rounded-xl" style={{ color: tone, background: `color-mix(in srgb, ${tone} 16%, transparent)` }}>
+          <Icon className="size-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <b className="block text-[16px] font-semibold">{title}</b>
+          {sub && <span className="text-[12.5px] text-muted-foreground">{sub}</span>}
+        </span>
+        {action}
+      </header>
+      <div className={cn("px-6 py-2", bodyClassName)}>{children}</div>
+    </section>
+  )
+}

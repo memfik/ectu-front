@@ -25,12 +25,12 @@ import {
 import { applyDensity, DENSITY, NOTIFY, readPref, Segment, Switch, writePref } from "@/components/layout/header-popovers"
 import { Select } from "@/components/list/form-controls"
 import { btn } from "@/components/list/ui"
-import { glass } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
 import { ALL_SECTIONS } from "@/config/nav"
 import { useThemeTransition } from "@/hooks/use-theme-transition"
 import { useUser } from "@/lib/api/session"
 import { cn } from "@/lib/utils"
+import { ToneBlock } from "./ui"
 
 /*
  * Настройки (ссылка «Все настройки →» из быстрых настроек): то же, что в шапке, плюс каналы уведомлений, безопасность, сброс раскладок.
@@ -68,24 +68,9 @@ const NAV: { id: string; t: string; icon: LucideIcon; tone: string }[] = [
 function Block({ id, title, sub, children }: { id: string; title: string; sub?: string; children: React.ReactNode }) {
   const n = NAV.find((x) => x.id === id)!
   return (
-    <section id={id} className={cn(glass, "overflow-hidden")}>
-      <header
-        className="flex items-center gap-3.5 border-b border-border px-6 py-4"
-        style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${n.tone} 10%, transparent), transparent 55%)` }}
-      >
-        <span
-          className="grid size-10 place-items-center rounded-xl"
-          style={{ color: n.tone, background: `color-mix(in srgb, ${n.tone} 16%, transparent)` }}
-        >
-          <n.icon className="size-5" />
-        </span>
-        <span>
-          <b className="block text-[16px] font-semibold">{title}</b>
-          {sub && <span className="text-[12.5px] text-muted-foreground">{sub}</span>}
-        </span>
-      </header>
-      <div className="px-6 py-2">{children}</div>
-    </section>
+    <ToneBlock id={id} icon={n.icon} tone={n.tone} title={title} sub={sub}>
+      {children}
+    </ToneBlock>
   )
 }
 
