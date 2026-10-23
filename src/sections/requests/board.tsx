@@ -1,17 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog } from "radix-ui"
-import { BarChart3, Check, ClipboardList, Download, Plus, Search, X } from "lucide-react"
+import { ArrowUpRight, BarChart3, Check, ClipboardList, Columns3, Download, List, MapPin, Plus, Search } from "lucide-react"
 import { Input, Select, Textarea } from "@/components/list/form-controls"
 import { btn, circ, Pill } from "@/components/list/ui"
+import { Modal } from "@/components/passport/modal"
 import { Avatar, glass } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
-import { BRANCHES, nodeRows } from "@/sections/nodes/data"
+import { BRANCHES } from "@/sections/nodes/data"
 import { cn } from "@/lib/utils"
 
 /*
- * Реестр заявок (макет 16): канбан от поступления в ОТПП ТК до закрытия. Карточки перетаскиваются между колонками.
+ * Реестр заявок (макет 16): канбан и таблица (req-02) от поступления в ОТПП ТК до закрытия, карточка заявки со стадиями (req-03),
+ * создание (req-04). Карточки перетаскиваются между колонками.
  * TODO: API заявок (связь с kCRM, сроки в рабочих днях, ответственные, тендерные).
  */
 
@@ -26,7 +27,11 @@ type Req = {
   days: number
   stage: Stage
   tag?: { t: string; tone: "warn" | "bad" | "ok" | "muted" | "info" }
+  /** Поля карточки (req-03); у примеров без них — значения по умолчанию в `card()` */
+  f?: Partial<Record<CardKey, string>>
 }
+
+type CardKey = "date" | "crm" | "region" | "address" | "service" | "techName" | "complexity" | "workType" | "tender" | "initiator" | "sent"
 
 const STAGES: [Stage, string][] = [
   ["new", "Новые"],
@@ -64,6 +69,7 @@ const SEED: Req[] = [
     days: 3,
     stage: "sent",
     tag: { t: "Сложная", tone: "info" },
+    f: { date: "02.10.2026", crm: "88501", region: "Астана", address: "ул. Кенесары, 44", service: "Интернет 100 Мбит/с", techName: "FTTH", complexity: "Сложная", workType: "Строительство", sent: "03.10.2026" },
   },
   { id: 4, num: "№ 2026-1170", client: "ТОО «Тарлан»", tech: "ID-канал L2 · ЮФ", branch: "ЮФ", who: "Н. Осербай", days: 6, stage: "sent" },
   { id: 5, num: "№ 2026-1166", client: "ТОО «A&Meirim»", tech: "FTTH · 246 м", branch: "ЮФ", who: "Б. Дегтярь", days: 4, stage: "answer" },
@@ -115,6 +121,39 @@ const SEED: Req[] = [
 /** Срок по нормативу — 5 р.д.; больше — «просрочено». */
 const LIMIT = 5
 
+/** Краткий статус для таблицы (req-02). */
+const short = (r: Req): [string, "warn" | "bad" | "ok" | "muted" | "info"] =>
+  r.tag && r.tag.t !== "Сложная"
+    ? [r.tag.t, r.tag.tone]
+    : r.stage === "new"
+      ? ["Новая", "muted"]
+      : r.stage === "sent"
+        ? ["Отправлено в ТС", "info"]
+        : r.stage === "answer"
+          ? ["Ответ получен", "info"]
+          : r.stage === "work"
+            ? ["В работе", "warn"]
+            : ["Закрыто", "ok"]
+
+/** Поля карточки заявки: из записи или по умолчанию (TODO(API): заявка целиком из kCRM / реестра). */
+function card(r: Req): Record<CardKey, string> {
+  const n = Number(r.num.slice(-4))
+  return {
+    date: `${String(Math.max(1, 6 - (r.days % 6))).padStart(2, "0")}.10.2026`,
+    crm: String(88000 + (n % 1000)),
+    region: BRANCHES.find((b) => b.v === r.branch)?.full.replace(/ филиал.*/, "") ?? r.branch,
+    address: "—",
+    service: r.tech.split(" · ")[1] ?? "Интернет 100 Мбит/с",
+    techName: r.tech.split(" ")[0],
+    complexity: "Обычная",
+    workType: "Подключение",
+    tender: "Нет",
+    initiator: "Д. Темирханова",
+    sent: r.stage === "new" ? "—" : "03.10.2026",
+    ...r.f,
+  }
+}
+
 export function RequestsBoard() {
   const [list, setList] = useState(SEED)
   const [q, setQ] = useState("")
@@ -123,6 +162,9 @@ export function RequestsBoard() {
   const [drag, setDrag] = useState<number | null>(null)
   const [over, setOver] = useState<Stage | null>(null)
   const [create, setCreate] = useState<Stage | null>(null)
+  const [view, setView] = useState<"board" | "table">("board")
+  const [open, setOpen] = useState<number | null>(null)
+  const opened = list.find((r) => r.id === open)
   const shown = list.filter(
     (r) =>
       (!branch || r.branch === branch) &&
@@ -210,9 +252,71 @@ export function RequestsBoard() {
           onChange={setWho}
           className="h-11 w-[220px] rounded-full"
         />
+        <span className="ml-auto flex gap-1 rounded-full bg-[var(--chip-bg)] p-1">
+          {(
+            [
+              ["board", Columns3, "Канбан"],
+              ["table", List, "Таблица"],
+            ] as const
+          ).map(([k, Icon, t]) => (
+            <button
+              key={k}
+              type="button"
+              title={t}
+              aria-label={t}
+              onClick={() => setView(k)}
+              className={cn("grid size-9 place-items-center rounded-full", view === k ? "bg-[var(--nav-on-bg)] text-[var(--nav-on)]" : "text-muted-foreground")}
+            >
+              <Icon className="size-4" />
+            </button>
+          ))}
+        </span>
       </div>
 
-      <div className="mt-[18px] grid grid-cols-5 gap-3.5 overflow-x-auto pb-4 max-[1279px]:grid-cols-[repeat(5,300px)]">
+      {view === "table" && (
+        <section className={cn(glass, "mt-[18px] overflow-x-auto p-3")}>
+          <table className="w-full min-w-[1000px] border-separate border-spacing-y-1.5 text-[13.5px]">
+            <thead>
+              <tr className="text-left text-[12.5px] text-muted-foreground">
+                {["№ заявки", "Дата поступления", "Клиент", "Филиал", "Технология", "Ответственный", "Краткий статус", "Срок", ""].map((h) => (
+                  <th key={h} className="px-3.5 py-1 font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((r) => {
+                const [st, tone] = short(r)
+                const c = card(r)
+                return (
+                  <tr key={r.id} onClick={() => setOpen(r.id)} className="cursor-pointer [&>td]:bg-[var(--chip-bg)] [&>td]:px-3.5 [&>td]:py-3">
+                    <td className="rounded-l-xl font-mono font-semibold">{r.num.replace("№ ", "")}</td>
+                    <td>{c.date}</td>
+                    <td className="font-semibold">{r.client}</td>
+                    <td>{r.branch}</td>
+                    <td>{c.techName}</td>
+                    <td>{r.who}</td>
+                    <td>
+                      <Pill tone={tone} className="[&>i]:hidden">
+                        {st}
+                      </Pill>
+                    </td>
+                    <td className={cn("tabular-nums", r.stage !== "closed" && r.days > LIMIT && "text-[#ff5257]")}>{r.days} р.д.</td>
+                    <td className="rounded-r-xl text-right">
+                      <span className={circ}>
+                        <ArrowUpRight />
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      <div className={cn("mt-[18px] grid grid-cols-5 gap-3.5 overflow-x-auto pb-4 max-[1279px]:grid-cols-[repeat(5,300px)]", view === "table" && "hidden")}>
         {STAGES.map(([k, t]) => {
           const items = shown.filter((r) => r.stage === k)
           return (
@@ -245,6 +349,7 @@ export function RequestsBoard() {
                       draggable
                       onDragStart={() => setDrag(r.id)}
                       onDragEnd={() => setDrag(null)}
+                      onClick={() => setOpen(r.id)}
                       className={cn(
                         "cursor-grab rounded-2xl border border-border bg-[var(--glass-card-solid)] p-3.5 active:cursor-grabbing",
                         drag === r.id && "opacity-50",
@@ -296,10 +401,125 @@ export function RequestsBoard() {
           onSave={(r) => setList([{ ...r, id: Date.now() }, ...list])}
         />
       )}
+      {opened && (
+        <RequestDrawer
+          r={opened}
+          onClose={() => setOpen(null)}
+          onSave={(stage) => {
+            move(opened.id, stage)
+            setOpen(null)
+          }}
+        />
+      )}
     </div>
   )
 }
 
+const STEPS = ["Поступила", "Отправлена в ТС", "Ответ", "Наряд", "Закрыта"]
+
+/** req-03: карточка заявки — стадии, поля, точка подключения. Клик по стадии меняет её, «Сохранить» — применяет. */
+function RequestDrawer({ r, onClose, onSave }: { r: Req; onClose: () => void; onSave: (s: Stage) => void }) {
+  const [step, setStep] = useState(STAGES.findIndex((s) => s[0] === r.stage))
+  const c = card(r)
+  const rows: [string, string][] = [
+    ["№ заявки", r.num.replace("№ ", "")],
+    ["Дата поступления в ОТПП ТК", c.date],
+    ["Наименование клиента", r.client],
+    ["Инициатор", c.initiator],
+    ["Ответственный", r.who],
+    ["Сложность задачи", c.complexity],
+    ["№ kCRM", c.crm],
+    ["Филиал / Регион", `${r.branch} / ${c.region}`],
+    ["Адрес", c.address],
+    ["Требуемая услуга", c.service],
+    ["Технология подключения", c.techName],
+    ["Дата отправки в ТС\\регион\\СО", c.sent],
+    ["Дата получения ответа", step >= 2 ? "07.10.2026" : "—"],
+    ["Срок исполнения, р.д.", `${r.days} из ${LIMIT}`],
+    ["Тип работ", c.workType],
+    ["Распоряжение / Наряд", step >= 3 ? "№ 118-р / № 2041" : "— / —"],
+    ["Тендерная", c.tender],
+  ]
+  return (
+    <Modal side title={`Заявка ${r.num}`} sub={`${r.client} · ${c.techName} · срок ${r.days} из ${LIMIT} р.д.`} icon={ClipboardList} width={600} onClose={onClose}>
+      <div className="flex-1 overflow-y-auto px-7 py-5">
+        <ol className="mb-4 grid grid-cols-5">
+          {STEPS.map((t, i) => (
+            <li key={t} className="relative flex flex-col items-center gap-1.5 text-center">
+              {i > 0 && <i className={cn("absolute top-3.5 right-1/2 h-0.5 w-full", i <= step ? "bg-[#2bd463]" : "bg-border")} />}
+              <button
+                type="button"
+                onClick={() => setStep(i)}
+                className={cn(
+                  "relative z-[1] grid size-7 place-items-center rounded-full border text-[11px] font-semibold",
+                  i < step
+                    ? "border-[#2bd463] bg-[rgba(43,212,99,0.16)] text-[#2bd463]"
+                    : i === step
+                      ? "border-[#085eff] bg-[#085eff] text-white"
+                      : "border-border bg-background text-muted-foreground",
+                )}
+              >
+                {i < step ? <Check className="size-3.5" /> : i + 1}
+              </button>
+              <span className={cn("text-[11px]", i === step ? "text-foreground" : "text-muted-foreground")}>{t}</span>
+            </li>
+          ))}
+        </ol>
+        <dl className="text-[13.5px]">
+          {rows.map(([t, v]) => (
+            <div key={t} className="flex justify-between gap-4 border-b border-border py-3">
+              <dt className="text-muted-foreground">{t}</dt>
+              <dd className="text-right font-medium">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-6 mb-3 flex items-center gap-3 text-[11.5px] font-semibold tracking-[1px] text-[var(--mg-dim)] uppercase after:h-px after:flex-1 after:bg-border">
+          Точка подключения
+        </p>
+        <div className={cn(glass, "grid grid-cols-2 gap-x-6 gap-y-2 p-4 text-[13px]")}>
+          {(
+            [
+              ["№ т.п.", "1"],
+              ["Филиал", r.branch],
+              ["Адрес", c.address],
+              ["Услуга", c.service],
+              ["Статус", step >= 4 ? "Подключено" : step >= 2 ? "ТВ получены" : "Ожидает ТВ"],
+            ] as const
+          ).map(([t, v]) => (
+            <span key={t}>
+              <span className="block text-[11.5px] text-muted-foreground">{t}</span>
+              <b className="font-medium">{v}</b>
+            </span>
+          ))}
+        </div>
+      </div>
+      <footer className="flex gap-2.5 border-t border-[var(--dd-line)] px-7 py-4">
+        <button type="button" className={btn()} onClick={() => toast("Правка точки подключения — после подключения API")}>
+          <MapPin />
+          Редактировать точку
+        </button>
+        <button type="button" className={cn(btn(), "ml-auto")} onClick={onClose}>
+          Отмена
+        </button>
+        <button type="button" className={btn({ primary: true })} onClick={() => onSave(STAGES[step][0])}>
+          <Check />
+          Сохранить
+        </button>
+      </footer>
+    </Modal>
+  )
+}
+
+const OPTS = {
+  region: ["Астана", "Алматы", "Шымкент", "Караганда", "Актобе", "Уральск", "Атырау", "Павлодар"],
+  service: ["Интернет 50 Мбит/с", "Интернет 100 Мбит/с", "Интернет 200 Мбит/с", "ID-канал L2", "L3VPN 1 Гбит/с", "IP-телефония"],
+  techName: ["FTTB", "FTTH", "ID-канал L2", "L3VPN", "РРЛ", "VSAT"],
+  complexity: ["Обычная", "Сложная"],
+  workType: ["Подключение", "Строительство", "Модернизация"],
+  tender: ["Нет", "Да"],
+}
+
+/** req-04: новая заявка — шторка с полями реестра. */
 function CreateDialog({
   stage,
   next,
@@ -311,19 +531,22 @@ function CreateDialog({
   onClose: () => void
   onSave: (r: Omit<Req, "id">) => void
 }) {
-  const nodes = nodeRows()
-  const [v, setV] = useState({ client: "", tech: "FTTB", speed: "100 Мбит/с", node: "", who: "Д. Темирханова", note: "" })
+  const [v, setV] = useState<Record<string, string>>({ who: "", branch: "", date: "" })
+  const set = (k: string) => (t: string) => setV({ ...v, [k]: t })
+  const need = ["crm", "client", "branch", "address", "service", "who", "date"]
   const save = () => {
-    if (!v.client.trim() || !v.node) return toast("Укажите клиента и узел связи")
-    const n = nodes.find((x) => x.code === v.node)!
+    const miss = need.filter((k) => !v[k]?.trim())
+    if (miss.length) return toast(`Заполните обязательные поля: ${miss.length}`)
     onSave({
       num: `№ 2026-${next}`,
       client: v.client.trim(),
-      tech: `${v.tech} · ${v.speed} · ${n.code}`,
-      branch: n.branch,
+      tech: `${v.techName || "FTTB"} · ${v.service} · ${v.branch}`,
+      branch: v.branch,
       who: v.who,
       days: 0,
       stage,
+      tag: v.complexity === "Сложная" ? { t: "Сложная", tone: "info" } : undefined,
+      f: { date: v.date, crm: v.crm, region: v.region, address: v.address, service: v.service, techName: v.techName, complexity: v.complexity, workType: v.workType, tender: v.tender },
     })
     toast(`Заявка № 2026-${next} создана`)
     onClose()
@@ -333,71 +556,68 @@ function CreateDialog({
       {t} {req && <span className="text-[#ff5257]">*</span>}
     </span>
   )
+  const sel = (k: keyof typeof OPTS, t: string) => (
+    <div>
+      {label(t)}
+      <Select value={v[k] ?? ""} placeholder="Выберите" opts={OPTS[k].map((o) => ({ v: o, label: o }))} onChange={set(k)} />
+    </div>
+  )
   return (
-    <Dialog.Root open onOpenChange={(o) => !o && onClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[100] bg-[rgba(5,6,9,0.55)] backdrop-blur-[3px]" />
-        <Dialog.Content
-          aria-describedby={undefined}
-          className="fixed top-1/2 left-1/2 z-[101] w-[600px] max-w-[calc(100vw-24px)] -translate-x-1/2 -translate-y-1/2 rounded-[28px] border border-border bg-background p-6"
-        >
-          <header className="mb-5 flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-xl bg-[rgba(8,94,255,0.16)] text-[var(--link)]">
-              <ClipboardList className="size-5" />
-            </span>
-            <Dialog.Title className="flex-1 text-xl font-semibold">Новая заявка на подключение</Dialog.Title>
-            <Dialog.Close className={circ} aria-label="Закрыть">
-              <X />
-            </Dialog.Close>
-          </header>
-          <div className="grid grid-cols-2 gap-3.5">
-            <div className="col-span-full">
-              {label("Клиент", true)}
-              <Input value={v.client} onChange={(e) => setV({ ...v, client: e.target.value })} placeholder="ТОО «…» или БИН" />
-            </div>
-            <div>
-              {label("Технология")}
-              <Select
-                value={v.tech}
-                opts={["FTTB", "FTTH", "ID-канал L2", "L3VPN", "Интернет"].map((t) => ({ v: t, label: t }))}
-                onChange={(t) => setV({ ...v, tech: t })}
-              />
-            </div>
-            <div>
-              {label("Скорость")}
-              <Select
-                value={v.speed}
-                opts={["50 Мбит/с", "100 Мбит/с", "200 Мбит/с", "1 Гбит/с"].map((t) => ({ v: t, label: t }))}
-                onChange={(t) => setV({ ...v, speed: t })}
-              />
-            </div>
-            <div>
-              {label("Узел связи", true)}
-              <Select
-                value={v.node}
-                placeholder="Начните вводить ID…"
-                opts={nodes.map((n) => ({ v: n.code, label: `${n.code} · ${n.object}` }))}
-                onChange={(t) => setV({ ...v, node: t })}
-              />
-            </div>
-            <div>
-              {label("Ответственный")}
-              <Select value={v.who} opts={Object.keys(PEOPLE).map((p) => ({ v: p, label: p }))} onChange={(t) => setV({ ...v, who: t })} />
-            </div>
-            <div className="col-span-full">
-              {label("Комментарий")}
-              <Textarea value={v.note} onChange={(e) => setV({ ...v, note: e.target.value })} placeholder="Адрес, контакт, № kCRM" />
-            </div>
+    <Modal side title="Новая заявка" sub="Поля со * обязательны" icon={ClipboardList} width={600} onClose={onClose}>
+      <div className="flex-1 overflow-y-auto px-7 py-5">
+        <p className="mb-3 text-[11.5px] font-semibold tracking-[1px] text-[var(--mg-dim)] uppercase">Заявка</p>
+        <div className="grid grid-cols-2 gap-3.5">
+          <div>
+            {label("№ kCRM", true)}
+            <Input value={v.crm ?? ""} onChange={(e) => set("crm")(e.target.value)} placeholder="—" />
           </div>
-          <footer className="mt-6 flex justify-end gap-2.5">
-            <Dialog.Close className={btn()}>Отмена</Dialog.Close>
-            <button type="button" className={btn({ primary: true })} onClick={save}>
-              <Check />
-              Создать
-            </button>
-          </footer>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+          <div>
+            {label("Наименование клиента", true)}
+            <Input value={v.client ?? ""} onChange={(e) => set("client")(e.target.value)} placeholder="ТОО «…» или БИН" />
+          </div>
+          <div>
+            {label("Филиал", true)}
+            <Select value={v.branch} placeholder="Выберите" opts={BRANCHES.map((b) => ({ v: b.v, label: b.full }))} onChange={set("branch")} />
+          </div>
+          {sel("region", "Регион")}
+          <div className="col-span-full">
+            {label("Адрес", true)}
+            <Input value={v.address ?? ""} onChange={(e) => set("address")(e.target.value)} placeholder="—" />
+          </div>
+          <div>
+            {label("Требуемая услуга", true)}
+            <Select value={v.service ?? ""} placeholder="Выберите" opts={OPTS.service.map((o) => ({ v: o, label: o }))} onChange={set("service")} />
+          </div>
+          {sel("techName", "Технология подключения")}
+          {sel("complexity", "Сложность задачи")}
+        </div>
+        <p className="mt-6 mb-3 text-[11.5px] font-semibold tracking-[1px] text-[var(--mg-dim)] uppercase">Исполнение</p>
+        <div className="grid grid-cols-2 gap-3.5">
+          <div>
+            {label("Ответственный", true)}
+            <Select value={v.who} placeholder="Выберите" opts={Object.keys(PEOPLE).map((p) => ({ v: p, label: p }))} onChange={set("who")} />
+          </div>
+          {sel("workType", "Тип работ")}
+          {sel("tender", "Тендерная")}
+          <div>
+            {label("Дата поступления в ОТПП ТК", true)}
+            <Input value={v.date} onChange={(e) => set("date")(e.target.value)} placeholder="дд.мм.гггг" />
+          </div>
+          <div className="col-span-full">
+            {label("Комментарий")}
+            <Textarea value={v.note ?? ""} onChange={(e) => set("note")(e.target.value)} placeholder="Контакт клиента, примечание" />
+          </div>
+        </div>
+      </div>
+      <footer className="flex justify-end gap-2.5 border-t border-[var(--dd-line)] px-7 py-4">
+        <button type="button" className={btn()} onClick={onClose}>
+          Отмена
+        </button>
+        <button type="button" className={btn({ primary: true })} onClick={save}>
+          <Check />
+          Создать
+        </button>
+      </footer>
+    </Modal>
   )
 }
