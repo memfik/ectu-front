@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react"
+import { useSyncExternalStore } from "react"
 import type { LucideIcon } from "lucide-react"
 import {
   AtSign,
@@ -65,39 +65,10 @@ const NAV: { id: string; t: string; icon: LucideIcon; tone: string }[] = [
   { id: "layouts", t: "Раскладки", icon: LayoutDashboard, tone: "#4f8dff" },
 ]
 
-/**
- * Подсветка вкладки по прокрутке: блок, верх которого последним прошёл треть экрана; у низа страницы — последний блок
- * (короткие нижние блоки до трети экрана не доезжают). После клика по вкладке — она, пока идёт прокрутка к блоку.
- */
-function useActive(ids: string[]) {
-  const [active, setActive] = useState(ids[0])
-  const lock = useRef(0)
-  useEffect(() => {
-    const onScroll = () => {
-      if (Date.now() < lock.current) return
-      const y = innerHeight / 3
-      let cur = ids[0]
-      for (const id of ids) {
-        const el = document.getElementById(id)
-        if (el && el.getBoundingClientRect().top <= y) cur = id
-      }
-      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = ids[ids.length - 1]
-      setActive(cur)
-    }
-    addEventListener("scroll", onScroll, { passive: true })
-    return () => removeEventListener("scroll", onScroll)
-  }, [ids])
-  const pick = (id: string) => {
-    lock.current = Date.now() + 900
-    setActive(id)
-  }
-  return [active, pick] as const
-}
-
 function Block({ id, title, sub, children }: { id: string; title: string; sub?: string; children: React.ReactNode }) {
   const n = NAV.find((x) => x.id === id)!
   return (
-    <section id={id} className={cn(glass, "scroll-mt-28 overflow-hidden")}>
+    <section id={id} className={cn(glass, "overflow-hidden")}>
       <header
         className="flex items-center gap-3.5 border-b border-border px-6 py-4"
         style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${n.tone} 10%, transparent), transparent 55%)` }}
@@ -202,8 +173,6 @@ export function SettingsPage() {
   const [density, setDensity] = usePref("density", "normal")
   const [start, setStart] = usePref("start", "nodes")
   const [digest, setDigest] = usePref("digest", "day")
-  const [ids] = useState(() => NAV.map((x) => x.id))
-  const [active, pick] = useActive(ids)
   const reset = (key: string, t: string) => {
     try {
       localStorage.removeItem(key)
@@ -220,22 +189,6 @@ export function SettingsPage() {
           <p className="mt-2 text-[15px] text-[var(--nav-text)]">Применяются сразу и сохраняются в этом браузере</p>
         </section>
 
-        <nav className="sticky top-3 z-[5] mx-auto mb-[18px] flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border border-border bg-[var(--glass-card)] p-1 backdrop-blur-[18px] [scrollbar-width:none]">
-          {NAV.map((x) => (
-            <a
-              key={x.id}
-              href={`#${x.id}`}
-              onClick={() => pick(x.id)}
-              className={cn(
-                "flex h-10 items-center gap-2 rounded-full px-4 text-[13.5px] whitespace-nowrap text-[var(--nav-text)] transition-colors hover:text-foreground",
-                active === x.id && "bg-[var(--nav-on-bg)] font-semibold text-[var(--nav-on)]",
-              )}
-            >
-              <x.icon className="size-4" />
-              {x.t}
-            </a>
-          ))}
-        </nav>
 
         <div className="flex flex-col gap-[18px]">
           <Block id="appearance" title="Внешний вид" sub="Тема, язык и плотность списков">
