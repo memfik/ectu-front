@@ -63,7 +63,7 @@ function HeaderPopover({
 }
 
 /** Сегмент-переключатель из макета (Тема, Язык, Плотность). */
-function Segment<T extends string>({
+export function Segment<T extends string>({
   value,
   options,
   onChange,
@@ -93,7 +93,7 @@ function Segment<T extends string>({
   )
 }
 
-function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+export function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
       type="button"
@@ -110,7 +110,7 @@ function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 
 /* ---------- Уведомления ---------- */
 
-type Notice = {
+export type Notice = {
   id: number
   day: "Сегодня" | "Вчера"
   kind: "mention" | "task" | "system"
@@ -126,7 +126,7 @@ type Notice = {
 }
 
 /** TODO: уведомления из API. Тексты — примеры из макета. */
-const NOTICES: Notice[] = [
+export const NOTICES: Notice[] = [
   {
     id: 1,
     day: "Сегодня",
@@ -190,7 +190,7 @@ const TABS = [
   { key: "system", title: "Система" },
 ] as const
 
-function Rich({ text }: { text: string }) {
+export function Rich({ text }: { text: string }) {
   return (
     <>
       {text.split("**").map((part, i) =>
@@ -330,33 +330,33 @@ export function NotificationsPopover({ trigger }: { trigger: (unread: number) =>
  * Настройки хранятся в localStorage (`ectu:*`). Плотность таблиц — класс `density-*` на <html>.
  * TODO: язык интерфейса (i18n), стартовая страница и уведомления — сохранять в профиле через API.
  */
-const NOTIFY = [
+export const NOTIFY = [
   { key: "n-mention", title: "Упоминания и комментарии", def: true },
   { key: "n-request", title: "Новые заявки", def: true },
   { key: "n-errors", title: "Ошибки импорта и бэкапа", def: true },
   { key: "n-email", title: "Дублировать на почту", def: false },
 ] as const
 
-const DENSITY = [
+export const DENSITY = [
   { key: "compact", title: "Компактная" },
   { key: "normal", title: "Обычная" },
   { key: "comfortable", title: "Просторная" },
 ] as const
 
-function readPref(key: string, def: string) {
+export function readPref(key: string, def: string) {
   try {
     return localStorage.getItem(`ectu:${key}`) ?? def
   } catch {
     return def
   }
 }
-function writePref(key: string, value: string) {
+export function writePref(key: string, value: string) {
   try {
     localStorage.setItem(`ectu:${key}`, value)
   } catch {}
 }
 
-const applyDensity = (v: string) => {
+export const applyDensity = (v: string) => {
   const html = document.documentElement
   for (const d of DENSITY) html.classList.toggle(`density-${d.key}`, d.key === v)
 }
