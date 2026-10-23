@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { RotateCcw, Search, Trash2 } from "lucide-react"
+import { CircleAlert, RotateCcw, Search, Trash2 } from "lucide-react"
 import { Input, Select } from "@/components/list/form-controls"
 import { btn, checkBox, Pill } from "@/components/list/ui"
+import { Modal } from "@/components/passport/modal"
 import { glass } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
+import { findSection } from "@/config/nav"
 import { LISTS } from "@/sections"
 import { BRANCHES } from "@/sections/nodes/data"
 import { api, apiOn, type Page } from "@/lib/api/client"
@@ -118,6 +120,7 @@ export function TrashPage() {
   const [branch, setBranch] = useState("")
   const [type, setType] = useState("")
   const [sel, setSel] = useState<string[]>([])
+  const [ask, setAsk] = useState<TrashItem | null>(null)
   const key = (x: TrashItem) => `${x.section}:${x.id}`
   const all = useMemo(() => (remote ? live : [...live, ...SEED]).filter((x) => !hidden.includes(key(x))), [live, hidden, remote])
   // «Сегодня» — по самой свежей записи, чтобы не зависеть от часов сервера при отрисовке
@@ -275,7 +278,7 @@ export function TrashPage() {
                       <Pill key="d" tone={d <= 0 ? "bad" : d <= 3 ? "warn" : "muted"} className="[&>i]:hidden">
                         {d <= 0 ? "сегодня" : `${d} дн.`}
                       </Pill>,
-                      <button key="b" type="button" className={btn({ sm: true })} onClick={() => restore([x])}>
+                      <button key="b" type="button" className={btn({ sm: true })} onClick={() => setAsk(x)}>
                         <RotateCcw />
                         Восстановить
                       </button>,
@@ -301,6 +304,61 @@ export function TrashPage() {
           </table>
         </div>
       </section>
+      {ask && (
+        <RestoreDialog
+          x={ask}
+          onClose={() => setAsk(null)}
+          onRestore={() => {
+            restore([ask])
+            setAsk(null)
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+/** tr-02: подтверждение восстановления — куда вернётся запись, её данные и что станет со связями. */
+function RestoreDialog({ x, onClose, onRestore }: { x: TrashItem; onClose: () => void; onRestore: () => void }) {
+  const title = findSection(x.section)?.title ?? x.sectionTitle
+  const row = (x.row ?? {}) as { nodeCode?: string }
+  const node = x.section === "nodes" ? undefined : row.nodeCode ?? x.name.match(/[a-z]{3}\d{3}\.\d{2}\.[A-Z]{2}/)?.[0]
+  const rows: [string, string][] = [
+    ["Наименование", x.name],
+    ["Тип", x.sectionTitle],
+    ["Филиал", x.branch ?? "—"],
+    ...(node ? ([["Узел связи", node]] as [string, string][]) : []),
+    ["Причина удаления", x.reason],
+    ["Удалил", `${x.by} · ${x.at.slice(0, 10)}`],
+  ]
+  return (
+    <Modal title="Восстановить запись?" icon={RotateCcw} width={560} onClose={onClose}>
+      <div className="px-6 pt-4 pb-6">
+        <p className="text-[13.5px] text-muted-foreground">Запись вернётся в раздел «{title}» со всеми полями и связями.</p>
+        <p className="mt-4 mb-2 text-[12.5px] font-medium">Данные записи</p>
+        <dl className="rounded-2xl border border-border px-4 py-2 text-[13px]">
+          {rows.map(([t, v]) => (
+            <div key={t} className="flex justify-between gap-4 py-1.5">
+              <dt className="text-muted-foreground">{t}</dt>
+              <dd className="text-right font-semibold">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        {/* TODO(API): проверка связей перед восстановлением (узел, занятые порты) */}
+        <p className="mt-4 flex gap-2.5 rounded-2xl border border-[rgba(255,82,87,0.35)] bg-[rgba(255,82,87,0.08)] px-4 py-3 text-[13px]">
+          <CircleAlert className="mt-0.5 size-4 flex-none text-[#ff5257]" />
+          {node ? `Узел ${node} существует — привязка восстановится. Связанные порты и каналы проверьте после восстановления.` : "Связи записи восстановятся вместе с ней."}
+        </p>
+        <footer className="mt-6 flex justify-end gap-2.5">
+          <button type="button" className={btn()} onClick={onClose}>
+            Отмена
+          </button>
+          <button type="button" className={btn({ primary: true })} onClick={onRestore}>
+            <RotateCcw />
+            Восстановить
+          </button>
+        </footer>
+      </div>
+    </Modal>
   )
 }

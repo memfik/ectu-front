@@ -49,13 +49,40 @@ function splitCsv(line: string, sep: string) {
   return out
 }
 
+/**
+ * Сопоставление колонок (imp-02): колонка файла → ключ поля формы или null («Не загружать»).
+ * Автоматически — по совпадению с подписью поля или по началу слов («Длина км» → «Длина, км»).
+ */
+export function autoMap<T extends Row>(cfg: ListConfig<T>, head: string[]): (string | null)[] {
+  const words = (s: string) => norm(s).replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter(Boolean)
+  const used = new Set<string>()
+  return head.map((h) => {
+    const exact = cfg.form.fields.find((f) => !used.has(f.k) && norm(f.t) === norm(h))
+    const fuzzy =
+      exact ??
+      cfg.form.fields.find((f) => {
+        if (used.has(f.k)) return false
+        const a = words(h)
+        const b = words(f.t)
+        return a.length > 0 && a.every((w) => b.some((x) => x.startsWith(w.replace(/\.$/, ""))))
+      })
+    if (fuzzy) used.add(fuzzy.k)
+    return fuzzy?.k ?? null
+  })
+}
+
 /** Проверка строк: обязательные поля, формат, дубликаты в файле; совпадение по названию — обновление. */
-export function checkImport<T extends Row>(cfg: ListConfig<T>, table: string[][], fixed: Record<string, string>): ImportCheck<T> {
+export function checkImport<T extends Row>(
+  cfg: ListConfig<T>,
+  table: string[][],
+  fixed: Record<string, string>,
+  map?: (string | null)[],
+): ImportCheck<T> {
   const [head = [], ...lines] = table
   const fields = cfg.form.fields
   const col = new Map<Field<T>, number>()
   for (const f of fields) {
-    const i = head.findIndex((h) => norm(h) === norm(f.t))
+    const i = map ? map.indexOf(f.k) : head.findIndex((h) => norm(h) === norm(f.t))
     if (i >= 0) col.set(f, i)
   }
   const out: ImportCheck<T> = { total: lines.length, create: [], update: [], errors: [] }

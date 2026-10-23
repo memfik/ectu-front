@@ -1,11 +1,11 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { Fragment, useRef, useState } from "react"
 import { Dialog } from "radix-ui"
-import { ArrowRight, Check, CircleAlert, CircleCheck, Download, FileUp, ListChecks, Upload, X } from "lucide-react"
+import { ArrowRight, Check, ChevronLeft, CircleAlert, CircleCheck, Download, FileUp, ListChecks, Sparkles, Upload, X } from "lucide-react"
 import { notify, toast } from "@/components/shared/toast"
 import { LISTS } from "@/sections"
-import { checkImport, downloadErrors, downloadTemplate, readTable, type ImportCheck } from "@/lib/list/import"
+import { autoMap, checkImport, downloadErrors, downloadTemplate, readTable, type ImportCheck } from "@/lib/list/import"
 import { fmt, plural } from "@/lib/list/query"
 import { isRemote, saveRemote } from "@/lib/list/remote"
 import { rowsStore } from "@/lib/list/store"
@@ -35,6 +35,10 @@ export function ImportDialog<T extends Row>({
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<number | null>(null)
   const [check, setCheck] = useState<ImportCheck<T> | null>(null)
+  /** Шаг сопоставления колонок: колонка файла → поле (null — не загружать) */
+  const [map, setMap] = useState<(string | null)[] | null>(null)
+  const [auto, setAuto] = useState(0)
+  const [head, setHead] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [drag, setDrag] = useState(false)
   const input = useRef<HTMLInputElement>(null)
@@ -50,6 +54,7 @@ export function ImportDialog<T extends Row>({
     setBusy(true)
     try {
       table.current = await readTable(f)
+      setHead(table.current[0] ?? [])
       setRows(Math.max(0, table.current.length - 1))
     } catch {
       setFile(null)
@@ -77,8 +82,13 @@ export function ImportDialog<T extends Row>({
     onClose()
   }
 
-  const step = check ? 3 : 2
-  const steps = ["Тип и филиал", "Файл", "Проверка"]
+  const step = check ? 4 : map ? 3 : 2
+  const steps = ["Тип и филиал", "Файл", "Колонки", "Проверка"]
+  const toMap = () => {
+    const m = autoMap(cfg, head)
+    setMap(m)
+    setAuto(m.filter(Boolean).length)
+  }
 
   return (
     <Dialog.Root open onOpenChange={(o) => !o && onClose()}>
@@ -90,17 +100,17 @@ export function ImportDialog<T extends Row>({
         >
           <header className="flex items-center gap-3">
             <span className="grid size-9 place-items-center rounded-xl bg-[rgba(8,94,255,0.16)] text-[var(--link)]">
-              {check ? <ListChecks className="size-[18px]" /> : <FileUp className="size-[18px]" />}
+              {check || map ? <ListChecks className="size-[18px]" /> : <FileUp className="size-[18px]" />}
             </span>
             <Dialog.Title className="flex-1 text-xl font-semibold">
-              {check ? "Импорт Excel · проверка" : `Импорт Excel · ${cfg.title}`}
+              {check ? "Импорт Excel · проверка" : map ? "Импорт Excel · сопоставление колонок" : `Импорт Excel · ${cfg.title}`}
             </Dialog.Title>
             <Dialog.Close className={circ} aria-label="Закрыть">
               <X />
             </Dialog.Close>
           </header>
 
-          <ol className="mt-5 mb-4 grid grid-cols-3 text-[13.5px]">
+          <ol className="mt-5 mb-4 grid grid-cols-4 text-[13.5px]">
             {steps.map((t, i) => {
               const n = i + 1
               const done = n < step || (n === 1 && (!branchField || !!branch))
@@ -124,7 +134,48 @@ export function ImportDialog<T extends Row>({
             })}
           </ol>
 
-          {!check ? (
+          {map && !check ? (
+            <>
+              <div className="grid grid-cols-[1fr_24px_1fr] items-center gap-x-2 gap-y-2 text-[13px]">
+                <span className="text-[12.5px] font-medium text-muted-foreground">Колонка в файле</span>
+                <span />
+                <span className="text-[12.5px] font-medium text-muted-foreground">Поле ЕСТУ</span>
+                {head.map((h, i) => (
+                  <Fragment key={i}>
+                    <span className="truncate rounded-xl border border-[var(--dd-line)] bg-[var(--chip-bg)] px-3 py-2.5">{h || `Колонка ${i + 1}`}</span>
+                    <ArrowRight className="size-4 text-[var(--link)]" />
+                    <Select
+                      value={map[i] ?? ""}
+                      opts={[
+                        { v: "", label: "Не загружать" },
+                        ...cfg.form.fields.filter((f) => f.k === map[i] || !map.includes(f.k)).map((f) => ({ v: f.k, label: f.t })),
+                      ]}
+                      onChange={(k) => setMap(map.map((x, j) => (j === i ? k || null : x)))}
+                      className={cn(map[i] ? "border-[rgba(43,212,99,0.4)]" : "border-[rgba(255,194,74,0.5)] text-[#ffc24a]")}
+                    />
+                  </Fragment>
+                ))}
+              </div>
+              <p className="mt-3.5 flex items-center gap-2.5 rounded-2xl border border-[rgba(43,212,99,0.3)] bg-[rgba(43,212,99,0.08)] px-4 py-3 text-[13px]">
+                <Sparkles className="size-4 text-[var(--status-ok)]" />
+                {auto} из {head.length} колонок сопоставлены автоматически по названию
+              </p>
+              <footer className="mt-6 flex justify-end gap-2.5">
+                <button type="button" className={btn()} onClick={() => setMap(null)}>
+                  <ChevronLeft />
+                  Назад
+                </button>
+                <button
+                  type="button"
+                  className={btn({ primary: true })}
+                  onClick={() => setCheck(checkImport(cfg, table.current, branch ? { branch } : {}, map))}
+                >
+                  <ArrowRight />
+                  Далее: проверка
+                </button>
+              </footer>
+            </>
+          ) : !check ? (
             <>
               <div className="grid grid-cols-2 gap-3.5 max-sm:grid-cols-1">
                 <div>
@@ -219,10 +270,10 @@ export function ImportDialog<T extends Row>({
                   type="button"
                   disabled={!ready}
                   className={btn({ primary: true })}
-                  onClick={() => setCheck(checkImport(cfg, table.current, branch ? { branch } : {}))}
+                  onClick={toMap}
                 >
                   <ArrowRight />
-                  Далее: проверка
+                  Далее: колонки
                 </button>
               </footer>
             </>
