@@ -23,8 +23,9 @@ import { spec as trunkBs } from "@/sections/trunk-bs/config"
 import { spec as vsat } from "@/sections/vsat/config"
 import { spec as oneweb } from "@/sections/oneweb/config"
 import { spec as ups } from "@/sections/ups/config"
+import { spec as gen } from "@/sections/gen/config"
 
-/** Разделы на общем шаблоне (макеты 07–33): у каждого своя папка src/sections/<раздел>/. */
+/** Разделы на общем шаблоне (макеты 07–34): у каждого своя папка src/sections/<раздел>/. */
 export const SPECS: Spec[] = [
   fiberLines,
   cableLines,
@@ -50,6 +51,7 @@ export const SPECS: Spec[] = [
   vsat,
   oneweb,
   ups,
+  gen,
 ]
 
 export const specOf = (key: string) => SPECS.find((s) => s.key === key)

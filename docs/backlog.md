@@ -154,3 +154,4 @@
 - [ ] VSAT (31): скорости CIR / MIR, станция (BUC, LNB, IP, VLAN), голосовые интерфейсы, нумерация — примеры (нет в `/api/vsat`)
 - [ ] OneWeb (32): район, сельский округ, IMEI, VLAN, точка доступа, тестовый период, скорости — примеры (нет в `/api/oneweb`)
 - [ ] ИБП (33): напряжения банок, нагрузка, заряд, автономия — SNMP (нет в API); количество АБ (40 на панели и 8 во вкладке) — как в макете, нужно из записи
+- [ ] ГЭУ (34): уровень топлива, состояние АВР, наработка (моточасы) — примеры (нет в `/api/gey`); поля формы взяты из `ActionGysEquipmentPanel` старого фронта (`fuel_type`, `phases_count`, `engine_type`, `generator_type`, `fuel_tank_capacity`, `execution`, `mobility`, `automation_level`, `commissioning_date`) — сверить с `/filter`
