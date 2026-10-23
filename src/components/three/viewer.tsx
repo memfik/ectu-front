@@ -27,10 +27,18 @@ export default function Viewer({
   const box = useRef<HTMLDivElement>(null)
   const controls = useRef<OrbitControls | null>(null)
   const [tip, setTip] = useState<{ x: number; y: number; t: string } | null>(null)
+  const [noGl, setNoGl] = useState(false)
 
   useEffect(() => {
     const el = box.current!
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    let renderer: THREE.WebGLRenderer
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    } catch {
+      // Нет WebGL (старая видеокарта, отключено ускорение) — вместо модели подпись, страница не падает
+      queueMicrotask(() => setNoGl(true))
+      return
+    }
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     el.appendChild(renderer.domElement)
@@ -113,6 +121,11 @@ export default function Viewer({
 
   return (
     <div ref={box} className={cn("relative", className)}>
+      {noGl && (
+        <span className="absolute inset-0 grid place-items-center text-center text-[13px] text-muted-foreground">
+          3D недоступно: в браузере выключено аппаратное ускорение (WebGL)
+        </span>
+      )}
       {tip && (
         <span
           className="pointer-events-none absolute z-[2] rounded-xl border border-border bg-[var(--dd-bg)] px-3 py-1.5 text-[13px] shadow"

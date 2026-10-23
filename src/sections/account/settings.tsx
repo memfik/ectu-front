@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useSyncExternalStore } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import type { LucideIcon } from "lucide-react"
 import {
   AtSign,
@@ -65,23 +65,33 @@ const NAV: { id: string; t: string; icon: LucideIcon; tone: string }[] = [
   { id: "layouts", t: "Раскладки", icon: LayoutDashboard, tone: "#4f8dff" },
 ]
 
-/** Подсветка вкладки по прокрутке: блок, верх которого последним прошёл треть экрана. */
+/**
+ * Подсветка вкладки по прокрутке: блок, верх которого последним прошёл треть экрана; у низа страницы — последний блок
+ * (короткие нижние блоки до трети экрана не доезжают). После клика по вкладке — она, пока идёт прокрутка к блоку.
+ */
 function useActive(ids: string[]) {
   const [active, setActive] = useState(ids[0])
+  const lock = useRef(0)
   useEffect(() => {
     const onScroll = () => {
+      if (Date.now() < lock.current) return
       const y = innerHeight / 3
       let cur = ids[0]
       for (const id of ids) {
         const el = document.getElementById(id)
         if (el && el.getBoundingClientRect().top <= y) cur = id
       }
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = ids[ids.length - 1]
       setActive(cur)
     }
     addEventListener("scroll", onScroll, { passive: true })
     return () => removeEventListener("scroll", onScroll)
   }, [ids])
-  return active
+  const pick = (id: string) => {
+    lock.current = Date.now() + 900
+    setActive(id)
+  }
+  return [active, pick] as const
 }
 
 function Block({ id, title, sub, children }: { id: string; title: string; sub?: string; children: React.ReactNode }) {
@@ -193,7 +203,7 @@ export function SettingsPage() {
   const [start, setStart] = usePref("start", "nodes")
   const [digest, setDigest] = usePref("digest", "day")
   const [ids] = useState(() => NAV.map((x) => x.id))
-  const active = useActive(ids)
+  const [active, pick] = useActive(ids)
   const reset = (key: string, t: string) => {
     try {
       localStorage.removeItem(key)
@@ -215,6 +225,7 @@ export function SettingsPage() {
             <a
               key={x.id}
               href={`#${x.id}`}
+              onClick={() => pick(x.id)}
               className={cn(
                 "flex h-10 items-center gap-2 rounded-full px-4 text-[13.5px] whitespace-nowrap text-[var(--nav-text)] transition-colors hover:text-foreground",
                 active === x.id && "bg-[var(--nav-on-bg)] font-semibold text-[var(--nav-on)]",

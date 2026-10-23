@@ -235,8 +235,11 @@ export function MapPage() {
         )
     return out
   }, [mode, layers, inBranch, branch, cams])
-  const draft: NetLine[] = draw && draw.length > 1 ? [{ id: "draft", coords: draw, layer: "draft", color: "#2bd463", width: 3 }] : []
-  const shownLines = useMemo(() => (mode === "tech" ? lines.filter((l) => layers[l.layer]) : []), [mode, lines, layers])
+  // Один массив линий на рендер: новый массив при каждом рендере зацикливает onView карты
+  const shownLines = useMemo(() => {
+    const out = mode === "tech" ? lines.filter((l) => layers[l.layer]) : []
+    return draw && draw.length > 1 ? [...out, { id: "draft", coords: draw, layer: "draft", color: "#2bd463", width: 3 }] : out
+  }, [mode, lines, layers, draw])
 
   const found = q.trim()
     ? nodes.filter((n) => `${n.code} ${n.object} ${n.address}`.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 8)
@@ -252,7 +255,7 @@ export function MapPage() {
     <div className="fixed inset-0 z-0">
       <NetworkMap
         points={points}
-        lines={[...shownLines, ...draft]}
+        lines={shownLines}
         basemap={basemap}
         selected={sel}
         focus={focus}
