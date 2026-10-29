@@ -6,10 +6,15 @@ import { backupColumns, backups } from "./backups"
 import { lte, lteColumns, lteImport } from "./bwa-lte"
 import { wimax, wimaxColumns, wimaxImport } from "./bwa-wimax"
 import { wll, wllColumns, wllImport } from "./bwa-wll"
+import { cableDuctColumns, cableDucts, cableDuctsImport } from "./cable-ducts"
+import { cableLineColumns, cableLines, cableLinesImport } from "./cable-lines"
 import { dwdmColumns, dwdmDevices, dwdmImport } from "./dwdm"
 import { fiberLineColumns, fiberLines, fiberLinesImport } from "./fiber-lines"
 import { ipPlan, ipPlanColumns } from "./ip-plan"
+import { landPlotColumns, landPlots, landPlotsImport } from "./land-plots"
+import { mastColumns, masts, mastsImport } from "./masts"
 import { nodeColumns, nodes, nodesImport } from "./nodes"
+import { odfColumns, odfImport, odfs } from "./odf"
 import { pdhColumns, pdhDevices, pdhImport } from "./pdh"
 import { radioBridgeColumns, radioBridges, radioBridgesImport } from "./radio-bridges"
 import { routerColumns, routers, routersImport } from "./routers"
@@ -42,6 +47,11 @@ export const SECTIONS: SectionData[] = [
   section({ key: "nodes", title: "Узлы связи", crumb: "Сеть", all: nodes.all, columns: nodeColumns, import: nodesImport }),
   section({ key: "switches", title: "Коммутаторы", crumb: "Оборудование / Системы передачи данных", all: switches.all, columns: switchColumns, import: switchesImport }),
   section({ key: "routers", title: "Маршрутизаторы", crumb: "Оборудование / Системы передачи данных", all: routers.all, columns: routerColumns, import: routersImport }),
+  section({ key: "cable-lines", title: "КЛС", crumb: "Линии и сооружения", all: cableLines.all, columns: cableLineColumns, import: cableLinesImport }),
+  section({ key: "cable-ducts", title: "Кабельная канализация", crumb: "Линии и сооружения", all: cableDucts.all, columns: cableDuctColumns, import: cableDuctsImport }),
+  section({ key: "odf", title: "ODF", crumb: "Линии и сооружения", all: odfs.all, columns: odfColumns, import: odfImport }),
+  section({ key: "masts", title: "АМС", crumb: "Линии и сооружения", all: masts.all, columns: mastColumns, import: mastsImport }),
+  section({ key: "land-plots", title: "Земельные участки", crumb: "Сеть", all: landPlots.all, columns: landPlotColumns, import: landPlotsImport }),
   section({ key: "pdh", title: "PDH", crumb: "Оборудование / Проводные технологии", all: pdhDevices.all, columns: pdhColumns, import: pdhImport }),
   section({ key: "sdh", title: "SDH", crumb: "Оборудование / Проводные технологии", all: sdhDevices.all, columns: sdhColumns, import: sdhImport }),
   section({ key: "dwdm", title: "DWDM", crumb: "Оборудование / Проводные технологии", all: dwdmDevices.all, columns: dwdmColumns, import: dwdmImport }),
