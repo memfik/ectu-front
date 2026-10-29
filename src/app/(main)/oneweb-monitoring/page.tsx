@@ -9,7 +9,7 @@ import { btn, circ, Pill } from "@/components/list/ui"
 import { Modal } from "@/components/passport/modal"
 import { glass } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
-import type { Tone } from "@/lib/list/types"
+import type { Tone } from "@/components/list/ui"
 import { cn } from "@/lib/utils"
 
 /*

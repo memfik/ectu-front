@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useTheme } from "next-themes"
 import type { GeoJSONSource, Map as MlMap, Marker } from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
-import type { Coverage } from "@/sections/nodes/detail"
+import type { Coverage } from "@/lib/api/node-detail"
 
 const STYLE = {
   dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",

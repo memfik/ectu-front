@@ -1,8 +1,8 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
-import { nodeDetail, type NodeDetail } from "@/sections/nodes/detail"
-import type { NodeRow } from "@/sections/nodes/data"
+import { nodeDetail, type NodeDetail } from "@/lib/api/node-detail"
+import type { NodeRow } from "@/lib/api/node-data"
 
 /*
  * Содержимое паспорта узла в памяти вкладки: привязка ВОЛС, загрузка документов, ответственные, покрытие.

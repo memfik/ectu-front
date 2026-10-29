@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import { btn, circ } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
-import type { NodeDetail } from "@/sections/nodes/detail"
+import type { NodeDetail } from "@/lib/api/node-detail"
 import { plural } from "@/lib/list/query"
 import { cn } from "@/lib/utils"
 import { Avatar, Card, Legend, SegBar } from "@/components/passport/ui"

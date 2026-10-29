@@ -44,8 +44,8 @@ import { branchFull, SPD_REMOVE, spdQrUrl, spdStatus, spdSub } from "@/lib/api/s
 import { spdDetail, type Port, type SpdDetail } from "@/lib/api/spd-detail"
 import { routers, useRouterRow } from "@/lib/api/routers"
 import { cn } from "@/lib/utils"
-import { nodeRows } from "@/sections/nodes/data"
-import { DocsTab } from "@/sections/nodes/tabs"
+import { nodeRows } from "@/lib/api/node-data"
+import { DocsTab } from "@/components/nodes/tabs"
 
 /*
  * 04 Маршрутизаторы — паспорт /routers/<id> (тот же паспорт, что у коммутаторов: макет 03, экраны sw-01b…sw-11).

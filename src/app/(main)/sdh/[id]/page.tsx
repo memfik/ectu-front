@@ -32,9 +32,9 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { SDH_BOARDS, sdhCap, sdhDetail, sdhDevices, sdhName, sdhStatus, sdhStm, sdhStmAll, sdhSub, sdhVc, useSdhDevice } from "@/lib/api/sdh"
-import { CapTable, capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { EditableTable, LineDocsTab } from "@/sections/lines/tabs"
+import { CapTable, capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { EditableTable, LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 23 SDH — паспорт устройства /sdh/<id>: панель — шасси с платами, «Полка» — 15 слотов, вкладки «Ёмкость», «Платы», МОЛ,

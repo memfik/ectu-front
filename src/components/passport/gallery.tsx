@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import { btn, circ, Tag } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
-import type { Media } from "@/sections/nodes/detail"
+import type { Media } from "@/lib/api/node-detail"
 import { cn } from "@/lib/utils"
 import { Kv } from "./ui"
 

@@ -6,7 +6,7 @@ import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, km, nodeOptions, obj, pair, pick, seedEquip, used, withNode, type Equip } from "./equipment"
 import { genApi, pairOf, s } from "./helpers"
 import { createSource } from "./source"
-import { lineDetail, usTitle, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, usTitle, type LineDetail } from "@/lib/api/lines"
 
 /*
  * 07 ВОЛС — данные раздела. Без API — примеры в памяти вкладки (первые 5 трасс из макета).

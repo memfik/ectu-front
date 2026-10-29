@@ -1,5 +1,5 @@
-import type { Doc, Media, Person } from "@/sections/nodes/detail"
-import { nodeRows } from "@/sections/nodes/data"
+import type { Doc, Media, Person } from "@/lib/api/node-detail"
+import { nodeRows } from "@/lib/api/node-data"
 import { portList, type SpdRow } from "./spd"
 
 /*

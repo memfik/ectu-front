@@ -16,7 +16,7 @@ import { usePageTitle } from "@/hooks/use-page-title"
 import { CURRENT_USER } from "@/lib/current-user"
 import { backupName, backupStatus, backupSub, useBackup } from "@/lib/api/backups"
 import { branchName, qrUrl } from "@/lib/api/equipment"
-import type { Doc, Media } from "@/sections/nodes/detail"
+import type { Doc, Media } from "@/lib/api/node-detail"
 import { cn } from "@/lib/utils"
 
 /*

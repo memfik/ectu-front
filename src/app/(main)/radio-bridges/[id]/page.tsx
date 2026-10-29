@@ -45,8 +45,8 @@ import {
   radioBridgeSub,
   useRadioBridge,
 } from "@/lib/api/radio-bridges"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 26 Радиомосты — паспорт /radio-bridges/<id>: PoE-адаптер и радиоблок, пролёт до клиента, вкладки «Частоты», «Услуги»,

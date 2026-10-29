@@ -1,4 +1,4 @@
-import type { Strand } from "@/sections/lines/detail"
+import type { Strand } from "@/lib/api/lines"
 
 /*
  * Схема мачты паспорта АМС (ams-04-schema): шкала высоты, решётка, площадки и что на них стоит.

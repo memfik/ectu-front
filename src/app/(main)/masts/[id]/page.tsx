@@ -33,7 +33,7 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { mastDetail, mastName, masts, mastStatus, mastSub, useMast } from "@/lib/api/masts"
-import { EditableTable, LineDocsTab, LineHistoryTab } from "@/sections/lines/tabs"
+import { EditableTable, LineDocsTab, LineHistoryTab } from "@/components/lines/tabs"
 
 /*
  * 11 АМС — паспорт /masts/<id>: сцена — мачта (картинка макета), схема — площадки по высоте с нагрузкой,

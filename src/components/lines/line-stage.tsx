@@ -3,8 +3,8 @@
 import { useMemo } from "react"
 import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
-import { kmStr, type LineDetail, type LineKind } from "@/sections/lines/detail"
-import { strandColor } from "@/sections/lines/tabs"
+import { kmStr, type LineDetail, type LineKind } from "@/lib/api/lines"
+import { strandColor } from "@/components/lines/tabs"
 
 /* Сцена паспорта линии (ВОЛС, КЛС, КК): схема трассы А — Б и фон верха (3D-картинка, карта или фото). */
 

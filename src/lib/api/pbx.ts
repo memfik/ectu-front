@@ -6,7 +6,7 @@ import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, nodeOptions, obj, pair, pick, seedEquip, withNode, type Equip, type Val } from "./equipment"
 import { genApi, pairOf } from "./helpers"
 import { createSource } from "./source"
-import { lineDetail, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, type LineDetail } from "@/lib/api/lines"
 
 /*
  * 20 АТС — данные раздела. Без API — примеры в памяти вкладки (первые 6 станций из макета).

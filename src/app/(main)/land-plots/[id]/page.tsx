@@ -44,7 +44,7 @@ import {
   TITLE_UP,
   useLandPlot,
 } from "@/lib/api/land-plots"
-import { LineDocsTab, LineHistoryTab } from "@/sections/lines/tabs"
+import { LineDocsTab, LineHistoryTab } from "@/components/lines/tabs"
 
 /*
  * 37 Земельные участки — паспорт /land-plots/<id>: 3D — участок с мачтой (картинка из макета), схема — контур участка

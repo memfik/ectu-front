@@ -33,9 +33,9 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { PDH_CLIENT, pdhCap, pdhDetail, pdhDevices, pdhE1, pdhEth, pdhName, pdhStatus, pdhSub, usePdhDevice } from "@/lib/api/pdh"
-import { CapTable, capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { CapTable, capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 22 PDH — паспорт устройства /pdh/<id>: панель 1U с портами E1 и Ethernet, ёмкость интерфейсов, МОЛ, документы,

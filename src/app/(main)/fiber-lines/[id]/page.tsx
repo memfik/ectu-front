@@ -32,8 +32,8 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { fiberLineDetail, fiberLineName, fiberLines, fiberLineSub, fiberStatus, useFiberLine } from "@/lib/api/fiber-lines"
-import { kmStr, type LineKind, type Segment } from "@/sections/lines/detail"
-import { LineDocsTab, LineHistoryTab, RentTab, SegmentsTab, StrandsTab } from "@/sections/lines/tabs"
+import { kmStr, type LineKind, type Segment } from "@/lib/api/lines"
+import { LineDocsTab, LineHistoryTab, RentTab, SegmentsTab, StrandsTab } from "@/components/lines/tabs"
 
 /*
  * 07 ВОЛС — паспорт трассы /fiber-lines/<id> (vols-04 «3D / Схема / Карта / Фото», вкладки vols-t1…t5, окно участка vols-x0).

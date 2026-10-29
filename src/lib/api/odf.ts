@@ -6,7 +6,7 @@ import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, nodeOptions, num, pair, pick, seedEquip, used, withNode, type Equip } from "./equipment"
 import { genApi, pairOf } from "./helpers"
 import { createSource } from "./source"
-import { lineDetail, usTitle, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, usTitle, type LineDetail } from "@/lib/api/lines"
 
 /*
  * 10 ODF — данные раздела (оптические кроссы). Без API — примеры в памяти вкладки.

@@ -1,8 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import type { GenRow } from "@/lib/api/equipment"
-import type { Spec } from "@/sections/make"
-import { nodeRows, type NodeRow } from "@/sections/nodes/data"
-import type { ListConfig } from "@/lib/list/types"
+import { nodeRows, type NodeRow } from "@/lib/api/node-data"
 
 /*
  * Паспорт линии связи — ВОЛС (макет 07) и КЛС (08): участки трассы, муфты / боксы, жилы (волокна или медные пары),
@@ -66,8 +64,6 @@ export type LineTab = { k: string; t: string; icon: LucideIcon; n?: number; node
 /** Чем ВОЛС, КЛС и КК отличаются в паспорте. */
 export type LineKind = {
   section: string
-  spec: Spec
-  list: ListConfig<GenRow>
   /** Точка между участками: «Муфта М-1», «Бокс М-1», «К-112» */
   point: (i: number) => string
   /** Колодцы — квадраты, муфты и боксы — круги */

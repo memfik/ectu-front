@@ -31,8 +31,8 @@ import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, qrUrl } from "@/lib/api/equipment"
 import { onymaDetail, onymaName, onymaServices, onymaStatus, onymaSub, SEGMENT_NAME, useOnymaClient, type OnymaClient } from "@/lib/api/onyma"
 import { cn } from "@/lib/utils"
-import { LineDocsTab, LineHistoryTab } from "@/sections/lines/tabs"
-import { Table } from "@/sections/nodes/tabs"
+import { LineDocsTab, LineHistoryTab } from "@/components/lines/tabs"
+import { Table } from "@/components/nodes/tabs"
 
 /*
  * 13 Клиенты Onyma — паспорт /onyma/<id>: только чтение (без правки и удаления), схема «Счёт» — лицевой счёт и его сервисы,

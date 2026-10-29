@@ -21,10 +21,10 @@ import { btn, circ } from "@/components/list/ui"
 import { Label, Modal } from "@/components/passport/modal"
 import { Card, Kv } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
-import { Table } from "@/sections/nodes/tabs"
+import { Table } from "@/components/nodes/tabs"
 import { cn } from "@/lib/utils"
-import type { GenRow } from "@/sections/make"
-import { LAYING, kmStr, parseKm, type LineDetail, type LineEvent, type LineKind, type Segment, type Strand } from "./detail"
+import type { GenRow } from "@/lib/api/equipment"
+import { LAYING, kmStr, parseKm, type LineDetail, type LineEvent, type LineKind, type Segment, type Strand } from "@/lib/api/lines"
 
 /* ---------- vols-t1 · Участки ---------- */
 

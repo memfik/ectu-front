@@ -6,7 +6,7 @@ import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, km, nodeOptions, num, pick, seedEquip, withNode, type Equip } from "./equipment"
 import { genApi, s } from "./helpers"
 import { createSource } from "./source"
-import { lineDetail, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, type LineDetail } from "@/lib/api/lines"
 
 /*
  * 25 РРЛ — данные раздела. Без API — примеры в памяти вкладки (первые 2 пролёта — из макета).

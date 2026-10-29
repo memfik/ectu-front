@@ -34,9 +34,9 @@ import { usePageTitle } from "@/hooks/use-page-title"
 import { bwaAzimuth, bwaDetail, bwaInv, bwaName, bwaPoint, bwaSectors, bwaStatus, bwaSub, bwaSubs, bwaWidth, RCS, STATIONS } from "@/lib/api/bwa"
 import { useLte, LTE_PASSPORT, LTE_VENDORS, lte } from "@/lib/api/bwa-lte"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
-import { CapTable, capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { EditableTable, LineDocsTab } from "@/sections/lines/tabs"
+import { CapTable, capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { EditableTable, LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 28 БШД Telrad LTE — паспорт БС /bwa-lte/<id> (макет 28: «Панель / Покрытие / Карта / Фото»): вкладки «Зона покрытия»,

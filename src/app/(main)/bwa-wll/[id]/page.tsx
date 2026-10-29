@@ -34,9 +34,9 @@ import { usePageTitle } from "@/hooks/use-page-title"
 import { bwaAzimuth, bwaDetail, bwaInv, bwaName, bwaPoint, bwaSectors, bwaStatus, bwaSub, bwaSubs, bwaWidth, RCS, STATIONS } from "@/lib/api/bwa"
 import { useWll, WLL_PASSPORT, WLL_VENDORS, wll } from "@/lib/api/bwa-wll"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
-import { CapTable, capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { EditableTable, LineDocsTab } from "@/sections/lines/tabs"
+import { CapTable, capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { EditableTable, LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 29 БШД WLL — паспорт БС /bwa-wll/<id> (макет 29: «Панель / Покрытие / Карта / Фото»): вкладки «Зона покрытия»,

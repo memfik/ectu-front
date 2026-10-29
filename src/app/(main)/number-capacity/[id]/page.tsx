@@ -46,9 +46,9 @@ import {
   type NumberCapacity,
 } from "@/lib/api/number-capacity"
 import { cn } from "@/lib/utils"
-import { EditableTable, LineDocsTab } from "@/sections/lines/tabs"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { Table } from "@/sections/nodes/tabs"
+import { EditableTable, LineDocsTab } from "@/components/lines/tabs"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { Table } from "@/components/nodes/tabs"
 
 /*
  * 21 Номерная ёмкость — паспорт /number-capacity/<id>: 3D — станции в стойках (картинка из макета), «Ёмкость» — полоса

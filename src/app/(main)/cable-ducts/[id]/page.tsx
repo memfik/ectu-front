@@ -32,8 +32,8 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { cableDuctDetail, cableDuctName, cableDucts, cableDuctStatus, cableDuctSub, useCableDuct, well } from "@/lib/api/cable-ducts"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
-import { parseKm, type LineKind } from "@/sections/lines/detail"
-import { EditableTable, LineDocsTab, LineHistoryTab } from "@/sections/lines/tabs"
+import { parseKm, type LineKind } from "@/lib/api/lines"
+import { EditableTable, LineDocsTab, LineHistoryTab } from "@/components/lines/tabs"
 
 /*
  * 09 Кабельная канализация — паспорт участка /cable-ducts/<id> (kk-04 «3D / Схема / Карта / Фото», вкладки kk-t1…t5):

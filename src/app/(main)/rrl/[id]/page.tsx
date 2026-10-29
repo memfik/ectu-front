@@ -33,9 +33,9 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { RRL_CAP, RRL_RCS, rrlDetail, rrlMbps, rrlName, rrlSpans, rrlStatus, rrlSub, useRrlSpan } from "@/lib/api/rrl"
-import { CapTable, capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { CapTable, capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 25 РРЛ — паспорт пролёта /rrl/<id>: панель — IDU и ODU, «Трасса» — пролёт между мачтами, вкладки «Частоты»,

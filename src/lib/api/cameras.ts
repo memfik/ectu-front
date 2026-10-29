@@ -1,4 +1,4 @@
-import { nodeRows } from "@/sections/nodes/data"
+import { nodeRows } from "@/lib/api/node-data"
 
 /*
  * Камеры видеонаблюдения на узлах (макет 05, cam-01…05): 186 камер, 164 online, 22 offline, 3 с тревогами.

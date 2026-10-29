@@ -65,9 +65,9 @@ import {
   spareStatus,
   useSparePart,
 } from "@/lib/api/spare-parts"
-import { Table } from "@/sections/nodes/tabs"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { Table } from "@/components/nodes/tabs"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 35 ЗИП — паспорт позиции /spare-parts/<id>: 3D — стеллаж склада (картинка из макета, TODO three.js), «Путь» — склад ФО → МОЛ →

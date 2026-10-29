@@ -46,9 +46,9 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { trunkDetail, trunkName, trunkStations, trunkStatus, trunkSub, trunkTerminals, useTrunkStation, type TrunkBs } from "@/lib/api/trunk-bs"
-import { Coverage } from "@/sections/lines/bwa"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { EditableTable, LineDocsTab } from "@/sections/lines/tabs"
+import { BwaCoverage as Coverage } from "@/components/bwa/bwa-stage"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { EditableTable, LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 30 БС Транк — паспорт /trunk-bs/<id>: ретранслятор с дисплеем каналов, покрытие 25 км,

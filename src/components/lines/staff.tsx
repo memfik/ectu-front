@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import type { GenRow } from "@/sections/make"
-import { staffOf } from "@/sections/spd/detail"
-import { MolTab, MovesTab, type Staff } from "@/sections/spd/tabs"
+import type { GenRow } from "@/lib/api/equipment"
+import { staffOf } from "@/lib/api/spd-detail"
+import { MolTab, MovesTab, type Staff } from "@/components/spd/tabs"
 
 /*
  * Вкладки «МОЛ и ответственные» и «История перемещений» для паспортов оборудования (АТС, номерная ёмкость,

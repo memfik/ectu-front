@@ -6,7 +6,7 @@ import { Input, Select } from "@/components/list/form-controls"
 import { btn, checkBox } from "@/components/list/ui"
 import { Modal } from "@/components/passport/modal"
 import { toast } from "@/components/shared/toast"
-import { nodeRows } from "@/sections/nodes/data"
+import { nodeRows } from "@/lib/api/node-data"
 import { cn } from "@/lib/utils"
 
 /*

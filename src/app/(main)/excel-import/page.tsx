@@ -3,13 +3,10 @@
 import { usePageTitle } from "@/hooks/use-page-title"
 import { useState } from "react"
 import { Check, CircleAlert, FileSpreadsheet, FileUp, Upload } from "lucide-react"
-import { ImportDialog as NewImportDialog } from "@/components/blocks/import-dialog"
-import { ImportDialog } from "@/components/list/import-dialog"
+import { ImportDialog } from "@/components/blocks/import-dialog"
 import { btn, Pill } from "@/components/list/ui"
 import { Card, glass } from "@/components/passport/ui"
-import { LISTS } from "@/sections"
-import { downloadTemplate } from "@/lib/list/import"
-import { downloadTemplate as newTemplate } from "@/lib/list/import-file"
+import { downloadTemplate } from "@/lib/list/import-file"
 import { SECTIONS, sectionOf } from "@/lib/api/sections"
 import { cn } from "@/lib/utils"
 
@@ -28,15 +25,9 @@ const HISTORY: [string, string, string, "ok" | "bad"][] = [
 export default function ImportPage() {
   usePageTitle("Импорт Excel")
   const [open, setOpen] = useState<string | null>(null)
-  // TODO(перенос): после переноса всех разделов — только SECTIONS
-  const sections = [
-    ...SECTIONS.filter((x) => x.import).map((x) => ({ key: x.key, title: x.title, template: () => newTemplate(x.import!, ["branch"]) })),
-    ...Object.values(LISTS)
-      .filter((l) => l.buttons.some((b) => b.onClick === "import"))
-      .map((l) => ({ key: l.key, title: l.title, template: () => downloadTemplate(l) })),
-  ]
+  const sections = SECTIONS.filter((x) => x.import).map((x) => ({ key: x.key, title: x.title, template: () => downloadTemplate(x.import!, ["branch"]) }))
   const types = sections.map((x) => ({ v: x.key, label: x.title }))
-  const fresh = open ? sectionOf(open)?.import : undefined
+  const spec = open ? sectionOf(open)?.import : undefined
 
   return (
     <div className="px-(--page-gutter)">
@@ -115,8 +106,7 @@ export default function ImportPage() {
           ))}
         </Card>
       </div>
-      {fresh && <NewImportDialog key={open} spec={fresh} types={types} onType={setOpen} onClose={() => setOpen(null)} />}
-      {open && !fresh && LISTS[open] && <ImportDialog key={open} cfg={LISTS[open]} onType={setOpen} onClose={() => setOpen(null)} />}
+      {spec && <ImportDialog key={open} spec={spec} types={types} onType={setOpen} onClose={() => setOpen(null)} />}
     </div>
   )
 }

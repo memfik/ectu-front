@@ -18,7 +18,7 @@ import { usePageTitle } from "@/hooks/use-page-title"
 import { CURRENT_USER } from "@/lib/current-user"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { ipName, ipPlan, ipStatus, ipSub, useIpAddress } from "@/lib/api/ip-plan"
-import type { Doc, Media } from "@/sections/nodes/detail"
+import type { Doc, Media } from "@/lib/api/node-detail"
 import { cn } from "@/lib/utils"
 
 /*

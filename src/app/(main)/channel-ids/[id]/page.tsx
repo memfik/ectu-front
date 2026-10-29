@@ -47,7 +47,7 @@ import {
   useChannel,
   type Channel,
 } from "@/lib/api/channel-ids"
-import { LineDocsTab, LineHistoryTab } from "@/sections/lines/tabs"
+import { LineDocsTab, LineHistoryTab } from "@/components/lines/tabs"
 
 /*
  * 14 ID-каналы — паспорт /channel-ids/<id>: схема «Цепочка» — устройства от точки 1 до клиента, вкладки «Сетевые данные»,

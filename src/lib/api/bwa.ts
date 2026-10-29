@@ -3,7 +3,7 @@
 import type { Tone } from "@/components/list/ui"
 import type { ReportCol } from "@/components/blocks/report-dialog"
 import type { ImportSpec } from "@/lib/list/import-file"
-import { lineDetail, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, type LineDetail } from "@/lib/api/lines"
 import { BRANCH_FULL, blankEquip, nodeOptions, num, pair, pick, seedEquip, used, withNode, type Equip } from "./equipment"
 import { genApi, pairOf } from "./helpers"
 import { createSource } from "./source"

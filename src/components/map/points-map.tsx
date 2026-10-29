@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "re
 import { useTheme } from "next-themes"
 import type { GeoJSONSource, Map as MlMap, MapLayerMouseEvent } from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
-import type { Tone } from "@/lib/list/types"
+import type { Tone } from "@/components/list/ui"
 
 /** Точка на карте: узел, клиент, опора… */
 export type MapPoint = { id: number; ll: [number, number]; title: string; sub: string; tone: Tone }

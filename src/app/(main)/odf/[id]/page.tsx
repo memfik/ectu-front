@@ -34,7 +34,7 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { odfDetail, odfName, odfs, odfStatus, odfSub, useOdf } from "@/lib/api/odf"
-import { EditableTable, LineDocsTab, LineHistoryTab } from "@/sections/lines/tabs"
+import { EditableTable, LineDocsTab, LineHistoryTab } from "@/components/lines/tabs"
 
 /*
  * 10 ODF — паспорт кросса /odf/<id>: сцена — передняя панель кросса, схема — порты, вкладка «Порты» (кроссировка).

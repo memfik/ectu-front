@@ -8,7 +8,7 @@ import { btn, circ, Pill } from "@/components/list/ui"
 import { Modal } from "@/components/passport/modal"
 import { Avatar, glass } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
-import { BRANCHES } from "@/sections/nodes/data"
+import { BRANCHES } from "@/lib/api/node-data"
 import { cn } from "@/lib/utils"
 
 /*

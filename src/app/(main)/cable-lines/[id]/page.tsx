@@ -32,8 +32,8 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { cableLineCount, cableLineDetail, cableLineName, cableLines, cableLineStatus, cableLineSub, useCableLine } from "@/lib/api/cable-lines"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
-import { kmStr, type LineKind, type Segment } from "@/sections/lines/detail"
-import { LineDocsTab, LineHistoryTab, SegmentsTab, StrandsTab } from "@/sections/lines/tabs"
+import { kmStr, type LineKind, type Segment } from "@/lib/api/lines"
+import { LineDocsTab, LineHistoryTab, SegmentsTab, StrandsTab } from "@/components/lines/tabs"
 
 /*
  * 08 КЛС — паспорт трассы /cable-lines/<id> (kls-04 «3D / Схема / Карта / Фото», вкладки kls-t1…t4).

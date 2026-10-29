@@ -48,9 +48,9 @@ import { UPS_BLOCKS, UPS_LOAD, upsCls, UpsFlow, upsKva, upsKw, UpsPanel, upsPowe
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { ups, upsDetail, upsName, upsReplaced, upsStatus, upsSub, useUps } from "@/lib/api/ups"
-import { capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 33 ИБП — паспорт /ups/<id> (ups-04 «Панель / Схема / Карта / Фото», вкладки «Аккумуляторы», «SNMP-мониторинг»,

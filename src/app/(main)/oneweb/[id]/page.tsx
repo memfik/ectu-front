@@ -49,8 +49,8 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { onewebDetail, onewebName, onewebs, onewebStatus, onewebSub, useOneWeb, type OneWeb } from "@/lib/api/oneweb"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 32 OneWeb LEO — паспорт /oneweb/<id>: терминал Hughes и связь со спутником, «Спутник» — низкая орбита,

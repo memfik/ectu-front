@@ -33,10 +33,10 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { PBX_E1, PBX_EM, pbxCapacity, pbxDetail, pbxName, pbxPair, pbxs, pbxStatus, pbxSub, usePbx } from "@/lib/api/pbx"
-import { LineDocsTab } from "@/sections/lines/tabs"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { nodeRows } from "@/sections/nodes/data"
-import { Table } from "@/sections/nodes/tabs"
+import { LineDocsTab } from "@/components/lines/tabs"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { nodeRows } from "@/lib/api/node-data"
+import { Table } from "@/components/nodes/tabs"
 
 /*
  * 20 АТС — паспорт /pbx/<id>: «Панель» — шасси с платами абонентов, Е1 и управления; «Схема» — ёмкость станции,

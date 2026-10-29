@@ -1,4 +1,4 @@
-import type { NodeRow } from "./data"
+import type { NodeRow } from "./node-data"
 
 /*
  * Содержимое паспорта узла (макет 02, экраны p01…t08) — пример данных по таблицам БД ЕСТУ:

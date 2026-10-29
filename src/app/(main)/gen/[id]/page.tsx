@@ -47,9 +47,9 @@ import { GEN_FUEL, genDiesel, GenHousing, genKva, genKw, GenPanel, genPower, gen
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { genDetail, genField, genName, genStatus, genSub, genUnits, useGenUnit, type GenUnit } from "@/lib/api/gen"
-import { capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 34 ГЭУ — паспорт /gen/<id> (dgu-04 «Панель / Схема / Карта / Фото», вкладки «Двигатель и топливо», «Исполнение»,

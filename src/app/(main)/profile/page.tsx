@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import { Avatar } from "@/components/layout/header-popovers"
 import { btn } from "@/components/list/ui"
-import { nodeRows } from "@/sections/nodes/data"
+import { nodeRows } from "@/lib/api/node-data"
 import { useUser } from "@/lib/api/session"
 import { cn } from "@/lib/utils"
 import { ToneBlock } from "@/components/account/ui"

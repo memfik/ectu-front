@@ -1,4 +1,4 @@
-import { BRANCHES, nodeRows, type NodeRow } from "@/sections/nodes/data"
+import { BRANCHES, nodeRows, type NodeRow } from "@/lib/api/node-data"
 
 /*
  * Записи разделов 07–37 (линии, оборудование, площадки): место (филиал, узел связи, координаты), статус и поля раздела `f`.
@@ -41,7 +41,7 @@ export function seedEquip<F extends Record<string, Val>>(o: {
   total: number
   statuses: string[]
   gen: (i: number, r: () => number, n: NodeRow) => F
-  seed?: Record<string, Val>[]
+  seed?: Record<string, Val | undefined>[]
 }): Equip<F>[] {
   const r = rng([...o.key].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) % 100000)
   const nodes = nodeRows()

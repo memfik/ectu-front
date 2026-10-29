@@ -49,9 +49,9 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { onewebStations, stationDetail, stationName, stationStatus, stationSub, useOneWebStation, type OneWebStation } from "@/lib/api/oneweb-form"
-import { capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 42 Станция OneWeb (форма учёта мониторинга) — паспорт /oneweb-form/<id>: панель и «Спутник» — как у OneWeb LEO (32),

@@ -44,8 +44,8 @@ import { branchFull, SPD_REMOVE, spdQrUrl, spdStatus, spdSub } from "@/lib/api/s
 import { spdDetail, type Port, type SpdDetail } from "@/lib/api/spd-detail"
 import { switches, useSwitch } from "@/lib/api/switches"
 import { cn } from "@/lib/utils"
-import { nodeRows } from "@/sections/nodes/data"
-import { DocsTab } from "@/sections/nodes/tabs"
+import { nodeRows } from "@/lib/api/node-data"
+import { DocsTab } from "@/components/nodes/tabs"
 
 /*
  * 03 Коммутаторы — паспорт /switches/<id> (экраны sw-01b 3D, sw-02 панель, sw-03 стойка, sw-04 фото и вкладки sw-05…sw-11).

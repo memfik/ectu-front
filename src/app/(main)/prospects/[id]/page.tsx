@@ -49,7 +49,7 @@ import {
   type Prospect,
 } from "@/lib/api/prospects"
 import { cn } from "@/lib/utils"
-import { LineDocsTab, LineHistoryTab, EditableTable } from "@/sections/lines/tabs"
+import { LineDocsTab, LineHistoryTab, EditableTable } from "@/components/lines/tabs"
 
 /*
  * 12 Потенциальные клиенты — паспорт /prospects/<id>: схема — кольца расстояний вокруг узла и путь клиента,

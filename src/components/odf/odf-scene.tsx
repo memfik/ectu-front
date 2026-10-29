@@ -2,7 +2,7 @@
 
 import { glass } from "@/components/passport/ui"
 import type { Odf } from "@/lib/api/odf"
-import type { Strand } from "@/sections/lines/detail"
+import type { Strand } from "@/lib/api/lines"
 import { cn } from "@/lib/utils"
 
 /*

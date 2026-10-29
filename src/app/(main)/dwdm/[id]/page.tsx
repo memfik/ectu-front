@@ -33,9 +33,9 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { DWDM_BOARDS, dwdmDetail, dwdmDevices, dwdmLambda, dwdmName, dwdmStatus, dwdmSub, dwdmTbit, dwdmVendor, useDwdmDevice } from "@/lib/api/dwdm"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
-import { capBar } from "@/sections/lines/equipment"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { EditableTable, LineDocsTab } from "@/sections/lines/tabs"
+import { capBar } from "@/components/equipment/capacity"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { EditableTable, LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 24 DWDM — паспорт устройства /dwdm/<id>: панель — шасси, «Полка» — 16 слотов, вкладки «Платы и трансиверы», «Длины волн»,

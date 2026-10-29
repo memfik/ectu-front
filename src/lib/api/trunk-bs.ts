@@ -6,7 +6,7 @@ import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, nodeOptions, num, pick, seedEquip, withNode, type Equip, type Val } from "./equipment"
 import { genApi, s } from "./helpers"
 import { createSource } from "./source"
-import { lineDetail, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, type LineDetail } from "@/lib/api/lines"
 
 /*
  * 30 БС Транк — данные раздела. Без API — примеры в памяти вкладки (первые 3 — из макета).

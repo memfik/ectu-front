@@ -6,7 +6,7 @@ import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, km, nodeOptions, num, obj, pick, seedEquip, withNode, type Equip, type Val } from "./equipment"
 import { genApi } from "./helpers"
 import { createSource } from "./source"
-import { lineDetail, parseKm, usTitle, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, parseKm, usTitle, type LineDetail } from "@/lib/api/lines"
 
 /*
  * 09 Кабельная канализация — данные раздела. Без API — примеры в памяти вкладки (первые 4 участка из макета).

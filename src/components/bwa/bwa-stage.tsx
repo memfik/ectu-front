@@ -1,6 +1,6 @@
 "use client"
 
-import { capBar } from "@/sections/lines/equipment"
+import { capBar } from "@/components/equipment/capacity"
 import { glass } from "@/components/passport/ui"
 import { bwaSectors, bwaWidth, type Bwa } from "@/lib/api/bwa"
 import { cn } from "@/lib/utils"

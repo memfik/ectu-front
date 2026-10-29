@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/opaline/glass-select"
 import { GlassTextarea } from "@/components/ui/opaline/glass-textarea"
 import { LiquidGlass } from "@/components/ui/opaline/liquid-glass"
-import type { Option, Tone } from "@/lib/list/types"
+import type { Option } from "@/lib/api/remote"
+import type { Tone } from "./ui"
 import { cn } from "@/lib/utils"
 import { Pill } from "./ui"
 

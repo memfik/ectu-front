@@ -6,7 +6,7 @@ import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, nodeOptions, num, pick, seedEquip, withNode, type Equip } from "./equipment"
 import { genApi } from "./helpers"
 import { createSource } from "./source"
-import { lineDetail, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, type LineDetail } from "@/lib/api/lines"
 
 /*
  * 31 ЗССС SkyEdge II GEO (VSAT) — данные раздела. Без API — примеры в памяти вкладки.

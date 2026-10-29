@@ -5,7 +5,7 @@ import type { ReportCol } from "@/components/blocks/report-dialog"
 import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, nodeOptions, num, pick, seedEquip, withNode, type Equip, type Val } from "./equipment"
 import { createSource } from "./source"
-import { lineDetail, type LineDetail } from "@/sections/lines/detail"
+import { lineDetail, type LineDetail } from "@/lib/api/lines"
 
 /*
  * 42 Форма учёта OneWeb — станции из мониторинга OneWeb (в старом фронте — `oneweb-monitor`, РФ-ДИППП-08).

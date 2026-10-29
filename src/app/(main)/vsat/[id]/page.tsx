@@ -47,8 +47,8 @@ import { RecordNotFound } from "@/components/shared/states"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
 import { useVsat, vsatDetail, vsatName, vsats, vsatStatus, vsatSub, type Vsat } from "@/lib/api/vsat"
-import { MolPane, MovesPane } from "@/sections/lines/staff"
-import { LineDocsTab } from "@/sections/lines/tabs"
+import { MolPane, MovesPane } from "@/components/lines/staff"
+import { LineDocsTab } from "@/components/lines/tabs"
 
 /*
  * 31 ЗССС SkyEdge II GEO (VSAT) — паспорт /vsat/<id>: модем и антенна, «Спутник» — канал через KazSat-3,
