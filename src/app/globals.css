@@ -395,47 +395,89 @@
   background: radial-gradient(1100px 380px at 60% -120px, rgba(0, 26, 159, 0.4), transparent 70%) no-repeat, var(--background);
 }
 
-/* ---------- 404: плывущие пятна фона, появление и «парящая» цифра ---------- */
+/* ---------- 404: точечная сетка, сияние за цифрой, орбиты с бегущими точками ---------- */
 .nf-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(8, 94, 255, 0.1), transparent 70%);
 }
+/* сетка точек, гаснет к краям */
+.nf-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(color-mix(in srgb, var(--foreground) 22%, transparent) 1px, transparent 1.4px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 42%, #000 20%, transparent 75%);
+  animation: nf-grid 40s linear infinite;
+}
+/* сияние: переливается по кругу */
+.nf-bg::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: min(900px, 120vw);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #085eff, #22d3ee, #7c5cff, #085eff);
+  filter: blur(110px);
+  opacity: 0.32;
+  animation: nf-spin 24s linear infinite;
+}
+/* орбиты — кольца с точкой-сигналом */
 .nf-bg i {
   position: absolute;
+  left: 50%;
+  top: 40%;
+  translate: -50% -50%;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.38;
-  will-change: transform;
+  border: 1px solid color-mix(in srgb, #085eff 35%, transparent);
+  animation: nf-spin linear infinite;
+}
+.nf-bg i::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: #4f8dff;
+  box-shadow: 0 0 12px 3px rgba(79, 141, 255, 0.8);
 }
 .nf-bg i:nth-child(1) {
-  width: 46vmax; height: 46vmax; left: -10vmax; top: -12vmax;
-  background: #085eff;
-  animation: nf-drift-a 26s ease-in-out infinite alternate;
+  width: min(560px, 90vw);
+  aspect-ratio: 1;
+  animation-duration: 18s;
 }
 .nf-bg i:nth-child(2) {
-  width: 38vmax; height: 38vmax; right: -12vmax; top: 20vh;
-  background: #003bb3;
-  animation: nf-drift-b 32s ease-in-out infinite alternate;
+  width: min(820px, 130vw);
+  aspect-ratio: 1;
+  border-style: dashed;
+  border-color: color-mix(in srgb, #085eff 22%, transparent);
+  animation-duration: 32s;
+  animation-direction: reverse;
 }
 .nf-bg i:nth-child(3) {
-  width: 30vmax; height: 30vmax; left: 30vw; bottom: -14vmax;
-  background: #3d84ff;
-  animation: nf-drift-c 22s ease-in-out infinite alternate;
+  width: min(1100px, 170vw);
+  aspect-ratio: 1;
+  border-color: color-mix(in srgb, #085eff 12%, transparent);
+  animation-duration: 50s;
 }
-html:not(.dark) .nf-bg i {
+html:not(.dark) .nf-bg::after {
   opacity: 0.18;
 }
-@keyframes nf-drift-a {
-  to { transform: translate(18vw, 14vh) scale(1.15); }
+@keyframes nf-spin {
+  to { rotate: 360deg; }
 }
-@keyframes nf-drift-b {
-  to { transform: translate(-22vw, -10vh) scale(0.9); }
-}
-@keyframes nf-drift-c {
-  to { transform: translate(-14vw, -18vh) scale(1.2); }
+@keyframes nf-grid {
+  to { background-position: 28px 28px; }
 }
 .nf-rise {
   animation: nf-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -450,5 +492,5 @@ html:not(.dark) .nf-bg i {
   50% { transform: translateY(-10px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .nf-bg i, .nf-rise, .nf-float { animation: none; }
+  .nf-bg::before, .nf-bg::after, .nf-bg i, .nf-rise, .nf-float { animation: none; }
 }
