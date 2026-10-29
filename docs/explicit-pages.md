@@ -18,7 +18,7 @@
 | Отбор на странице | `lib/list/filter.ts` (`picked`, `sortRows`, `withCounts`, `distinct`) | |
 
 ## Правила
-- Поведение и вёрстка — 1:1 с тем, что рисовал движок (`sections/make.tsx` → `components/list/list-page.tsx`, паспорт — `sections/lines/passport.tsx`). Данные примеров не меняются: тот же `key`, `total`, `gen`, `seed`, статусы.
+- Новый раздел — копия похожего: данные в `lib/api/<key>.ts`, строка в `lib/api/sections.ts`, страницы и форма. Прежний движок по конфигу (`sections/make.tsx`, `ListPage`, `LinePassport`, `LISTS`) удалён 29.10.2026.
 - Тип записи — `Equip<{ …поля f… }>` с перечисленными полями (а не `Record`).
 - Колонки, фильтры, KPI, поля формы, вкладки паспорта — перечисляются прямо в коде страницы / формы. Дублирование между разделами допустимо.
 - Режим API (`NEXT_PUBLIC_API_URL`) сохраняется: список через `<src>.usePage()`, варианты фильтров `<src>.useOptions()`, запись `<src>.useRecord(id)`.
