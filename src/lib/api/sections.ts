@@ -10,10 +10,13 @@ import { cableDuctColumns, cableDucts, cableDuctsImport } from "./cable-ducts"
 import { cableLineColumns, cableLines, cableLinesImport } from "./cable-lines"
 import { dwdmColumns, dwdmDevices, dwdmImport } from "./dwdm"
 import { fiberLineColumns, fiberLines, fiberLinesImport } from "./fiber-lines"
+import { genColumns, genImport, genUnits } from "./gen"
 import { ipPlan, ipPlanColumns } from "./ip-plan"
 import { landPlotColumns, landPlots, landPlotsImport } from "./land-plots"
 import { mastColumns, masts, mastsImport } from "./masts"
 import { nodeColumns, nodes, nodesImport } from "./nodes"
+import { onewebColumns, onewebImport, onewebs } from "./oneweb"
+import { onewebStations, stationColumns, stationsImport } from "./oneweb-form"
 import { odfColumns, odfImport, odfs } from "./odf"
 import { pdhColumns, pdhDevices, pdhImport } from "./pdh"
 import { radioBridgeColumns, radioBridges, radioBridgesImport } from "./radio-bridges"
@@ -22,6 +25,9 @@ import { rrlColumns, rrlImport, rrlSpans } from "./rrl"
 import { sdhColumns, sdhDevices, sdhImport } from "./sdh"
 import { sparePartColumns, spareParts, sparePartsImport } from "./spare-parts"
 import { switchColumns, switches, switchesImport } from "./switches"
+import { trunkColumns, trunkImport, trunkStations } from "./trunk-bs"
+import { ups, upsColumns, upsImport } from "./ups"
+import { vsatColumns, vsatImport, vsats } from "./vsat"
 
 /*
  * Разделы для общих экранов: «Сводные файлы» (записи по филиалам), «Аналитика» (заполненность полей — колонки отчёта),
@@ -60,6 +66,12 @@ export const SECTIONS: SectionData[] = [
   section({ key: "bwa-wimax", title: "БШД WiMAX", crumb: "Оборудование / Беспроводные технологии", all: wimax.all, columns: wimaxColumns, import: wimaxImport }),
   section({ key: "bwa-lte", title: "БШД Telrad LTE", crumb: "Оборудование / Беспроводные технологии", all: lte.all, columns: lteColumns, import: lteImport }),
   section({ key: "bwa-wll", title: "БШД WLL", crumb: "Оборудование / Беспроводные технологии", all: wll.all, columns: wllColumns, import: wllImport }),
+  section({ key: "trunk-bs", title: "БС Транк", crumb: "Оборудование / Беспроводные технологии", all: trunkStations.all, columns: trunkColumns, import: trunkImport }),
+  section({ key: "vsat", title: "ЗССС SkyEdge II GEO", crumb: "Оборудование / Спутниковые технологии", all: vsats.all, columns: vsatColumns, import: vsatImport }),
+  section({ key: "oneweb", title: "OneWeb LEO", crumb: "Оборудование / Спутниковые технологии", all: onewebs.all, columns: onewebColumns, import: onewebImport }),
+  section({ key: "oneweb-form", title: "Форма учёта OneWeb", crumb: "Оборудование / Мониторинг OneWeb", all: onewebStations.all, columns: stationColumns, import: stationsImport }),
+  section({ key: "ups", title: "ИБП", crumb: "Оборудование / Электропитание", all: ups.all, columns: upsColumns, import: upsImport }),
+  section({ key: "gen", title: "ГЭУ", crumb: "Оборудование / Электропитание", all: genUnits.all, columns: genColumns, import: genImport }),
   section({ key: "spare-parts", title: "ЗИП", crumb: "Оборудование / Склад", all: spareParts.all, columns: sparePartColumns, import: sparePartsImport }),
   section({ key: "ip-plan", title: "Единый IP-план", crumb: "Сервисы", all: ipPlan.all, columns: ipPlanColumns }),
   section({ key: "backups", title: "Резервные копии", crumb: "Сервисы", all: backups.all, columns: backupColumns }),
