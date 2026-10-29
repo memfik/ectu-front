@@ -1,7 +1,10 @@
-import { ListPage } from "@/components/list/list-page"
+"use client"
 
-export const metadata = { title: "Узлы связи — ЕСТУ" }
+import { NodesList } from "@/components/nodes/nodes-list"
+import { usePageTitle } from "@/hooks/use-page-title"
 
+/** 02 Узлы связи — список. Вёрстка и данные — components/nodes/nodes-list.tsx (общий с /nodes/new). */
 export default function NodesPage() {
-  return <ListPage list="nodes" />
+  usePageTitle("Узлы связи")
+  return <NodesList />
 }

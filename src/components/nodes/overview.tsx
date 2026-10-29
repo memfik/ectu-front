@@ -23,7 +23,9 @@ import type { NodeDetail } from "@/sections/nodes/detail"
 import { plural } from "@/lib/list/query"
 import { cn } from "@/lib/utils"
 import { Avatar, Card, Legend, SegBar } from "@/components/passport/ui"
-import type { TabKey } from "./passport"
+
+/** Вкладки паспорта узла. */
+export type TabKey = "overview" | "fibers" | "equipment" | "id" | "clients" | "people" | "docs" | "comments" | "history"
 
 /** Вкладка «Обзор» паспорта (экран p01, нижняя часть): сводки по вкладкам, фото, документы, люди, комментарии, история. */
 export function NodeOverview({ d, onTab, onGallery }: { d: NodeDetail; onTab: (t: TabKey) => void; onGallery: (i?: number) => void }) {

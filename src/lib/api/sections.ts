@@ -3,6 +3,7 @@
 import type { ReportCol } from "@/components/blocks/report-dialog"
 import type { ImportSpec } from "@/lib/list/import-file"
 import { fiberLineColumns, fiberLines, fiberLinesImport } from "./fiber-lines"
+import { nodeColumns, nodes, nodesImport } from "./nodes"
 
 /*
  * Разделы для общих экранов: «Сводные файлы» (записи по филиалам), «Аналитика» (заполненность полей — колонки отчёта),
@@ -25,6 +26,7 @@ const section = <T extends Rec>(s: { key: string; title: string; crumb: string; 
   s as unknown as SectionData
 
 export const SECTIONS: SectionData[] = [
+  section({ key: "nodes", title: "Узлы связи", crumb: "Сеть", all: nodes.all, columns: nodeColumns, import: nodesImport }),
   section({ key: "fiber-lines", title: "ВОЛС", crumb: "Линии и сооружения", all: fiberLines.all, columns: fiberLineColumns, import: fiberLinesImport }),
 ]
 

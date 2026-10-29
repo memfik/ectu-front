@@ -1,8 +1,10 @@
-import { ListPage } from "@/components/list/list-page"
+"use client"
 
-export const metadata = { title: "Новый узел связи — ЕСТУ" }
+import { NodesList } from "@/components/nodes/nodes-list"
+import { usePageTitle } from "@/hooks/use-page-title"
 
 /** «Создать узел связи» (меню, главная, ⌘K): список узлов с открытой формой создания. */
-export default function Page() {
-  return <ListPage list="nodes" create />
+export default function NewNodePage() {
+  usePageTitle("Новый узел связи")
+  return <NodesList create />
 }

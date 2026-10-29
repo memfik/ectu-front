@@ -7,12 +7,11 @@ import { Cable, Check, Link as LinkIcon, MapPin, Plus, RefreshCw, Search, Trash2
 import { Input, Select } from "@/components/list/form-controls"
 import { btn, checkBox, circ } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
-import { nodesList } from "@/sections/nodes/config"
 import { STAFF, type Coverage, type NodeDetail, type Person } from "@/sections/nodes/detail"
 import type { NodeRow } from "@/sections/nodes/data"
 import { CURRENT_USER } from "@/lib/current-user"
-import { rowsStore } from "@/lib/list/store"
-import { updateDetail } from "@/sections/nodes/detail-store"
+import { nodes } from "@/lib/api/nodes"
+import { updateDetail } from "./detail-store"
 import { cn } from "@/lib/utils"
 import { Avatar } from "@/components/passport/ui"
 import { Label, Modal } from "@/components/passport/modal"
@@ -62,7 +61,8 @@ export function LocationDialog({ node: x, d, onClose }: { node: NodeRow; d: Node
 
   const save = () => {
     if (bad) return toast("Проверьте населённый пункт, адрес и координаты")
-    rowsStore.save(nodesList, { ...x, city: city.trim(), address: `г. ${city.trim()}, ${address.trim()}`, ll, onMap: true })
+    // TODO(API): координаты и покрытие — нет в /api/nodes/update; в режиме API пока только в паспорте
+    if (!nodes.isRemote()) void nodes.save({ ...x, city: city.trim(), address: `г. ${city.trim()}, ${address.trim()}`, ll, onMap: true }, false)
     updateDetail(x, (dd) =>
       log({ ...dd, coords: `${ll[0].toFixed(6)}, ${ll[1].toFixed(6)}`, coverage }, "Изменено местоположение", "edit", {
         note: "координаты и покрытие",
