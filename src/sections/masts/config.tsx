@@ -1,6 +1,6 @@
 import { RadioTower } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi } from "@/sections/api-helpers"
+import { genApi } from "@/lib/api/helpers"
 import { LINES, pick } from "@/sections/spec-helpers"
 
 /** АМС (макет 11): описание раздела и источник в API. */

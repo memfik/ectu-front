@@ -1,6 +1,6 @@
-import type { GenRow } from "@/sections/make"
+import type { Equip } from "@/lib/api/equipment"
 import { filialShort, filialId } from "@/lib/api/session"
-import type { ApiSource } from "@/lib/list/types"
+import type { RemoteSource } from "@/lib/api/remote"
 
 /*
  * Помощники источников API техучёта: чтение полей по пути, филиал, координаты, конструктор источника раздела.
@@ -57,8 +57,9 @@ export type Gen = {
 
 export const pairOf = (a: string, b: string) => (o: Raw) => (get(o, b) ? `${s(o, a, "0")} / ${s(o, b)}` : "—")
 
-export function genApi(g: Gen): ApiSource<GenRow> {
-  return {
+/** Источник раздела 07–37: поля записи `f` из полей API (`fields`), место — из узла связи записи. */
+export function genApi<F extends Record<string, string | number> = Record<string, string | number>>(g: Gen): RemoteSource<Equip<F>> {
+  const src: RemoteSource<Equip> = {
     base: g.base,
     list: g.list,
     idParam: g.idParam ?? "equipment_id",
@@ -103,4 +104,6 @@ export function genApi(g: Gen): ApiSource<GenRow> {
       ),
     }),
   }
+  // поля API без проверки типов — как пришли
+  return src as unknown as RemoteSource<Equip<F>>
 }

@@ -1,6 +1,6 @@
 import { Globe } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, s } from "@/sections/api-helpers"
+import { genApi, s } from "@/lib/api/helpers"
 import { num, pick } from "@/sections/spec-helpers"
 
 /** Единый IP-план (макет 15): описание раздела и источник в API. */

@@ -1,6 +1,6 @@
 import { RadioTower } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, s } from "@/sections/api-helpers"
+import { genApi, s } from "@/lib/api/helpers"
 import { STD_KPI, WIRELESS, num, pick } from "@/sections/spec-helpers"
 
 /** БС Транк (макет 30): описание раздела и источник в API. */

@@ -1,6 +1,6 @@
 import { Spline } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi } from "@/sections/api-helpers"
+import { genApi } from "@/lib/api/helpers"
 import { LINES, km, num, obj, pick } from "@/sections/spec-helpers"
 
 /** Кабельная канализация (макет 09): описание раздела и источник в API. */

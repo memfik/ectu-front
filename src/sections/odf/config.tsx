@@ -1,6 +1,6 @@
 import { Server } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, pairOf } from "@/sections/api-helpers"
+import { genApi, pairOf } from "@/lib/api/helpers"
 import { LINES, num, pick, used } from "@/sections/spec-helpers"
 
 /** ODF (макет 10): описание раздела и источник в API. */

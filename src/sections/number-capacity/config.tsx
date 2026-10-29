@@ -1,6 +1,6 @@
 import { Hash } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, pairOf, s } from "@/sections/api-helpers"
+import { genApi, pairOf, s } from "@/lib/api/helpers"
 import { num, pick } from "@/sections/spec-helpers"
 
 /** Номерная ёмкость (макет 21): описание раздела и источник в API. */

@@ -1,6 +1,6 @@
 import { filialId } from "@/lib/api/session"
 import type { ApiSource } from "@/lib/list/types"
-import { ASTANA, coords, n, s, branchOf } from "@/sections/api-helpers"
+import { ASTANA, coords, n, s, branchOf } from "@/lib/api/helpers"
 import type { SpdRow } from "./data"
 
 /* ---------- СПД: коммутаторы и маршрутизаторы ---------- */

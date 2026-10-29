@@ -1,6 +1,6 @@
 import { Package } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi } from "@/sections/api-helpers"
+import { genApi } from "@/lib/api/helpers"
 import { num, pick } from "@/sections/spec-helpers"
 
 /** ЗИП (макет 35): описание раздела и источник в API (`/api/replacements`). */

@@ -1,5 +1,5 @@
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, pairOf } from "@/sections/api-helpers"
+import { genApi, pairOf } from "@/lib/api/helpers"
 import { bwa } from "@/sections/bwa"
 
 /** БШД WLL (макет 29): описание раздела и источник в API. */

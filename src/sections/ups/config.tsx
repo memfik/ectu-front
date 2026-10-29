@@ -1,6 +1,6 @@
 import { BatteryCharging } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi } from "@/sections/api-helpers"
+import { genApi } from "@/lib/api/helpers"
 import { STD_KPI, num, pick } from "@/sections/spec-helpers"
 
 /** ИБП (макет 33): описание раздела и источник в API. */

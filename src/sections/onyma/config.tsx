@@ -1,6 +1,6 @@
 import { SquareUserRound } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, s } from "@/sections/api-helpers"
+import { genApi, s } from "@/lib/api/helpers"
 import { num, pick } from "@/sections/spec-helpers"
 
 /** Клиенты Onyma (макет 13): описание раздела и источник в API. */

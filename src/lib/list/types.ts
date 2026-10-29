@@ -8,8 +8,8 @@ import type { ReactNode } from "react"
 
 export type Row = { id: number }
 
-/** Цвет плашки статуса: работает / ремонт / выведен / резерв / нейтральный. */
-export type Tone = "ok" | "warn" | "bad" | "info" | "muted"
+import type { Tone } from "@/components/list/ui"
+export type { Tone }
 
 export type Column<T> = {
   k: string

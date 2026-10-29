@@ -16,8 +16,10 @@ export type TrashItem = {
   at: string
   by: string
   branch?: string
-  /** Сама запись — для «Восстановить» */
+  /** Сама запись (УС в Корзине) */
   row?: unknown
+  /** Вернуть запись в раздел */
+  restore?: () => void
 }
 
 let items: TrashItem[] = []

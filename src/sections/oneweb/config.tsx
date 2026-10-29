@@ -1,6 +1,6 @@
 import { Satellite } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, s } from "@/sections/api-helpers"
+import { genApi, s } from "@/lib/api/helpers"
 import { SAT, STD_KPI, num, pick } from "@/sections/spec-helpers"
 
 /** OneWeb LEO (макет 32): описание раздела и источник в API. */

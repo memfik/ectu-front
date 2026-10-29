@@ -1,6 +1,6 @@
 import { AudioWaveform } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, s } from "@/sections/api-helpers"
+import { genApi, s } from "@/lib/api/helpers"
 import { STD_KPI, WIRELESS, km, pick } from "@/sections/spec-helpers"
 
 /** Радиомосты (макет 26): описание раздела и источник в API. */

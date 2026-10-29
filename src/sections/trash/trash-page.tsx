@@ -8,11 +8,9 @@ import { Modal } from "@/components/passport/modal"
 import { glass } from "@/components/passport/ui"
 import { toast } from "@/components/shared/toast"
 import { findSection } from "@/config/nav"
-import { LISTS } from "@/sections"
 import { BRANCHES } from "@/sections/nodes/data"
 import { api, apiOn, type Page } from "@/lib/api/client"
 import { invalidate } from "@/lib/list/remote"
-import { rowsStore } from "@/lib/list/store"
 import { trash, useTrash, type TrashItem } from "@/lib/list/trash"
 import { cn } from "@/lib/utils"
 
@@ -145,7 +143,7 @@ export function TrashPage() {
       }
     }
     for (const x of items) {
-      if (x.row && LISTS[x.section]) rowsStore.save(LISTS[x.section], x.row as { id: number })
+      x.restore?.()
       if (live.includes(x)) trash.drop(x.section, [x.id])
       else setHidden((h) => [...h, key(x)])
     }

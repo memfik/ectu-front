@@ -1,6 +1,6 @@
 import { Link } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, s } from "@/sections/api-helpers"
+import { genApi, s } from "@/lib/api/helpers"
 import { num, pick } from "@/sections/spec-helpers"
 
 /** ID-каналы (макет 14): описание раздела и источник в API. */

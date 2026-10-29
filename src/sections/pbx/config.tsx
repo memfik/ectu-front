@@ -1,6 +1,6 @@
 import { Phone } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, pairOf } from "@/sections/api-helpers"
+import { genApi, pairOf } from "@/lib/api/helpers"
 import { STD_KPI, obj, pick } from "@/sections/spec-helpers"
 
 /** АТС (макет 20): описание раздела и источник в API. */

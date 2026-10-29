@@ -1,6 +1,6 @@
 import { filialId } from "@/lib/api/session"
 import type { ApiSource } from "@/lib/list/types"
-import { ASTANA, branchOf, coords, get, n, s, type Raw } from "@/sections/api-helpers"
+import { ASTANA, branchOf, coords, get, n, s, type Raw } from "@/lib/api/helpers"
 import type { NodeRow } from "./data"
 
 /* ---------- Узлы связи ---------- */

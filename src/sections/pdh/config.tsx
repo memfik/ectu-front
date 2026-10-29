@@ -1,6 +1,6 @@
 import { GitBranch } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, pairOf } from "@/sections/api-helpers"
+import { genApi, pairOf } from "@/lib/api/helpers"
 import { STD_KPI, num, pick, used } from "@/sections/spec-helpers"
 
 /** PDH (макет 22): описание раздела и источник в API. */

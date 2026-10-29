@@ -1,6 +1,6 @@
 import { Cable } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, s } from "@/sections/api-helpers"
+import { genApi, s } from "@/lib/api/helpers"
 import { LINES, km, num, obj, pick } from "@/sections/spec-helpers"
 
 /** КЛС (макет 08): описание раздела и источник в API. */

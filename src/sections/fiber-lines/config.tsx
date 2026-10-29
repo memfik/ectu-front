@@ -1,6 +1,6 @@
 import { Cable } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, pairOf, s } from "@/sections/api-helpers"
+import { genApi, pairOf, s } from "@/lib/api/helpers"
 import { LINES, km, obj, pick, used } from "@/sections/spec-helpers"
 
 /** ВОЛС (макет 07): описание раздела и источник в API. */

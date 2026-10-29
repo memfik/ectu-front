@@ -1,6 +1,6 @@
 import { Radio } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, s } from "@/sections/api-helpers"
+import { genApi, s } from "@/lib/api/helpers"
 import { STD_KPI, km, num, pick } from "@/sections/spec-helpers"
 
 /** РРЛ (макет 25): описание раздела и источник в API. */

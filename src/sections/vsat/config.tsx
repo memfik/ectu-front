@@ -1,6 +1,6 @@
 import { SatelliteDish } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi } from "@/sections/api-helpers"
+import { genApi } from "@/lib/api/helpers"
 import { SAT, STD_KPI, num, pick } from "@/sections/spec-helpers"
 
 /** ЗССС SkyEdge II GEO (макет 31): описание раздела и источник в API. */

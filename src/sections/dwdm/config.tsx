@@ -1,6 +1,6 @@
 import { Rows3 } from "lucide-react"
 import { makeList, type Spec } from "@/sections/make"
-import { genApi, pairOf } from "@/sections/api-helpers"
+import { genApi, pairOf } from "@/lib/api/helpers"
 import { STD_KPI, pick, used } from "@/sections/spec-helpers"
 
 /** DWDM (макет 24): описание раздела и источник в API. */
