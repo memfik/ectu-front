@@ -23,7 +23,7 @@ import {
 import { btn, circ } from "@/components/list/ui"
 import { toast } from "@/components/shared/toast"
 import { cn } from "@/lib/utils"
-import { nodeCameras, type Camera } from "./data"
+import { nodeCameras, type Camera } from "@/lib/api/cameras"
 
 /** Кадр камеры: фото с «шумом», LIVE и подписью; без сигнала — заглушка. */
 export function CamFrame({ c, big, className }: { c: Camera; big?: boolean; className?: string }) {
