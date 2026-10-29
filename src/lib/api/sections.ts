@@ -6,10 +6,15 @@ import { backupColumns, backups } from "./backups"
 import { lte, lteColumns, lteImport } from "./bwa-lte"
 import { wimax, wimaxColumns, wimaxImport } from "./bwa-wimax"
 import { wll, wllColumns, wllImport } from "./bwa-wll"
+import { dwdmColumns, dwdmDevices, dwdmImport } from "./dwdm"
 import { fiberLineColumns, fiberLines, fiberLinesImport } from "./fiber-lines"
 import { ipPlan, ipPlanColumns } from "./ip-plan"
 import { nodeColumns, nodes, nodesImport } from "./nodes"
+import { pdhColumns, pdhDevices, pdhImport } from "./pdh"
+import { radioBridgeColumns, radioBridges, radioBridgesImport } from "./radio-bridges"
 import { routerColumns, routers, routersImport } from "./routers"
+import { rrlColumns, rrlImport, rrlSpans } from "./rrl"
+import { sdhColumns, sdhDevices, sdhImport } from "./sdh"
 import { sparePartColumns, spareParts, sparePartsImport } from "./spare-parts"
 import { switchColumns, switches, switchesImport } from "./switches"
 
@@ -37,6 +42,11 @@ export const SECTIONS: SectionData[] = [
   section({ key: "nodes", title: "Узлы связи", crumb: "Сеть", all: nodes.all, columns: nodeColumns, import: nodesImport }),
   section({ key: "switches", title: "Коммутаторы", crumb: "Оборудование / Системы передачи данных", all: switches.all, columns: switchColumns, import: switchesImport }),
   section({ key: "routers", title: "Маршрутизаторы", crumb: "Оборудование / Системы передачи данных", all: routers.all, columns: routerColumns, import: routersImport }),
+  section({ key: "pdh", title: "PDH", crumb: "Оборудование / Проводные технологии", all: pdhDevices.all, columns: pdhColumns, import: pdhImport }),
+  section({ key: "sdh", title: "SDH", crumb: "Оборудование / Проводные технологии", all: sdhDevices.all, columns: sdhColumns, import: sdhImport }),
+  section({ key: "dwdm", title: "DWDM", crumb: "Оборудование / Проводные технологии", all: dwdmDevices.all, columns: dwdmColumns, import: dwdmImport }),
+  section({ key: "rrl", title: "РРЛ", crumb: "Оборудование / Беспроводные технологии", all: rrlSpans.all, columns: rrlColumns, import: rrlImport }),
+  section({ key: "radio-bridges", title: "Радиомосты", crumb: "Оборудование / Беспроводные технологии", all: radioBridges.all, columns: radioBridgeColumns, import: radioBridgesImport }),
   section({ key: "bwa-wimax", title: "БШД WiMAX", crumb: "Оборудование / Беспроводные технологии", all: wimax.all, columns: wimaxColumns, import: wimaxImport }),
   section({ key: "bwa-lte", title: "БШД Telrad LTE", crumb: "Оборудование / Беспроводные технологии", all: lte.all, columns: lteColumns, import: lteImport }),
   section({ key: "bwa-wll", title: "БШД WLL", crumb: "Оборудование / Беспроводные технологии", all: wll.all, columns: wllColumns, import: wllImport }),
