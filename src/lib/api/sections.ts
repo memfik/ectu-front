@@ -2,7 +2,9 @@
 
 import type { ReportCol } from "@/components/blocks/report-dialog"
 import type { ImportSpec } from "@/lib/list/import-file"
+import { backupColumns, backups } from "./backups"
 import { fiberLineColumns, fiberLines, fiberLinesImport } from "./fiber-lines"
+import { ipPlan, ipPlanColumns } from "./ip-plan"
 import { nodeColumns, nodes, nodesImport } from "./nodes"
 
 /*
@@ -27,6 +29,8 @@ const section = <T extends Rec>(s: { key: string; title: string; crumb: string; 
 
 export const SECTIONS: SectionData[] = [
   section({ key: "nodes", title: "Узлы связи", crumb: "Сеть", all: nodes.all, columns: nodeColumns, import: nodesImport }),
+  section({ key: "ip-plan", title: "Единый IP-план", crumb: "Сервисы", all: ipPlan.all, columns: ipPlanColumns }),
+  section({ key: "backups", title: "Резервные копии", crumb: "Сервисы", all: backups.all, columns: backupColumns }),
   section({ key: "fiber-lines", title: "ВОЛС", crumb: "Линии и сооружения", all: fiberLines.all, columns: fiberLineColumns, import: fiberLinesImport }),
 ]
 
