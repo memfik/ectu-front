@@ -1,10 +1,4 @@
-import { Header } from "@/components/layout/header"
-import { Toaster } from "@/components/shared/toast"
-
-/**
- * Каркас страниц ошибок (404) вне группы (main): шапка с меню остаётся под рукой, фон — плывущие синие пятна,
- * без проверки входа и уведомлений.
- */
+/** Каркас страниц ошибок (404) вне группы (main): без шапки, по центру экрана, фон — плывущие синие пятна. */
 export function ErrorLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
@@ -13,9 +7,7 @@ export function ErrorLayout({ children }: { children: React.ReactNode }) {
         <i />
         <i />
       </div>
-      <Header />
-      <main className="relative z-[1] flex-1 overflow-x-clip pb-16">{children}</main>
-      <Toaster />
+      <main className="relative z-[1] grid min-h-dvh flex-1 place-items-center px-6 py-12">{children}</main>
     </>
   )
 }
