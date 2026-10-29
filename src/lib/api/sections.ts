@@ -8,6 +8,7 @@ import { wimax, wimaxColumns, wimaxImport } from "./bwa-wimax"
 import { wll, wllColumns, wllImport } from "./bwa-wll"
 import { cableDuctColumns, cableDucts, cableDuctsImport } from "./cable-ducts"
 import { cableLineColumns, cableLines, cableLinesImport } from "./cable-lines"
+import { channelColumns, channels, channelsImport } from "./channel-ids"
 import { dwdmColumns, dwdmDevices, dwdmImport } from "./dwdm"
 import { fiberLineColumns, fiberLines, fiberLinesImport } from "./fiber-lines"
 import { genColumns, genImport, genUnits } from "./gen"
@@ -15,10 +16,14 @@ import { ipPlan, ipPlanColumns } from "./ip-plan"
 import { landPlotColumns, landPlots, landPlotsImport } from "./land-plots"
 import { mastColumns, masts, mastsImport } from "./masts"
 import { nodeColumns, nodes, nodesImport } from "./nodes"
+import { onyma, onymaColumns } from "./onyma"
 import { onewebColumns, onewebImport, onewebs } from "./oneweb"
 import { onewebStations, stationColumns, stationsImport } from "./oneweb-form"
+import { numberCapacities, numberCapacityColumns, numberCapacityImport } from "./number-capacity"
 import { odfColumns, odfImport, odfs } from "./odf"
+import { pbxColumns, pbxImport, pbxs } from "./pbx"
 import { pdhColumns, pdhDevices, pdhImport } from "./pdh"
+import { prospectColumns, prospects, prospectsImport } from "./prospects"
 import { radioBridgeColumns, radioBridges, radioBridgesImport } from "./radio-bridges"
 import { routerColumns, routers, routersImport } from "./routers"
 import { rrlColumns, rrlImport, rrlSpans } from "./rrl"
@@ -58,6 +63,11 @@ export const SECTIONS: SectionData[] = [
   section({ key: "odf", title: "ODF", crumb: "Линии и сооружения", all: odfs.all, columns: odfColumns, import: odfImport }),
   section({ key: "masts", title: "АМС", crumb: "Линии и сооружения", all: masts.all, columns: mastColumns, import: mastsImport }),
   section({ key: "land-plots", title: "Земельные участки", crumb: "Сеть", all: landPlots.all, columns: landPlotColumns, import: landPlotsImport }),
+  section({ key: "prospects", title: "Потенциальные клиенты", crumb: "Клиенты", all: prospects.all, columns: prospectColumns, import: prospectsImport }),
+  section({ key: "onyma", title: "Клиенты Onyma", crumb: "Клиенты", all: onyma.all, columns: onymaColumns }),
+  section({ key: "channel-ids", title: "ID-каналы", crumb: "Клиенты", all: channels.all, columns: channelColumns, import: channelsImport }),
+  section({ key: "pbx", title: "АТС", crumb: "Оборудование / Автоматическая электросвязь", all: pbxs.all, columns: pbxColumns, import: pbxImport }),
+  section({ key: "number-capacity", title: "Номерная ёмкость", crumb: "Оборудование / Автоматическая электросвязь", all: numberCapacities.all, columns: numberCapacityColumns, import: numberCapacityImport }),
   section({ key: "pdh", title: "PDH", crumb: "Оборудование / Проводные технологии", all: pdhDevices.all, columns: pdhColumns, import: pdhImport }),
   section({ key: "sdh", title: "SDH", crumb: "Оборудование / Проводные технологии", all: sdhDevices.all, columns: sdhColumns, import: sdhImport }),
   section({ key: "dwdm", title: "DWDM", crumb: "Оборудование / Проводные технологии", all: dwdmDevices.all, columns: dwdmColumns, import: dwdmImport }),
