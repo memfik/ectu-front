@@ -1,5 +1,4 @@
 import type { Spec } from "@/sections/make"
-import { spec as fiberLines } from "@/sections/fiber-lines/config"
 import { spec as cableLines } from "@/sections/cable-lines/config"
 import { spec as cableDucts } from "@/sections/cable-ducts/config"
 import { spec as odf } from "@/sections/odf/config"
@@ -30,7 +29,6 @@ import { spec as onewebForm } from "@/sections/oneweb-form/config"
 
 /** Разделы на общем шаблоне (макеты 07–37, 42): у каждого своя папка src/sections/<раздел>/. */
 export const SPECS: Spec[] = [
-  fiberLines,
   cableLines,
   cableDucts,
   odf,

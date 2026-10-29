@@ -29,7 +29,7 @@ import { LAYING, kmStr, parseKm, type LineDetail, type LineEvent, type LineKind,
 /* ---------- vols-t1 · Участки ---------- */
 
 /** Вкладка «Участки» (vols-t1, kls-t1): таблица участков трассы, добавление и правка (vols-x0), удаление. */
-export function SegmentsTab({ d, k, onChange }: { d: LineDetail; k: LineKind; onChange: (s: Segment[]) => void }) {
+export function SegmentsTab({ d, k, onChange }: { d: LineDetail; k: Pick<LineKind, "laying" | "point">; onChange: (s: Segment[]) => void }) {
   const [edit, setEdit] = useState<Segment | "new" | null>(null)
   const list = d.segments
   return (
@@ -199,10 +199,10 @@ function SegmentDialog({
 
 /* ---------- vols-t2 / kls-t2 · Волокна, медные пары ---------- */
 
-export const strandColor = (k: LineKind, f: Strand) => (f === "a" ? k.strand.a[1] : f === "b" ? k.strand.b[1] : "var(--chip-bg)")
+export const strandColor = (k: Pick<LineKind, "strand">, f: Strand) => (f === "a" ? k.strand.a[1] : f === "b" ? k.strand.b[1] : "var(--chip-bg)")
 
 /** Вкладка «Волокна» (vols-t2) / «Медные пары» (kls-t2): сетка жил и сводка. */
-export function StrandsTab({ x, d, k }: { x: GenRow; d: LineDetail; k: LineKind }) {
+export function StrandsTab({ x, d, k }: { x: GenRow; d: LineDetail; k: Pick<LineKind, "strand" | "strandRows"> }) {
   return (
     <Card icon={Rows3} title={k.strand.tab} count={d.strands.length}>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-2">

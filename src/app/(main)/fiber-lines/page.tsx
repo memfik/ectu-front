@@ -11,7 +11,7 @@ import { MapBlock, type ListPoint } from "@/components/blocks/map-block"
 import { PreviewPanel } from "@/components/blocks/preview"
 import { QrDialog } from "@/components/blocks/qr-dialog"
 import { CardGrid, RecordCard } from "@/components/blocks/record-card"
-import { ReportDialog, type ReportCol } from "@/components/blocks/report-dialog"
+import { ReportDialog } from "@/components/blocks/report-dialog"
 import { DataTable, EmptyRow, HeadRow, HeadSelect, NothingFound, PAGE_SIZE, PAGE_SIZES, Pager, Row, RowSelect, Td, TdActions, Th, ThActions, type Sort } from "@/components/blocks/table"
 import {
   ActiveChips,
@@ -33,7 +33,7 @@ import { FiberLineForm } from "@/components/fiber-lines/fiber-line-form"
 import { toast } from "@/components/shared/toast"
 import { usePageTitle } from "@/hooks/use-page-title"
 import { BRANCH_OPTIONS, branchName, EQUIP_REMOVE, qrUrl } from "@/lib/api/equipment"
-import { FIBER_STATUS, fiberLineName, fiberLines, fiberLineSub, fiberLinesImport, fiberStatus, NETWORKS, OWNERS, useFiberLines, type FiberLine } from "@/lib/api/fiber-lines"
+import { FIBER_STATUS, fiberLineColumns, fiberLineName, fiberLines, fiberLineSub, fiberLinesImport, fiberStatus, NETWORKS, OWNERS, useFiberLines, type FiberLine } from "@/lib/api/fiber-lines"
 import { distinct, picked, sortRows, withCounts } from "@/lib/list/filter"
 import { fmt } from "@/lib/list/query"
 
@@ -88,20 +88,6 @@ function filterFiberLines(rows: FiberLine[], q: Query) {
 
 const STATUS_OPTIONS = Object.entries(FIBER_STATUS).map(([v, [label]]) => ({ v, label }))
 const opts = (list: string[]) => list.map((v) => ({ v, label: v }))
-
-/** Колонки отчёта (n-08) — все поля трассы. */
-const REPORT: ReportCol<FiberLine>[] = [
-  { k: "branch", t: "Филиал", value: (x) => x.branch },
-  { k: "nodeCode", t: "Идентификатор УС", value: (x) => x.nodeCode },
-  { k: "name", t: "Наименование трассы", value: (x) => x.f.name },
-  { k: "route", t: "Начало → конец", value: (x) => x.f.route },
-  { k: "len", t: "Длина, км", value: (x) => x.f.len },
-  { k: "fibers", t: "Волокна", value: (x) => x.f.fibers },
-  { k: "cable", t: "Тип прокладки / кабель", value: (x) => x.f.cable },
-  { k: "owner", t: "Собственник ВОК", value: (x) => x.f.owner },
-  { k: "network", t: "Тип сети", value: (x) => x.f.network },
-  { k: "total", t: "Суммарная длина кабеля, км", value: (x) => x.f.total },
-]
 
 const href = (id: number) => `/fiber-lines/${id}`
 
@@ -378,7 +364,7 @@ export default function FiberLinesPage() {
       {report && (
         <ReportDialog
           title="ВОЛС"
-          columns={REPORT}
+          columns={fiberLineColumns}
           rows={rows}
           filtered={filterFiberLines(rows, q)}
           active={describe(q, options)}

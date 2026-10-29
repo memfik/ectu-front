@@ -2,11 +2,14 @@
 
 import { useState } from "react"
 import { Check, CircleAlert, FileSpreadsheet, FileUp, Upload } from "lucide-react"
+import { ImportDialog as NewImportDialog } from "@/components/blocks/import-dialog"
 import { ImportDialog } from "@/components/list/import-dialog"
 import { btn, Pill } from "@/components/list/ui"
 import { Card, glass } from "@/components/passport/ui"
 import { LISTS } from "@/sections"
 import { downloadTemplate } from "@/lib/list/import"
+import { downloadTemplate as newTemplate } from "@/lib/list/import-file"
+import { SECTIONS, sectionOf } from "@/lib/api/sections"
 import { cn } from "@/lib/utils"
 
 /*
@@ -23,7 +26,15 @@ const HISTORY: [string, string, string, "ok" | "bad"][] = [
 
 export function ImportPage() {
   const [open, setOpen] = useState<string | null>(null)
-  const sections = Object.values(LISTS).filter((l) => l.buttons.some((b) => b.onClick === "import"))
+  // TODO(перенос): после переноса всех разделов — только SECTIONS
+  const sections = [
+    ...SECTIONS.filter((x) => x.import).map((x) => ({ key: x.key, title: x.title, template: () => newTemplate(x.import!, ["branch"]) })),
+    ...Object.values(LISTS)
+      .filter((l) => l.buttons.some((b) => b.onClick === "import"))
+      .map((l) => ({ key: l.key, title: l.title, template: () => downloadTemplate(l) })),
+  ]
+  const types = sections.map((x) => ({ v: x.key, label: x.title }))
+  const fresh = open ? sectionOf(open)?.import : undefined
 
   return (
     <div className="px-(--page-gutter)">
@@ -73,7 +84,7 @@ export function ImportPage() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <b className="block truncate text-[13.5px] font-semibold">{l.title}</b>
-                  <button type="button" className="text-xs text-[var(--link)]" onClick={() => downloadTemplate(l)}>
+                  <button type="button" className="text-xs text-[var(--link)]" onClick={l.template}>
                     Скачать шаблон
                   </button>
                 </span>
@@ -102,7 +113,8 @@ export function ImportPage() {
           ))}
         </Card>
       </div>
-      {open && LISTS[open] && <ImportDialog key={open} cfg={LISTS[open]} onType={setOpen} onClose={() => setOpen(null)} />}
+      {fresh && <NewImportDialog key={open} spec={fresh} types={types} onType={setOpen} onClose={() => setOpen(null)} />}
+      {open && !fresh && LISTS[open] && <ImportDialog key={open} cfg={LISTS[open]} onType={setOpen} onClose={() => setOpen(null)} />}
     </div>
   )
 }

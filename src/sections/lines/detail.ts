@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react"
-import type { GenRow, Spec } from "@/sections/make"
+import type { GenRow } from "@/lib/api/equipment"
+import type { Spec } from "@/sections/make"
 import { nodeRows, type NodeRow } from "@/sections/nodes/data"
 import type { ListConfig } from "@/lib/list/types"
 
@@ -144,7 +145,10 @@ export const parseKm = (v: string | number) => parseFloat(String(v).replace(",",
 
 const cache = new Map<string, LineDetail>()
 
-export function lineDetail(x: GenRow, k: LineKind): LineDetail {
+/** Что нужно генератору примеров паспорта линии. */
+export type LineData = Pick<LineKind, "section" | "point" | "count" | "ends" | "pointsOf" | "length" | "inputDocs" | "docs" | "lastEdit">
+
+export function lineDetail(x: GenRow, k: LineData): LineDetail {
   const key = `${k.section}:${x.id}:${JSON.stringify(x.f)}`
   const hit = cache.get(key)
   if (hit) return hit

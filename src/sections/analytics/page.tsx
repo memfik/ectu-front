@@ -6,6 +6,7 @@ import { Select } from "@/components/list/form-controls"
 import { btn } from "@/components/list/ui"
 import { glass } from "@/components/passport/ui"
 import { LISTS } from "@/sections"
+import { sectionOf } from "@/lib/api/sections"
 import { BRANCHES } from "@/sections/nodes/data"
 import { api, apiOn } from "@/lib/api/client"
 import { cn } from "@/lib/utils"
@@ -49,10 +50,12 @@ const empty = (v: unknown) => v === undefined || v === null || String(v).trim() 
 
 /** Заполненность полей по примерным данным раздела. */
 function localStats(section: string, branch: string): FieldStat[] {
+  const fresh = sectionOf(section)
   const cfg = LISTS[section]
-  if (!cfg) return []
-  const rows = (cfg.rows() as { branch?: string }[]).filter((x) => !branch || x.branch === branch)
-  return cfg.report.cols
+  if (!fresh && !cfg) return []
+  const rows = ((fresh ? fresh.all() : cfg.rows()) as { branch?: string }[]).filter((x) => !branch || x.branch === branch)
+  const cols = (fresh ? fresh.columns : cfg.report.cols) as { k: string; t: string; value: (x: never) => unknown }[]
+  return cols
     .filter((c) => c.k !== "num" && c.k !== "id")
     .map((c) => ({ label: c.t, total: rows.length, filled: rows.filter((x) => !empty(c.value(x as never))).length }))
 }

@@ -1,10 +1,12 @@
 "use client"
 
 import type { Tone } from "@/components/list/ui"
+import type { ReportCol } from "@/components/blocks/report-dialog"
 import type { ImportSpec } from "@/lib/list/import-file"
 import { BRANCH_FULL, blankEquip, km, nodeOptions, obj, pair, pick, seedEquip, used, withNode, type Equip } from "./equipment"
 import { genApi, pairOf, s } from "./helpers"
 import { createSource } from "./source"
+import { lineDetail, usTitle, type LineDetail } from "@/sections/lines/detail"
 
 /*
  * 07 ВОЛС — данные раздела. Без API — примеры в памяти вкладки (первые 5 трасс из макета).
@@ -116,6 +118,20 @@ export const blankFiberLine = (): FiberLine =>
 /** «8 / 24» или «—» — иначе ошибка формата. */
 export const checkPair = (v: string) => (pair(v) || v === "—" ? undefined : "Формат: 8 / 24")
 
+/** Колонки отчёта (n-08) и аналитики заполненности — все поля трассы. */
+export const fiberLineColumns: ReportCol<FiberLine>[] = [
+  { k: "branch", t: "Филиал", value: (x) => x.branch },
+  { k: "nodeCode", t: "Идентификатор УС", value: (x) => x.nodeCode },
+  { k: "name", t: "Наименование трассы", value: (x) => x.f.name },
+  { k: "route", t: "Начало → конец", value: (x) => x.f.route },
+  { k: "len", t: "Длина, км", value: (x) => x.f.len },
+  { k: "fibers", t: "Волокна", value: (x) => x.f.fibers },
+  { k: "cable", t: "Тип прокладки / кабель", value: (x) => x.f.cable },
+  { k: "owner", t: "Собственник ВОК", value: (x) => x.f.owner },
+  { k: "network", t: "Тип сети", value: (x) => x.f.network },
+  { k: "total", t: "Суммарная длина кабеля, км", value: (x) => x.f.total },
+]
+
 /** Импорт Excel: поля — как в форме. */
 export const fiberLinesImport: ImportSpec<FiberLine> = {
   key: "fiber-lines",
@@ -151,3 +167,41 @@ export const fiberLinesImport: ImportSpec<FiberLine> = {
   nextId: fiberLines.nextId,
   save: fiberLines.save,
 }
+
+/* ---------- паспорт ---------- */
+
+/** Волокна из записи: всего, занято (a), резерв (b). */
+export function fiberCount(x: FiberLine) {
+  const m = String(x.f.fibers).match(/(\d+|—) \/ (\d+)/)
+  const total = m ? +m[2] : 8
+  const a = m && m[1] !== "—" ? Math.min(+m[1], total) : 0
+  return { total, a, b: a < total ? 1 : 0 }
+}
+
+/**
+ * Участки, волокна, документы, история трассы. TODO(API): /api/bols/children (участки и волокна), документы и история —
+ * пока примеры по номеру записи.
+ */
+export const fiberLineDetail = (x: FiberLine): LineDetail =>
+  lineDetail(x, {
+    section: "fiber-lines",
+    point: (i) => `Муфта М-${i + 1}`,
+    count: (r) => fiberCount(r as FiberLine),
+    ends: (r, a, b) => [
+      { code: a?.code ?? r.nodeCode, title: a ? usTitle(a) : "муфта", nodeId: a?.id },
+      { code: b?.code ?? "—", title: b ? usTitle(b) : "УС «РТПЦ»", nodeId: b?.id },
+    ],
+    inputDocs: [
+      { t: "Ввод в эксплуатацию", n: "№ 77 от 03.12.2025" },
+      { t: "Акт приёмной комиссии", n: "№ 77-п от 01.12.2025" },
+      { t: "ТУ", n: "№ 1203 от 10.10.2025" },
+    ],
+    docs: [
+      { name: "№, дата документа о вводе в эксплуатацию", req: "№ 77 от 03.12.2025", uploaded: true },
+      { name: "№, дата акта приёмной комиссии", req: "№ 77-п от 01.12.2025", uploaded: true },
+      { name: "Реквизиты технических условий (ТУ)", req: "№ 1203 от 10.10.2025", uploaded: true },
+      { name: "Основание аренды КК (договор)", req: "—", uploaded: false },
+      { name: "Исполнительная схема", req: "PDF", uploaded: true },
+    ],
+    lastEdit: (c) => ["Изменено «Кол-во волокон занятых»", String(Math.max(0, c.a - 1)), String(c.a)],
+  })

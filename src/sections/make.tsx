@@ -11,20 +11,8 @@ import type { ApiSource, Column, Field, Filter, Kpi, ListConfig, Tone } from "@/
  * TODO: API — у каждого раздела своя таблица БД (см. docs/design-handoff.md §5).
  */
 
-export type Val = string | number
-export type GenRow = {
-  id: number
-  num: string
-  branch: string
-  nodeId: number
-  nodeCode: string
-  city: string
-  address: string
-  ll: [number, number]
-  /** Ключ статуса из `Spec.statuses` */
-  status: string
-  f: Record<string, Val>
-}
+import type { GenRow, Val } from "@/lib/api/equipment"
+export type { GenRow, Val }
 
 /** Колонка / поле записи. `show` — вид в таблице. */
 export type SpecCol = {

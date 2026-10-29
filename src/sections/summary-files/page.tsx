@@ -8,6 +8,7 @@ import { btn } from "@/components/list/ui"
 import { glass } from "@/components/passport/ui"
 import { findSection } from "@/config/nav"
 import { LISTS } from "@/sections"
+import { sectionOf } from "@/lib/api/sections"
 import { cn } from "@/lib/utils"
 import { BRANCH_ROWS, LS_TOTAL, TOTAL, summaryOf, type Summary } from "./data"
 
@@ -28,9 +29,9 @@ async function toXlsx(name: string, head: string[], rows: (string | number)[][])
 
 /** Сводный файл раздела без своей формы в макете: записи примера по филиалам. */
 function fallback(section: string): Summary | undefined {
-  const cfg = LISTS[section]
+  const cfg = sectionOf(section) ?? LISTS[section]
   if (!cfg) return
-  const rows = cfg.rows() as { branch?: string; status?: string }[]
+  const rows = ("all" in cfg ? cfg.all() : cfg.rows()) as { branch?: string; status?: string }[]
   const by = (b: string) => rows.filter((x) => x.branch === b)
   return {
     key: section,
