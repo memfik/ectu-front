@@ -178,13 +178,14 @@ export default function Dashboard() {
 
   return (
     <div className="relative isolate">
-      <section className="relative -mt-[96px] overflow-hidden px-(--page-gutter) pt-[150px] pb-10">
-        <div
-          aria-hidden
-          className="hero-map absolute inset-0 -z-10 bg-cover bg-[position:70%_40%] opacity-90 [mask-image:linear-gradient(90deg,transparent_25%,#000_65%)]"
-          style={{ backgroundImage: "url(/home/hero.jpg)" }}
-        />
-        <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-[linear-gradient(180deg,transparent,var(--background))] not-dark:hidden" />
+      <section className="relative -mt-[96px] px-(--page-gutter) pt-[150px] pb-10">
+        {/* Карта как в макете 06: при 1920 — 1600×900, справа −180; поднята выше макета, чтобы больше страны было над KPI */}
+        <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-[640px] overflow-hidden [mask-image:linear-gradient(180deg,#000_62%,transparent)]">
+          <div
+            className="hero-map absolute top-[-5.5vw] right-[-9.375vw] aspect-video w-[83.33vw] bg-cover bg-center opacity-95 [mask-image:linear-gradient(90deg,transparent_0,#000_30%)] max-sm:top-0 max-sm:right-0 max-sm:aspect-auto max-sm:h-full max-sm:w-full max-sm:opacity-35"
+            style={{ backgroundImage: "url(/home/hero.jpg)" }}
+          />
+        </div>
         <p className="flex items-center gap-2 text-sm text-[var(--link)] first-letter:uppercase">
           <Sun className="size-4" />
           {now ? `${today} · Астана ${time}` : "\u00a0"}
