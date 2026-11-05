@@ -181,10 +181,10 @@ export default function Dashboard() {
       <section className="relative -mt-[96px] overflow-hidden px-(--page-gutter) pt-[150px] pb-10">
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 bg-cover bg-[position:70%_40%] opacity-90 [mask-image:linear-gradient(90deg,transparent_25%,#000_65%)]"
+          className="hero-map absolute inset-0 -z-10 bg-cover bg-[position:70%_40%] opacity-90 [mask-image:linear-gradient(90deg,transparent_25%,#000_65%)]"
           style={{ backgroundImage: "url(/home/hero.jpg)" }}
         />
-        <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-[linear-gradient(180deg,transparent,var(--background))]" />
+        <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-[linear-gradient(180deg,transparent,var(--background))] not-dark:hidden" />
         <p className="flex items-center gap-2 text-sm text-[var(--link)] first-letter:uppercase">
           <Sun className="size-4" />
           {now ? `${today} · Астана ${time}` : "\u00a0"}

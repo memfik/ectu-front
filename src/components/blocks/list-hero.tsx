@@ -32,11 +32,11 @@ export function ListHero({
       {hero && (
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 bg-cover bg-[position:70%_30%] [mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,0.35)_25%,#000_60%)] max-[1279px]:opacity-35 not-dark:opacity-50"
+          className="hero-photo absolute inset-0 -z-10 bg-cover bg-[position:70%_30%] [mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,0.35)_25%,#000_60%)] max-[1279px]:opacity-35"
           style={{ backgroundImage: `url(${hero})` }}
         />
       )}
-      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-[220px] bg-[linear-gradient(180deg,transparent,var(--background))]" />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-[220px] bg-[linear-gradient(180deg,transparent,var(--background))] not-dark:hidden" />
 
       <div className="flex flex-wrap items-end gap-5 px-(--page-gutter) pt-[150px] max-[1279px]:pt-[120px] max-sm:pt-[110px]">
         <div className="min-w-0">

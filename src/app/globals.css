@@ -395,6 +395,22 @@
   background: radial-gradient(1100px 380px at 60% -120px, rgba(0, 26, 159, 0.4), transparent 70%) no-repeat, var(--background);
 }
 
+/* Светлая тема: картинки в шапках сделаны для тёмного фона, с прозрачностью они дают серую дымку.
+   Фото в шапках списков не показываем — остаётся градиент фона. Карту на главной светлим инверсией
+   с сохранением цвета; край растворяем маской, а не заливкой, чтобы не было шва на фоне body. */
+:root:not(.dark) .hero-photo {
+  display: none;
+}
+:root:not(.dark) .hero-map {
+  --hero-fade: linear-gradient(90deg, transparent 28%, #000 62%), linear-gradient(180deg, #000 45%, transparent 92%);
+  -webkit-mask-image: var(--hero-fade);
+  mask-image: var(--hero-fade);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  opacity: 1;
+  filter: invert(1) hue-rotate(180deg) brightness(1.05) saturate(1.2);
+}
+
 /* ---------- 404: точечная сетка, сияние за цифрой, орбиты с бегущими точками ---------- */
 .nf-bg {
   position: fixed;
